@@ -65,10 +65,10 @@ python-dotenv>=1.0.0
                 text=True
             )
             
-            # Run tests with coverage and correct Python path
-            env["PYTHONPATH"] = f"{str(app_dir)}/src:{str(app_dir)}/tests"
+            # Run tests with correct Python path
+            env["PYTHONPATH"] = str(app_dir)
             result = subprocess.run(
-                [str(python_path), "-m", "pytest", "--import-mode=importlib"],
+                [str(python_path), "-m", "pytest", "--import-mode=importlib", "--no-cov"],
                 cwd=app_dir,
                 env=env,
                 capture_output=True,
