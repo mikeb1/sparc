@@ -189,6 +189,19 @@ async def test_generated_code_passes_tests(clean_test_dir, cli_script, output_di
         arch_dir = clean_test_dir / "architecture"
         arch_dir.mkdir(exist_ok=True)
         
+        # Define guidance for architecture generation
+        guidance = {
+            "specification": {
+                "content": "Create a FastAPI REST service with user authentication and CRUD operations"
+            },
+            "architecture": {
+                "content": "Define core components for auth, database, and error handling"
+            },
+            "pseudocode": {
+                "content": "Outline key functions and data flows between components"
+            }
+        }
+        
         success = await generate_architecture_files(arch_dir, guidance)
         assert success, "Failed to generate architecture files"
 
