@@ -296,6 +296,44 @@ def test_handle_credentials_error():
 '''
     return f"def test_{component.lower()}():\n    pass\n"
 
+def generate_md_file(filename: str, arch_dir: Path, guidance: dict, config: SPARCConfig) -> tuple[str, bool]:
+    """Generate a single markdown file using LiteLLM. Returns (filename, success)"""
+    file_path = arch_dir / filename
+    if file_path.exists():
+        logger.info(f"{filename} already exists. Skipping.")
+        return (filename, True)
+    
+    try:
+        # Get guidance content for this file
+        file_guidance = guidance.get(filename[:-3].lower(), {}).get('content', '')
+        
+        # Generate content using LiteLLM
+        response = completion(
+            model=config.model,
+            messages=[{
+                "role": "system",
+                "content": "You are an expert software architect following the SPARC framework. Generate detailed, comprehensive documentation that follows best practices and industry standards."
+            }, {
+                "role": "user",
+                "content": f"Generate detailed content for {filename} based on this guidance:\n\n{file_guidance}"
+            }],
+            temperature=config.temperature,
+            max_tokens=config.max_tokens
+        )
+        
+        content = response.choices[0].message.content
+        if not content:
+            content = f"# {filename[:-3]}\n\nError: No content generated"
+            
+        with open(file_path, 'w') as f:
+            f.write(content)
+        logger.info(f"Generated {filename} with LiteLLM")
+        return (filename, True)
+        
+    except Exception as e:
+        logger.error(f"Error generating {filename}: {str(e)}")
+        return (filename, False)
+
 def main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI with LiteLLM integration')
     subparsers = parser.add_subparsers(dest='mode', help='Modes of operation')
@@ -466,7 +504,7 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
                 f.write(readme_content)
             logger.info("Generated README.md in architecture directory")
 
-        # Create architecture files using LiteLLM
+        # Create architecture files using LiteLLM concurrently
         files_to_generate = [
             "Specification.md",
             "Pseudocode.md", 
@@ -475,18 +513,33 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
             "Completion.md"
         ]
 
-        # Initialize LiteLLM configuration
-        try:
-            for filename in files_to_generate:
-                file_path = arch_dir / filename
-                if not file_path.exists():
-                    # Get guidance content for this file
-                    file_guidance = guidance.get(filename[:-3].lower(), {}).get('content', '')
-                    
-                    # Generate content using LiteLLM
+        # Use ThreadPoolExecutor for concurrent generation
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            # Submit all file generation tasks
+            future_to_file = {
+                executor.submit(generate_md_file, filename, arch_dir, guidance, config): filename 
+                for filename in files_to_generate
+            }
+            
+            # Process completed tasks as they finish
+            for future in as_completed(future_to_file):
+                filename = future_to_file[future]
+                try:
+                    _, success = future.result()
+                    if not success:
+                        logger.error(f"Failed to generate {filename}")
+                except Exception as e:
+                    logger.error(f"Exception while generating {filename}: {str(e)}")
+
+        # Special handling for Architecture.md if needed
+        arch_file = arch_dir / "Architecture.md"
+        if arch_file.exists():
+            try:
+                with open(arch_file, 'r') as f:
+                    content = f.read()
+                if "Component:" not in content:
+                    # Generate Architecture.md with detailed component specs
                     try:
-                        # Construct detailed prompts based on file type
-                        if filename == "Architecture.md":
                             prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
 
 1. System Overview
