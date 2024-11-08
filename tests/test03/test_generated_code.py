@@ -120,6 +120,11 @@ litellm>=1.0.0
             result = subprocess.run(
                 [str(python_path), "-m", "pytest", "-v", "--import-mode=importlib"],
 >>>>>>> parent of 65b2ba7 (fix: Update test configuration with verbose output and expanded Python path)
+                cwd=app_dir,
+                env=env,
+                capture_output=True,
+                text=True
+            )
 =======
             # Run tests with proper Python path
             env["PYTHONPATH"] = str(app_dir)
