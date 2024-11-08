@@ -513,25 +513,43 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
 
         # Create architecture files using LiteLLM
         files_to_generate = [
-            "Specification.md",
-            "Pseudocode.md", 
-            "Architecture.md",
-            "Refinement.md",
-            "Completion.md"
+            ("Specification.md", "Generate detailed project specifications"),
+            ("Architecture.md", "Generate comprehensive architecture documentation"), 
+            ("Components.md", "Define component relationships and interfaces"),
+            ("Testing.md", "Specify testing strategy and requirements"),
+            ("Implementation.md", "Provide implementation guidelines")
         ]
 
         # Initialize LiteLLM configuration
         try:
-            for filename in files_to_generate:
+            for filename, prompt_suffix in files_to_generate:
                 file_path = arch_dir / filename
                 if not file_path.exists():
-                    # Get guidance content for this file
-                    file_guidance = guidance.get(filename[:-3].lower(), {}).get('content', '')
-                    
-                    # Generate content using LiteLLM
                     try:
-                        # Construct detailed prompts based on file type
-                        if filename == "Architecture.md":
+                        response = completion(
+                            model=config.model,
+                            messages=[{
+                                "role": "system",
+                                "content": """You are an expert software architect creating detailed documentation.
+Generate comprehensive documentation that is:
+- Language/platform agnostic 
+- Focused on architecture and design
+- Clear and maintainable
+- Following best practices"""
+                            }, {
+                                "role": "user", 
+                                "content": f"Based on these requirements: {args.project_type}\n\n{prompt_suffix}"
+                            }],
+                            temperature=0.7,
+                            max_tokens=4096
+                        )
+                        
+                        content = response.choices[0].message.content
+                        with open(file_path, 'w') as f:
+                            f.write(content)
+                        logger.info(f"Generated {filename} with LiteLLM")
+                    except Exception as e:
+                        logger.error(f"Error generating {filename}: {e}")
                             prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
 
 1. System Overview
