@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 import litellm
 litellm.set_verbose = False  # Disable default logging
 litellm.success_callback = []  # Disable success callbacks
+litellm.logger = None  # Completely disable LiteLLM's logger
 
 @dataclass
 class SPARCConfig:
@@ -647,7 +648,7 @@ def main():
         # Create uniquely identified architecture directory
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        base_name = project_desc.replace(" ", "-")[:30]  # First 30 chars, spaces to hyphens
+        base_name = '-'.join(project_desc.split())[:30]  # First 30 chars, normalize spaces
         arch_dir_name = f"architecture_{timestamp}_{base_name}"
         arch_dir = Path(arch_dir_name)
         arch_dir.mkdir(parents=True, exist_ok=True)
