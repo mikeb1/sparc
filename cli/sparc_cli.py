@@ -11,7 +11,8 @@ from dataclasses import dataclass
 from typing import Optional
 from litellm import completion
 
-import toml  # Ensure toml is installed
+import toml
+from litellm import completion
 
 # Configure logging
 logging.basicConfig(
@@ -392,7 +393,7 @@ def main():
         arch_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Created architecture directory at {arch_dir.resolve()}")
 
-        # Create architecture files
+        # Create architecture files using LiteLLM
         files_to_generate = [
             "Specification.md",
             "Pseudocode.md", 
@@ -401,15 +402,53 @@ def main():
             "Completion.md"
         ]
 
-        for filename in files_to_generate:
-            file_path = arch_dir / filename
-            if not file_path.exists():
-                content = guidance.get(filename[:-3].lower(), {}).get('content', f"# {filename[:-3]}\n")
-                with open(file_path, 'w') as f:
-                    f.write(content)
-                logger.info(f"Generated {filename}")
-            else:
-                logger.info(f"{filename} already exists. Skipping.")
+        # Initialize LiteLLM configuration
+        try:
+            for filename in files_to_generate:
+                file_path = arch_dir / filename
+                if not file_path.exists():
+                    # Get guidance content for this file
+                    file_guidance = guidance.get(filename[:-3].lower(), {}).get('content', '')
+                    
+                    # Generate content using LiteLLM
+                    try:
+                        response = completion(
+                            model=config.model,
+                            messages=[{
+                                "role": "system",
+                                "content": "You are an expert software architect following the SPARC framework. Generate detailed, comprehensive documentation that follows best practices and industry standards."
+                            }, {
+                                "role": "user",
+                                "content": f"Generate detailed content for {filename} based on this guidance:\n\n{file_guidance}"
+                            }],
+                            temperature=config.temperature,
+                            max_tokens=config.max_tokens
+                        )
+                        
+                        content = response.choices[0].message.content
+                        if not content:
+                            content = f"# {filename[:-3]}\n\nError: No content generated"
+                    except Exception as e:
+                        logger.error(f"Error generating content with LiteLLM for {filename}: {str(e)}")
+                        content = f"# {filename[:-3]}\n\nError generating content: {str(e)}"
+                    
+                    with open(file_path, 'w') as f:
+                        f.write(content)
+                    logger.info(f"Generated {filename} with LiteLLM")
+                else:
+                    logger.info(f"{filename} already exists. Skipping.")
+        except Exception as e:
+            logger.warning(f"Error using LiteLLM: {str(e)}. Falling back to basic content generation.")
+            # Fallback to basic content generation
+            for filename in files_to_generate:
+                file_path = arch_dir / filename
+                if not file_path.exists():
+                    content = guidance.get(filename[:-3].lower(), {}).get('content', f"# {filename[:-3]}\n")
+                    with open(file_path, 'w') as f:
+                        f.write(content)
+                    logger.info(f"Generated {filename}")
+                else:
+                    logger.info(f"{filename} already exists. Skipping.")
     
     elif args.mode == 'implement':
         # Read Architecture.md to find components
