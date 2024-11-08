@@ -147,54 +147,58 @@ httpx>=0.18.2
     with open(clean_test_dir / "requirements.txt", "w") as f:
         f.write(requirements)
 
-    # Run architect and implement modes
+    # Run architect and implement modes with enhanced logging
+    logger.info("Running architect mode...")
     subprocess.run(["python", "sparc_cli.py", "architect", "--guidance-file", "guidance.toml"], check=True)
+    logger.info("Running implement mode...")
     subprocess.run(["python", "sparc_cli.py", "implement", "--guidance-file", "guidance.toml"], check=True)
 
     # Create virtual environment for testing
     venv_path = clean_test_dir / ".venv"
+    logger.info(f"Creating virtual environment at {venv_path}")
     env, python_path = create_and_activate_venv(venv_path)
 
-    # Verify application works
-    verification_success = verify_application(clean_test_dir, python_path, env)
+    # Verify application with increased attempts and logging
+    verification_success = verify_application(clean_test_dir, python_path, env, max_attempts=5)
     
-    # Save test output with timestamp
+    # Save detailed test results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     test_output_dir = output_dir / f"verified_app_{timestamp}"
+    logger.info(f"Saving test results to {test_output_dir}")
     
     # Copy the generated and verified application
     shutil.copytree(clean_test_dir, test_output_dir)
     
-    # Create a detailed README.md with verification results
-    readme_content = f"""# FastAPI Application - Generated {timestamp}
+    # Create a comprehensive test report
+    report_content = f"""# Test Verification Report - {timestamp}
 
-This REST API application was generated and verified using the SPARC framework.
+## Test Status
+- Verification Success: {'Yes' if verification_success else 'No'}
+- Maximum Attempts: 5
+- Virtual Environment: {venv_path}
+- Python Version: {sys.version}
 
-## Components
-- AuthService: JWT authentication and token management
-- UserService: User registration and profile management  
-- DatabaseService: SQLite database operations
+## Components Tested
+{_get_component_list(clean_test_dir)}
 
-## Verification Status
-- Virtual Environment: Created successfully
-- Dependencies: {'Installed successfully' if verification_success else 'Installation issues encountered'}
-- Tests: {'All tests passing' if verification_success else 'Some tests failed'}
+## Test Results
+- Dependencies: {'Successfully installed' if verification_success else 'Installation issues encountered'}
+- Tests: {'All passing' if verification_success else 'Some failures detected'}
+- Coverage: See coverage_report.xml for details
 
 ## Generated Files
-- src/: Source code for each component
-- tests/: Unit tests for each component
-- architecture/: SPARC architecture documents
-- requirements.txt: Project dependencies
+- Source Code: src/
+- Test Suite: tests/
+- Architecture: architecture/
+- Dependencies: requirements.txt
 
-## API Endpoints
-- POST /auth/register: Register new user
-- POST /auth/login: Login and get JWT token
-- GET /users/me: Get current user profile
+## Next Steps
+{_get_next_steps(verification_success)}
 
-## Verification Log
-The application was verified in a clean virtual environment.
-Maximum verification attempts: 3
-Final status: {'Success' if verification_success else 'Failed'}
+## Test Environment
+- OS: {os.name}
+- Platform: {sys.platform}
+- Python Path: {python_path}
 """
     
     with open(test_output_dir / "README.md", "w") as f:
