@@ -204,7 +204,7 @@ def _generate_test_code(component: str) -> str:
         return '''import pytest
 from datetime import timedelta
 from jose import jwt
-from .authservice import AuthService
+from src.authservice import AuthService
 
 def test_password_hashing():
     password = "testpassword123"
@@ -228,7 +228,7 @@ def test_verify_token():
         return '''import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from .userservice import UserService
+from src.userservice import UserService
 from .models import UserCreate, UserUpdate
 
 def test_create_user(db: Session):
@@ -252,7 +252,7 @@ def test_update_user(db: Session):
     elif component == "DatabaseService":
         return '''import pytest
 from sqlalchemy.orm import Session
-from .databaseservice import get_db, init_db
+from src.databaseservice import get_db, init_db
 
 def test_get_db():
     db = next(get_db())
