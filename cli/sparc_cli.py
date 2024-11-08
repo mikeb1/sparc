@@ -793,6 +793,7 @@ async def async_main():
             
         # Parse architecture content directly from guidance.toml
         try:
+            import toml
             with open(guidance_path, 'r') as f:
                 guidance_data = toml.load(f)
                 architecture_content = guidance_data.get('architecture', {}).get('content', '')
