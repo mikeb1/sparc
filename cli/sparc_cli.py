@@ -304,6 +304,9 @@ Include:
 - Core Requirements
 - Technical Requirements
 - Constraints and Assumptions
+- This specification should be detailed and comprehensive and used to guide development and testing.
+- Be verbose and complete. 
+
 
 # Specification
 
@@ -355,6 +358,10 @@ Include:
 - Component Interactions
 - Data Flow
 - Key Design Decisions
+- Detailed Diagrams (if applicable) 
+- File and folder structure with a brief description of each component.
+- Be verbose and complete.
+
 
 # Architecture
 
