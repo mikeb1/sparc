@@ -530,13 +530,12 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
         # Special handling for Architecture.md if needed
         arch_file = arch_dir / "Architecture.md"
         if arch_file.exists():
-            try:
-                with open(arch_file, 'r') as f:
-                    content = f.read()
-                if "Component:" not in content:
-                    try:
-                        # Generate Architecture.md with detailed component specs
-                        prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
+            with open(arch_file, 'r') as f:
+                content = f.read()
+            if "Component:" not in content:
+                try:
+                    # Generate Architecture.md with detailed component specs
+                    prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
 
 1. System Overview
    - High-level architecture diagram
@@ -623,43 +622,28 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
 Based on the following requirements:
 {file_guidance}"""
 
-                        response = completion(
-                            model=config.model,
-                            messages=[{
-                                "role": "system",
-                                "content": "You are an expert software architect following the SPARC framework. Generate detailed, comprehensive documentation that follows best practices and industry standards."
-                            }, {
-                                "role": "user",
-                                "content": prompt
-                            }],
-                            temperature=config.temperature,
-                            max_tokens=config.max_tokens
-                        )
-                        
-                        content = response.choices[0].message.content
-                        if not content:
-                            content = f"# {filename[:-3]}\n\nError: No content generated"
-                    except Exception as e:
-                        logger.error(f"Error generating content with LiteLLM for {filename}: {str(e)}")
-                        content = f"# {filename[:-3]}\n\nError generating content: {str(e)}"
+                    response = completion(
+                        model=config.model,
+                        messages=[{
+                            "role": "system",
+                            "content": "You are an expert software architect following the SPARC framework. Generate detailed, comprehensive documentation that follows best practices and industry standards."
+                        }, {
+                            "role": "user",
+                            "content": prompt
+                        }],
+                        temperature=config.temperature,
+                        max_tokens=config.max_tokens
+                    )
                     
-                    with open(file_path, 'w') as f:
+                    content = response.choices[0].message.content
+                    if not content:
+                        content = f"# Architecture\n\nError: No content generated"
+                    
+                    with open(arch_file, 'w') as f:
                         f.write(content)
-                    logger.info(f"Generated {filename} with LiteLLM")
+                    logger.info("Generated Architecture.md with LiteLLM")
                 else:
-                    logger.info(f"{filename} already exists. Skipping.")
-        except Exception as e:
-            logger.warning(f"Error using LiteLLM: {str(e)}. Falling back to basic content generation.")
-            # Fallback to basic content generation
-            for filename in files_to_generate:
-                file_path = arch_dir / filename
-                if not file_path.exists():
-                    content = guidance.get(filename[:-3].lower(), {}).get('content', f"# {filename[:-3]}\n")
-                    with open(file_path, 'w') as f:
-                        f.write(content)
-                    logger.info(f"Generated {filename}")
-                else:
-                    logger.info(f"{filename} already exists. Skipping.")
+                    logger.info("Architecture.md already exists with components. Skipping.")
     
     elif args.mode == 'implement':
         # Read Architecture.md to find components
