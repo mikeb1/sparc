@@ -10,6 +10,8 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
 
+import toml  # Ensure toml is installed
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -179,21 +181,21 @@ class ErrorHandler:
         return JSONResponse(
             status_code=401,
             content={"detail": "Invalid credentials"},
-            headers={"WWW-Authenticate": "Bearer"}
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     @staticmethod
     def handle_not_found_error() -> JSONResponse:
         return JSONResponse(
             status_code=404,
-            content={"detail": "Resource not found"}
+            content={"detail": "Resource not found"},
         )
 
     @staticmethod
     def handle_database_error(exc: SQLAlchemyError) -> JSONResponse:
         return JSONResponse(
             status_code=500,
-            content={"detail": "Database error occurred"}
+            content={"detail": "Database error occurred"},
         )
 '''
     return f"class {component}:\n    pass\n"
@@ -310,29 +312,34 @@ def main():
                                 help='Path to guidance TOML file')
 
     args = parser.parse_args()
-    
-    # Update config with selected model
+
+    # Initialize config based on arguments
     config = SPARCConfig(
-        aider_model=args.model if hasattr(args, 'model') else 'claude-3-sonnet-20240229'
+        aider_model=args.model if hasattr(args, 'model') else 'claude-3-sonnet-20240229',
+        max_attempts=args.max_attempts if hasattr(args, 'max_attempts') else 3,
+        verbose=args.verbose if hasattr(args, 'verbose') else False,
+        guidance_file=args.guidance_file if hasattr(args, 'guidance_file') else 'guidance.toml'
     )
 
     if args.mode == 'architect':
         try:
-            import toml
-            if os.path.exists(args.guidance_file):
-                with open(args.guidance_file, 'r') as f:
+            if os.path.exists(config.guidance_file):
+                with open(config.guidance_file, 'r') as f:
                     guidance = toml.load(f)
+                logger.info(f"Loaded guidance from {config.guidance_file}")
             else:
+                logger.warning(f"Guidance file '{config.guidance_file}' not found. Using default prompts.")
                 guidance = {}
         except Exception as e:
             logger.warning(f"Failed to load guidance file: {e}")
             guidance = {}
-        # Create architecture directory
-        arch_dir = Path("architecture")
-        arch_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Created architecture directory")
 
-        # Create empty architecture files
+        # Create architecture directory
+        arch_dir = Path(config.architecture_dir)
+        arch_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Created architecture directory at {arch_dir.resolve()}")
+
+        # Create architecture files
         files_to_generate = [
             "Specification.md",
             "Pseudocode.md", 
@@ -348,9 +355,12 @@ def main():
                 with open(file_path, 'w') as f:
                     f.write(content)
                 logger.info(f"Generated {filename}")
+            else:
+                logger.info(f"{filename} already exists. Skipping.")
+    
     elif args.mode == 'implement':
         # Read Architecture.md to find components
-        arch_file = Path("architecture/Architecture.md")
+        arch_file = Path(config.architecture_dir) / "Architecture.md"
         if not arch_file.exists():
             logger.error("Architecture.md not found. Run architect mode first.")
             sys.exit(1)
@@ -358,7 +368,7 @@ def main():
         with open(arch_file, 'r') as f:
             content = f.read()
 
-        # Parse components
+        # Parse components using regex
         import re
         components = re.findall(r'## Component: (\w+)', content)
         if not components:
@@ -366,10 +376,10 @@ def main():
             sys.exit(1)
 
         # Create source and test directories
-        src_dir = Path("src")
-        test_dir = Path("tests")
-        src_dir.mkdir(exist_ok=True)
-        test_dir.mkdir(exist_ok=True)
+        src_dir = Path(config.source_dir)
+        test_dir = Path(config.test_dir)
+        src_dir.mkdir(parents=True, exist_ok=True)
+        test_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate files for each component
         for component in components:
@@ -383,6 +393,8 @@ def main():
                 with open(src_file, 'w') as f:
                     f.write(src_content)
                 logger.info(f"Generated {src_file}")
+            else:
+                logger.info(f"{src_file} already exists. Skipping.")
 
             # Generate corresponding test file
             if not test_file.exists():
@@ -390,46 +402,36 @@ def main():
                 with open(test_file, 'w') as f:
                     f.write(test_content)
                 logger.info(f"Generated {test_file}")
-
-
-    args = parser.parse_args()
-
-    if args.mode == 'architect':
-        try:
-            import toml
-            if os.path.exists(args.guidance_file):
-                with open(args.guidance_file, 'r') as f:
-                    guidance = toml.load(f)
             else:
-                guidance = {}
-        except Exception as e:
-            logger.warning(f"Failed to load guidance file: {e}")
-            guidance = {}
+                logger.info(f"{test_file} already exists. Skipping.")
 
-        # Create architecture directory
-        arch_dir = Path("architecture")
-        arch_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Created architecture directory")
+        # Initialize Git repository if enabled
+        if config.use_git:
+            if not (Path(".git")).exists():
+                logger.info("Initializing new Git repository.")
+                subprocess.run(["git", "init"], check=True)
+            else:
+                logger.info("Git repository already initialized.")
 
-        # Create empty architecture files
-        files_to_generate = [
-            "Specification.md",
-            "Pseudocode.md", 
-            "Architecture.md",
-            "Refinement.md",
-            "Completion.md"
-        ]
+            # Add files to Git
+            subprocess.run(["git", "add", "."], check=True)
+            commit_message = "Initial commit by SPARC CLI"
+            if config.aider_auto_commits:
+                subprocess.run(["git", "commit", "-m", commit_message], check=True)
+                logger.info("Committed initial files to Git.")
 
-        for filename in files_to_generate:
-            file_path = arch_dir / filename
-            if not file_path.exists():
-                content = guidance.get(filename[:-3].lower(), {}).get('content', f"# {filename[:-3]}\n")
-                with open(file_path, 'w') as f:
-                    f.write(content)
-                logger.info(f"Generated {filename}")
-    elif args.mode == 'implement':
-        # Implementation mode code here
-        pass
+        # Optionally run tests
+        if config.auto_test:
+            test_cmd = config.test_cmd if config.test_cmd else "pytest"
+            logger.info(f"Running tests with command: {test_cmd}")
+            result = subprocess.run(test_cmd.split(), capture_output=True, text=True)
+            if result.returncode == 0:
+                logger.info("All tests passed.")
+            else:
+                logger.error(f"Tests failed:\n{result.stdout}\n{result.stderr}")
+                if not config.dirty_commits:
+                    sys.exit(1)
+
     else:
         parser.print_help()
         sys.exit(1)
