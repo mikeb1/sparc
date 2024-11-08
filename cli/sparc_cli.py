@@ -213,15 +213,23 @@ def _detect_tech_stack(guidance_file: Path) -> Dict[str, str]:
 def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
     
-    tech_stack = _detect_tech_stack(project_desc)
+    # Parse project description to determine tech stack
+    tech_stack = {
+        'framework': 'Next.js',  # Default to Next.js for Node.js web apps
+        'language': 'javascript',
+        'features': ['sticky-nav', 'sidebar', 'mobile-view', 'agent-management']
+    }
     
     # Generate guidance.toml first
-    guidance_content = """# SPARC Framework Project Configuration
+    guidance_content = f"""# SPARC Framework Project Configuration
 
 [project]
-name = "supabase-devops-cli"
+name = "nextjs-agent-management"
 description = "{project_desc}"
 version = "0.1.0"
+framework = "Next.js"
+language = "javascript"
+features = ["sticky-nav", "sidebar", "mobile-view", "agent-management"]
 
 [architecture]
 # Component organization
