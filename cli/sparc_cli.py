@@ -349,282 +349,104 @@ Develop a comprehensive specification document for the project.
 
 Format in Markdown.""",
 
-        "Architecture.md": f"""Generate a detailed software architecture for: {project_desc}
+        "Architecture.md": f'''Generate a detailed software architecture for: {project_desc}
 Include:
 - System Components
 - Component Interactions
 - Data Flow
 - Key Design Decisions
+
 # Architecture
 
-## Objective
-Develop a comprehensive system architecture and technical design that serves as a blueprint for the entire development process. This includes selecting appropriate architectural styles, technologies, data models, and ensuring alignment with both functional and non-functional requirements. The objective is to create a robust, scalable, and maintainable architecture that guides the development of any new applications.
+## System Components
+- Core services
+- Data layer
+- External integrations
 
-## Tasks
-- **Utilize AI Models**:
-  - **Advanced AI Assistance**: Leverage advanced AI models (e.g., GPT-4) to explore complex architectural solutions and optimize design decisions.
-  - **Cost-effective Implementation**: Use cost-effective AI models (e.g., GPT-3.5) for drafting documentation and generating code snippets.
-  - **Documentation**: Record interactions with AI models, including queries and responses, to maintain a knowledge base.
+## Component Interactions
+- Service communication
+- Data flow
+- API contracts
 
-- **Architectural Style**:
-  - **Evaluation of Styles**: Analyze various architectural styles (e.g., monolithic, microservices, event-driven) in the context of the project requirements.
-  - **Selection Criteria**: Define criteria for selecting the architectural style, such as scalability needs, team expertise, and deployment environments.
-  - **Justification**: Provide a detailed justification for the chosen style, including how it addresses both functional and non-functional requirements.
+## Data Flow
+- Input processing
+- Data transformation
+- Storage patterns
 
-- **System Architecture Diagram**:
-  - **Detailed Visualization**: Create comprehensive diagrams illustrating all system components, their responsibilities, and interactions.
-  - **Diagramming Tools**: Utilize tools like Lucidchart, Draw.io, or Markdown-based diagrams for consistency and ease of collaboration.
-  - **Annotations**: Include annotations and legends to explain components and data flows clearly.
+## Key Design Decisions
+- Technology choices
+- Architectural patterns
+- Security measures
+''',
 
-- **Technology Stack**:
-  - **Assessment of Options**: Research and evaluate potential technologies and frameworks for each layer of the application.
-  - **Decision Matrix**: Develop a decision matrix to compare technologies based on factors like performance, scalability, community support, and compatibility.
-  - **Rationale**: Document the reasoning behind each technology choice, citing how it meets project needs.
-
-- **Data Models and Schemas**:
-  - **Data Modeling**: Design comprehensive data models using entity-relationship diagrams (ERDs) or class diagrams.
-  - **Schema Definition**: Define database schemas with detailed descriptions of tables, fields, relationships, and constraints.
-  - **Data Flow and Storage**: Explain how data is stored, retrieved, and manipulated within the system.
-
-- **Key Components**:
-  - **Component Breakdown**: Identify and describe all key components or modules, outlining their functionality and interfaces.
-  - **Interaction Diagrams**: Create sequence or collaboration diagrams to depict how components interact during operations.
-  - **APIs and Services**: Specify details about internal and external APIs, including endpoints, protocols, and authentication methods.
-
-- **Scalability, Security, and Performance**:
-  - **Scalability Planning**: Outline strategies for scaling the system horizontally and vertically.
-  - **Security Protocols**: Detail security measures such as encryption, authentication, authorization, and input validation.
-  - **Performance Optimization**: Identify potential bottlenecks and propose optimization techniques (e.g., caching, load balancing).
-
-- **Integration Points**:
-  - **External Systems**: List external systems or services the application will interact with.
-  - **Integration Methods**: Describe methods of integration, including APIs, messaging systems, or middleware.
-  - **Data Transformation**: Explain how data will be transformed and validated during integration.
-
-## Reflection
-- **Architectural Decisions Justification**:
-  - Provide in-depth justification for each architectural decision, aligning choices with project goals and constraints.
-  - Discuss alternatives considered and reasons for their acceptance or rejection.
-
-- **Risk Assessment and Mitigation**:
-  - Identify potential risks associated with the architecture (e.g., single points of failure, technology obsolescence).
-  - Propose mitigation strategies for each identified risk.
-
-- **Future-proofing and Extensibility**:
-  - Reflect on how the architecture accommodates future growth, new features, and technology updates.
-  - Consider patterns and practices that enhance modularity and extensibility.
-
-- **Impact of AI Utilization**:
-  - Discuss how utilizing AI models influenced architectural decisions.
-  - Highlight benefits such as improved efficiency, innovation, or potential limitations encountered.
-
-- **Development and Maintenance Considerations**:
-  - Analyze how architectural choices affect development workflows, team dynamics, and maintenance efforts.
-  - Address any training needs or resource allocations required due to technology choices.
-
-Format in Markdown.
-
-"",
-
-        "Pseudocode.md": f"""Generate pseudocode for key components of: {project_desc}
+        "Pseudocode.md": f'''Generate pseudocode for key components of: {project_desc}
 Include:
 - Core Classes/Functions
 - Important Algorithms
 - Data Structures
+
 # Pseudocode
 
-## Objective
-Create a pseudocode outline serving as a development roadmap.
+## Core Classes/Functions
+```pseudo
+class MainComponent:
+    def initialize():
+        // Setup core dependencies
+    
+    def process():
+        // Main processing logic
+```
 
-## Tasks
-- **Translate the Specification**: Convert the detailed specification into high-level pseudocode that outlines the logic and flow of the application.
-- **Organize Pseudocode**: Use markdown files to maintain clarity and structure. Ensure that the pseudocode is easy to follow and logically organized.
-- **Identify Key Components**: Clearly define key functions, classes, and modules. Use descriptive names that convey the purpose and functionality of each component.
-- **Inline Comments and Descriptions**:
-  - Provide detailed inline comments for each code block, explaining the logic and purpose.
-  - Use comments to describe the expected input and output for functions and methods.
-  - Highlight any assumptions or constraints that affect the implementation.
-- **Language Options**: Consider how the pseudocode can be translated into different programming languages such as Python, JavaScript, and TypeScript. Note any language-specific considerations or optimizations.
-- **Complex Implementations**: Use placeholders for complex logic that requires further development. Include notes on what needs to be addressed and potential approaches.
-- **Modularity and Reusability**: Ensure that the pseudocode is modular, allowing for easy updates and maintenance. Design components to be reusable across different parts of the application.
+## Important Algorithms
+```pseudo
+function processData(input):
+    // Data processing steps
+    return result
+```
 
-## Reflection
-- **Alignment with Specifications**: Verify that the pseudocode accurately reflects the requirements and goals outlined in the specification.
-- **Logical Issues and Inefficiencies**: Identify any potential logical errors or inefficiencies in the pseudocode. Consider how these can be addressed or optimized.
-- **Alternative Approaches**: Explore different approaches to algorithms and data handling. Evaluate the pros and cons of each option.
-- **Clarity and Readability**: Reflect on the clarity and readability of the pseudocode. Ensure that it is accessible to all team members, regardless of their technical background.
-- **Language Considerations**: Discuss how the pseudocode can be effectively translated into Python, JavaScript, or TypeScript, and any specific considerations for each language.
+## Data Structures
+```pseudo
+struct DataModel:
+    id: string
+    data: map<string, any>
+    metadata: object
+```
+''',
 
-Format in Markdown with code blocks.""",
-
-        "Refinement.md": f"""Generate implementation details and refinements for: {project_desc}
+        "Refinement.md": f'''Generate implementation details and refinements for: {project_desc}
 Include:
-- Detailed Implementation Steps
+- Implementation Steps
 - Error Handling
 - Testing Strategy
 - Performance Considerations
-Format in Markdown.
-# Refinement.md
 
-## Detailed Implementation Steps
+# Refinement
 
-1. **Set Up the Development Environment**
-    - **Install Dependencies**:
-        - [List necessary dependencies here]
-    - **Create Virtual Environment or Equivalent**:
-        - [Instructions for setting up the environment]
-
-2. **Implement Core Services**
-    - **ServiceName**
-        - [Implementation steps]
-    - **AnotherServiceName**
-        - [Implementation steps]
-
-3. **Define Models**
-    - Create models/entities with necessary fields and relationships.
-
-4. **Implement API Endpoints or Equivalent**
-    - Set up the application framework.
-    - Define routes/endpoints for various functionalities.
-    - Integrate services within endpoint handlers using dependency injection or equivalent.
-
-5. **Configure Dependency Injection or Equivalent**
-    - Set up dependency injection to manage service dependencies.
-
-6. **Set Up Configuration Management**
-    - Define configuration settings (e.g., secret keys, database URLs) using environment variables or configuration files.
-
-7. **Implement Security Measures**
-    - Secure API endpoints using authentication and authorization mechanisms.
-    - Implement role-based access control.
-
-8. **Initialize Database**
-    - Set up the database and run migrations or create tables as necessary.
+## Implementation Steps
+1. Environment setup
+2. Core services
+3. Data layer
+4. API endpoints
+5. Testing
 
 ## Error Handling
-
-1. **Validation Errors**
-    - Validate incoming request data.
-    - Return appropriate error responses when validation fails.
-
-2. **Authentication Errors**
-    - Handle invalid credentials by returning appropriate error responses.
-    - Use standardized error responses.
-
-3. **Authorization Errors**
-    - Enforce role-based access control.
-    - Return appropriate error responses when access is denied.
-
-4. **Database Errors**
-    - Catch database exceptions and return appropriate error responses.
-    - Log detailed error information for debugging purposes.
-
-5. **Not Found Errors**
-    - Return appropriate error responses when requested resources do not exist.
-
-6. **Global Exception Handling**
-    - Implement a global exception handler to catch unhandled exceptions.
-    - Ensure consistent error response format across the application.
+- Validation
+- Authentication
+- Database errors
+- Global handlers
 
 ## Testing Strategy
+- Unit tests
+- Integration tests
+- Performance tests
+- Security tests
 
-### Test-Driven Development (TDD) with the London Method
-
-The testing strategy follows the London method of TDD, emphasizing behavior verification through interaction testing using mocks. This approach ensures that each unit of code is tested in isolation, focusing on its interactions with collaborators.
-
-#### Steps to Implement London Method TDD
-
-1. **Identify the Unit Under Test**
-    - Determine the specific class or method to implement.
-
-2. **Define the Expected Behavior**
-    - Clearly outline what the unit is supposed to do and how it interacts with other components.
-
-3. **Write a Failing Test for the Expected Behavior**
-    - Use a testing framework to create tests.
-    - Mock collaborators to isolate the unit.
-    - Example Test:
-        ```pseudo
-        def test_method():
-            mock_dependency = Mock()
-            # Define expectations
-            # Invoke method under test
-            # Assert expectations
-        ```
-
-4. **Set Up Mocks and Expectations**
-    - Mock external dependencies.
-    - Define expectations on method calls, parameters, and return values.
-
-5. **Run the Test and See It Fail**
-    - Execute the test suite to ensure the new test fails, indicating the behavior is not yet implemented.
-
-6. **Write the Minimum Code to Make the Test Pass**
-    - Implement the necessary functionality in the unit to satisfy the test.
-
-7. **Run the Test and See It Pass**
-    - Re-run the test suite to verify the new test passes.
-    - Ensure all existing tests remain passing.
-
-8. **Refactor the Code**
-    - Improve code quality without altering functionality.
-    - Clean up code structure, remove redundancies, and enhance readability.
-    - Re-run tests to ensure they still pass post-refactoring.
-
-9. **Repeat the Cycle**
-    - Move on to the next piece of functionality.
-    - Continue writing tests, implementing code, and refactoring iteratively.
-
-#### Advantages of Using the London Method
-
-- **Isolation**: Ensures units are tested independently from their dependencies.
-- **Behavior Focused**: Emphasizes the expected interactions, leading to better design.
-- **Fast Feedback**: Quickly identifies issues in unit behavior.
-
-#### Best Practices
-
-- **Use Descriptive Test Names**: Clearly indicate what behavior is being tested.
-    - Example: `test_processOrder_sendsConfirmationEmail`
-- **Mock Only External Collaborators**: Avoid mocking internal components or simple data structures.
-- **Verify Interactions Precisely**: Set strict expectations on mock interactions to ensure correct behavior.
-- **Keep Tests Independent**: Ensure tests do not rely on the outcome of other tests.
-- **Limit Over-Mocking**: Use real objects when mocking does not provide significant benefits.
-
-## Performance Considerations
-
-1. **Optimize Database Queries**
-    - Use efficient query patterns.
-    - Implement indexing on frequently queried fields.
-
-2. **Implement Caching**
-    - Cache results of expensive operations or frequent queries to reduce load times.
-
-3. **Asynchronous Processing**
-    - Utilize asynchronous programming to handle multiple requests concurrently.
-
-4. **Resource Management**
-    - Ensure proper management of database connections and other resources to prevent leaks.
-
-5. **Load Testing**
-    - Conduct load tests to identify performance bottlenecks.
-    - Use appropriate tools for simulating high traffic.
-
-6. **Monitoring and Logging**
-    - Implement monitoring to track performance metrics.
-    - Use logging to identify and troubleshoot performance issues.
-
-7. **Scalability Planning**
-    - Design the system to scale horizontally or vertically as needed.
-    - Consider using containerization and orchestration tools for scaling.
-
-8. **Code Optimization**
-    - Profile the application to identify slow code paths.
-    - Optimize algorithms and data structures for better performance.
-
-9. **Security Implications of Performance Enhancements**
-    - Ensure that performance optimizations do not compromise security.
-    - For example, caching sensitive data should be handled securely.
-""",
+## Performance
+- Query optimization
+- Caching strategy
+- Resource management
+- Monitoring
+''',
 
         "Completion.md": f'''Generate completion criteria and project structure for: {project_desc}
 Include:
