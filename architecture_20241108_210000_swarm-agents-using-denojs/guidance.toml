@@ -54,4 +54,48 @@ required_platforms = ["linux"]
 readme_required = true
 api_docs_required = true
 architecture_docs_required = true
-changelog_required = true
+changelog_required = true[specification]
+content = """
+Create a detailed specification for a swarm of autonomous agents using Deno.js, including:
+- Agent communication and coordination
+- Task distribution and management 
+- State synchronization
+- Error handling and recovery
+"""
+
+[pseudocode]
+content = """
+Provide high-level pseudocode for the main agent functionalities:
+- Agent lifecycle management
+- Communication protocols
+- Task execution flows
+- State management
+"""
+
+[architecture]
+content = """
+Describe the system architecture for a Deno.js-based agent swarm system:
+- Core agent components
+- Communication layer
+- Task scheduling
+- State management
+- Monitoring and control
+"""
+
+[refinement]
+content = """
+Define optimization strategies for:
+- Agent performance
+- Communication efficiency
+- Resource utilization
+- System reliability
+"""
+
+[completion]
+content = """
+Specify completion criteria including:
+- Performance benchmarks
+- Testing requirements
+- Deployment guidelines
+- Monitoring setup
+"""
