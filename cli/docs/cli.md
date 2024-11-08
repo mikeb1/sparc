@@ -586,6 +586,10 @@ def main():
         parser.print_help()
         sys.exit(1)
 
+async def async_main():
+    parser = argparse.ArgumentParser(description='SPARC Framework CLI')
+    # ... rest of async_main implementation ...
+
 def main():
     """Entry point that runs the async main function."""
     asyncio.run(async_main())
