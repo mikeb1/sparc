@@ -456,16 +456,11 @@ def main():
         arch_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Created architecture directory at {arch_dir.resolve()}")
 
-        # Save guidance.toml to architecture directory 
+        # Save guidance.toml to architecture directory
         guidance_arch_path = arch_dir / "guidance.toml"
         if not guidance_arch_path.exists():
             with open(guidance_arch_path, 'w') as f:
-                # Format each section with proper indentation and line breaks
-                for section, content in guidance.items():
-                    f.write(f"[{section}]\n")
-                    f.write('content = """\n')
-                    f.write(content['content'].strip())
-                    f.write('\n"""\n\n')
+                toml.dump(guidance, f)
             logger.info("Generated guidance.toml in architecture directory")
 
         # Create README.md
