@@ -192,45 +192,170 @@ import os
 import shutil
 import subprocess
 import pytest
+import venv
+import time
+import sys
+import logging
 from pathlib import Path
+from datetime import datetime
 
-@pytest.fixture(scope="module")
-def test_dir(tmp_path_factory):
-    # Create a temporary directory for the test
-    test_dir = tmp_path_factory.mktemp("test03")
-    yield test_dir
-    # Cleanup after tests
-    shutil.rmtree(test_dir)
+logger = logging.getLogger(__name__)
 
-def test_generated_code_passes_tests(test_dir):
-    # Copy the sparc_cli.py script and guidance.toml to the test directory
-    base_dir = Path(__file__).resolve().parent.parent
-    for filename in ["sparc_cli.py", "guidance.toml"]:
-        src = base_dir / filename
-        if src.exists():
-            shutil.copy(src, test_dir)
-        else:
-            with open(test_dir / filename, 'w') as f:
-                f.write("")
+def create_and_activate_venv(venv_path: Path) -> tuple[dict, Path]:
+    """Create a virtual environment and return the environment variables needed to use it."""
+    venv.create(venv_path, with_pip=True)
+    
+    # Get path to activation scripts
+    if sys.platform == "win32":
+        activate_script = venv_path / "Scripts" / "activate.bat"
+        python_path = venv_path / "Scripts" / "python.exe"
+    else:
+        activate_script = venv_path / "bin" / "activate"
+        python_path = venv_path / "bin" / "python"
 
-    os.chdir(test_dir)
+    # Create environment variables dict
+    env = os.environ.copy()
+    env["VIRTUAL_ENV"] = str(venv_path)
+    env["PATH"] = str(venv_path / "bin") + os.pathsep + env["PATH"]
+    
+    return env, python_path
 
-    # Run the architect mode
-    cmd_architect = ["python", "sparc_cli.py", "architect", "--guidance-file", "guidance.toml"]
-    result_architect = subprocess.run(cmd_architect, capture_output=True, text=True)
-    assert result_architect.returncode == 0, f"Architect mode failed: {result_architect.stderr}"
+def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts: int = 3) -> bool:
+    """
+    Verify the application works by installing dependencies and running tests.
+    Will attempt to fix issues if verification fails.
+    """
+    attempt = 0
+    while attempt < max_attempts:
+        try:
+            # Install requirements
+            subprocess.run(
+                [str(python_path), "-m", "pip", "install", "-r", "requirements.txt"],
+                cwd=app_dir,
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Run application tests
+            result = subprocess.run(
+                [str(python_path), "-m", "pytest"],
+                cwd=app_dir,
+                env=env,
+                capture_output=True,
+                text=True
+            )
+            
+            if result.returncode == 0:
+                return True
+                
+            # If tests failed, try to fix issues
+            fix_cmd = ["python", "sparc_cli.py", "implement", "--fix-issues"]
+            fix_result = subprocess.run(
+                fix_cmd,
+                cwd=app_dir,
+                capture_output=True,
+                text=True
+            )
+            
+            attempt += 1
+            if attempt < max_attempts:
+                time.sleep(2)  # Wait before retrying
+                
+        except Exception as e:
+            logger.error(f"Verification attempt {attempt + 1} failed: {str(e)}")
+            attempt += 1
+            if attempt < max_attempts:
+                time.sleep(2)
+    
+    return False
 
-    # Run the implement mode
-    cmd_implement = ["python", "sparc_cli.py", "implement", "--max-attempts", "2", "--guidance-file", "guidance.toml"]
-    result_implement = subprocess.run(cmd_implement, capture_output=True, text=True)
-    assert result_implement.returncode == 0, f"Implement mode failed: {result_implement.stderr}"
+def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):
+    """Test that generated code works in a fresh virtual environment."""
+    
+    # Copy the sparc_cli.py script to the test directory
+    shutil.copy(cli_script, clean_test_dir)
+    
+    os.chdir(clean_test_dir)
 
-    # Run pytest to check if tests pass
-    cmd_pytest = ["pytest", "tests"]
-    result_pytest = subprocess.run(cmd_pytest, capture_output=True, text=True)
-    assert result_pytest.returncode == 0, f"Generated code tests failed: {result_pytest.stderr}"
+    # Create a basic guidance.toml file
+    guidance_content = """
+[specification]
+content = '''
+Create a simple REST API service with:
+- Basic CRUD operations
+- Error handling
+- Input validation
+'''
 
-    print("Test 3 passed: Generated code passes tests.")
+[architecture]
+content = '''
+## Component: ApiService
+Handles REST API endpoints.
+
+## Component: DataValidator
+Validates input data.
+
+## Component: ErrorHandler
+Manages error responses.
+'''
+"""
+    with open(clean_test_dir / "guidance.toml", "w") as f:
+        f.write(guidance_content)
+
+    # Run architect and implement modes
+    subprocess.run(["python", "sparc_cli.py", "architect", "--guidance-file", "guidance.toml"], check=True)
+    subprocess.run(["python", "sparc_cli.py", "implement", "--guidance-file", "guidance.toml"], check=True)
+
+    # Create virtual environment for testing
+    venv_path = clean_test_dir / ".venv"
+    env, python_path = create_and_activate_venv(venv_path)
+
+    # Verify application works
+    verification_success = verify_application(clean_test_dir, python_path, env)
+    
+    # Save test output with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    test_output_dir = output_dir / f"verified_app_{timestamp}"
+    
+    # Copy the generated and verified application
+    shutil.copytree(clean_test_dir, test_output_dir)
+    
+    # Create a detailed README.md with verification results
+    readme_content = f"""# Verified Application - Generated {timestamp}
+
+This application was generated and verified using the SPARC framework.
+
+## Components
+- ApiService: REST API endpoint handler
+- DataValidator: Input validation service
+- ErrorHandler: Error handling service
+
+## Verification Status
+- Virtual Environment: Created successfully
+- Dependencies: {'Installed successfully' if verification_success else 'Installation issues encountered'}
+- Tests: {'All tests passing' if verification_success else 'Some tests failed'}
+
+## Generated Files
+- src/: Source code for each component
+- tests/: Unit tests for each component
+- architecture/: SPARC architecture documents
+- requirements.txt: Project dependencies
+
+## Verification Log
+The application was verified in a clean virtual environment.
+Maximum verification attempts: 3
+Final status: {'Success' if verification_success else 'Failed'}
+"""
+    
+    with open(test_output_dir / "README.md", "w") as f:
+        f.write(readme_content)
+
+    assert verification_success, "Application verification failed after maximum attempts"
+    
+    print(f"\nVerified application saved to: {test_output_dir}")
+    print("Test 3 passed: Generated code works in clean environment")
 ```
 
 ### Instructions
