@@ -306,7 +306,7 @@ def test_handle_credentials_error():
 '''
     return f"def test_{component.lower()}():\n    pass\n"
 
-def _generate_guidance_toml(tech_stack: Dict[str, str]) -> str:
+def _generate_guidance_toml(tech_stack: Dict[str, str], architecture_content: str = "") -> str:
     """Generate guidance.toml content based on tech stack."""
     return f'''# SPARC Framework Guidance Configuration
 
@@ -320,6 +320,9 @@ features = {tech_stack['features']}
 component_style = "PascalCase"
 test_prefix = "test_"
 source_suffix = ".{tech_stack['language']}"
+content = """
+{architecture_content}
+"""
 
 # Directory structure
 src_dir = "src"
@@ -697,11 +700,16 @@ Include:
                 content = response.choices[0].message.content
                 content_length = len(content)
                 files_content[filename] = content
+                if filename in ['Architecture.md', 'Specification.md']:
+                    architecture_content += f"\n\n# {filename}\n{content}"
                 pbar.set_postfix(chars=f"{content_length:,}")
             except Exception as e:
                 logger.error(f"Failed to generate {filename}: {str(e)}")
                 raise
 
+    # Generate guidance.toml with architecture content
+    files_content["guidance.toml"] = _generate_guidance_toml(tech_stack, architecture_content)
+    
     return files_content
 
 async def async_main():
