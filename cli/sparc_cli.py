@@ -701,7 +701,7 @@ async def async_main():
             test_file = test_dir / f"test_{component_lower}.py"
 
             # Get tech stack from guidance file
-            tech_stack = _detect_tech_stack(Path(self.config.guidance_file))
+            tech_stack = _detect_tech_stack(Path(args.guidance_file))
             
             if not tech_stack:
                 logger.error("Could not determine project technology stack")
