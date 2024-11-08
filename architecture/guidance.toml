@@ -1,0 +1,41 @@
+[specification]
+content = """
+Create a FastAPI service with:
+1. User Authentication:
+   - JWT token-based authentication 
+   - User registration and login endpoints
+   - Password hashing with bcrypt
+   - Token refresh mechanism
+
+2. Data Models:
+   - User model with email, hashed password, and profile info
+   - SQLAlchemy ORM integration
+   - SQLite database for storage
+   - Pydantic schemas for request/response validation
+
+3. API Features:
+   - OpenAPI documentation
+   - Input validation using Pydantic
+   - Proper error handling with status codes
+   - Rate limiting for API endpoints
+   - CORS middleware configuration
+
+4. Testing:
+   - Unit tests for all endpoints
+   - Integration tests with test database
+   - Test fixtures and helpers
+   - 100% code coverage target
+
+5. WebSocket Features:
+   - Real-time bidirectional communication
+   - Connection management and heartbeat
+   - Message serialization/deserialization
+   - Room/channel support for group messaging
+   - Client connection state tracking
+   - Reconnection handling
+   - Message queuing and delivery guarantees
+   - WebSocket authentication middleware
+   - Rate limiting for WebSocket connections
+   - Error handling and connection recovery
+"""
+

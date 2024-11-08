@@ -8,9 +8,8 @@ import logging
 import json
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Optional, tuple
+from typing import Optional
 from litellm import completion
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import toml
 from litellm import completion
@@ -297,44 +296,6 @@ def test_handle_credentials_error():
 '''
     return f"def test_{component.lower()}():\n    pass\n"
 
-def generate_md_file(filename: str, arch_dir: Path, guidance: dict, config: SPARCConfig) -> tuple[str, bool]:
-    """Generate a single markdown file using LiteLLM. Returns (filename, success)"""
-    file_path = arch_dir / filename
-    if file_path.exists():
-        logger.info(f"{filename} already exists. Skipping.")
-        return (filename, True)
-    
-    try:
-        # Get guidance content for this file
-        file_guidance = guidance.get(filename[:-3].lower(), {}).get('content', '')
-        
-        # Generate content using LiteLLM
-        response = completion(
-            model=config.model,
-            messages=[{
-                "role": "system",
-                "content": "You are an expert software architect following the SPARC framework. Generate detailed, comprehensive documentation that follows best practices and industry standards."
-            }, {
-                "role": "user",
-                "content": f"Generate detailed content for {filename} based on this guidance:\n\n{file_guidance}"
-            }],
-            temperature=config.temperature,
-            max_tokens=config.max_tokens
-        )
-        
-        content = response.choices[0].message.content
-        if not content:
-            content = f"# {filename[:-3]}\n\nError: No content generated"
-            
-        with open(file_path, 'w') as f:
-            f.write(content)
-        logger.info(f"Generated {filename} with LiteLLM")
-        return (filename, True)
-        
-    except Exception as e:
-        logger.error(f"Error generating {filename}: {str(e)}")
-        return (filename, False)
-
 def main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI with LiteLLM integration')
     subparsers = parser.add_subparsers(dest='mode', help='Modes of operation')
@@ -456,11 +417,16 @@ def main():
         arch_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Created architecture directory at {arch_dir.resolve()}")
 
-        # Save guidance.toml to architecture directory
+        # Save guidance.toml to architecture directory 
         guidance_arch_path = arch_dir / "guidance.toml"
         if not guidance_arch_path.exists():
             with open(guidance_arch_path, 'w') as f:
-                toml.dump(guidance, f)
+                # Format each section with proper indentation and line breaks
+                for section, content in guidance.items():
+                    f.write(f"[{section}]\n")
+                    f.write('content = """\n')
+                    f.write(content['content'].strip())
+                    f.write('\n"""\n\n')
             logger.info("Generated guidance.toml in architecture directory")
 
         # Create README.md
@@ -500,7 +466,7 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
                 f.write(readme_content)
             logger.info("Generated README.md in architecture directory")
 
-        # Create architecture files using LiteLLM concurrently
+        # Create architecture files using LiteLLM
         files_to_generate = [
             "Specification.md",
             "Pseudocode.md", 
@@ -509,35 +475,19 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
             "Completion.md"
         ]
 
-        # Use ThreadPoolExecutor for concurrent generation
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            # Submit all file generation tasks
-            future_to_file = {
-                executor.submit(generate_md_file, filename, arch_dir, guidance, config): filename 
-                for filename in files_to_generate
-            }
-            
-            # Process completed tasks as they finish
-            for future in as_completed(future_to_file):
-                filename = future_to_file[future]
-                try:
-                    _, success = future.result()
-                    if not success:
-                        logger.error(f"Failed to generate {filename}")
-                except Exception as e:
-                    logger.error(f"Exception while generating {filename}: {str(e)}")
-
-        # Special handling for Architecture.md if needed
-        arch_file = arch_dir / "Architecture.md"
-        if arch_file.exists():
-            with open(arch_file, 'r') as f:
-                content = f.read()
-                
-            # Only regenerate if no components are defined
-            if "Component:" not in content:
-                try:
-                    # Generate Architecture.md with detailed component specs
-                    prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
+        # Initialize LiteLLM configuration
+        try:
+            for filename in files_to_generate:
+                file_path = arch_dir / filename
+                if not file_path.exists():
+                    # Get guidance content for this file
+                    file_guidance = guidance.get(filename[:-3].lower(), {}).get('content', '')
+                    
+                    # Generate content using LiteLLM
+                    try:
+                        # Construct detailed prompts based on file type
+                        if filename == "Architecture.md":
+                            prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
 
 1. System Overview
    - High-level architecture diagram
@@ -622,36 +572,48 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
    - Async operation handling
 
 Based on the following requirements:
-{guidance.get('architecture', {}).get('content', 'No specific guidance provided.')}"""
+{file_guidance}"""
+                        else:
+                            # Default prompt for other files
+                            prompt = f"Generate detailed content for {filename} based on this guidance:\n\n{file_guidance}"
 
-                    response = completion(
-                        model=config.model,
-                        messages=[{
-                            "role": "system",
-                            "content": "You are an expert software architect following the SPARC framework. Generate detailed, comprehensive documentation that follows best practices and industry standards."
-                        }, {
-                            "role": "user",
-                            "content": prompt
-                        }],
-                        temperature=config.temperature,
-                        max_tokens=config.max_tokens
-                    )
+                        response = completion(
+                            model=config.model,
+                            messages=[{
+                                "role": "system",
+                                "content": "You are an expert software architect following the SPARC framework. Generate detailed, comprehensive documentation that follows best practices and industry standards."
+                            }, {
+                                "role": "user",
+                                "content": prompt
+                            }],
+                            temperature=config.temperature,
+                            max_tokens=config.max_tokens
+                        )
+                        
+                        content = response.choices[0].message.content
+                        if not content:
+                            content = f"# {filename[:-3]}\n\nError: No content generated"
+                    except Exception as e:
+                        logger.error(f"Error generating content with LiteLLM for {filename}: {str(e)}")
+                        content = f"# {filename[:-3]}\n\nError generating content: {str(e)}"
                     
-                    content = response.choices[0].message.content
-                    if not content:
-                        content = f"# Architecture\n\nError: No content generated"
-                    
-                    # Write the generated content
-                    with open(arch_file, 'w') as f:
+                    with open(file_path, 'w') as f:
                         f.write(content)
-                    logger.info("Generated Architecture.md with LiteLLM")
-                except Exception as e:
-                    logger.error(f"Failed to generate Architecture.md: {str(e)}")
-                    content = "# Architecture\n\nError generating content"
-                    with open(arch_file, 'w') as f:
+                    logger.info(f"Generated {filename} with LiteLLM")
+                else:
+                    logger.info(f"{filename} already exists. Skipping.")
+        except Exception as e:
+            logger.warning(f"Error using LiteLLM: {str(e)}. Falling back to basic content generation.")
+            # Fallback to basic content generation
+            for filename in files_to_generate:
+                file_path = arch_dir / filename
+                if not file_path.exists():
+                    content = guidance.get(filename[:-3].lower(), {}).get('content', f"# {filename[:-3]}\n")
+                    with open(file_path, 'w') as f:
                         f.write(content)
-            else:
-                logger.info("Architecture.md already exists with components. Skipping.")
+                    logger.info(f"Generated {filename}")
+                else:
+                    logger.info(f"{filename} already exists. Skipping.")
     
     elif args.mode == 'implement':
         # Read Architecture.md to find components
