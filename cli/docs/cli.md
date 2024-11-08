@@ -48,32 +48,155 @@ class DevelopmentCycle:
             logger.warning(f"Guidance file '{guidance_file}' not found.")
         return {}
 
+    def _generate_detailed_content(self, file_type: str, guidance: str) -> str:
+        """Generate detailed content using LiteLLM based on file type and guidance."""
+        base_prompt = {
+            "Specification.md": """Create an extremely detailed software specification document following the SPARC framework. Include:
+1. Project Overview and Goals
+2. Functional Requirements (detailed user stories, use cases)
+3. Non-Functional Requirements (performance, security, scalability)
+4. Technical Constraints and Dependencies
+5. User Interface Requirements
+6. Data Requirements and Database Schema
+7. Integration Requirements
+8. Security Requirements
+9. Performance Requirements
+10. Deployment Requirements
+11. Testing Requirements
+12. Timeline and Milestones
+13. Risk Assessment and Mitigation Strategies
+
+Based on this guidance:""",
+
+            "Pseudocode.md": """Create a comprehensive pseudocode document following the SPARC framework. Include:
+1. High-Level System Flow
+2. Detailed Component Interactions
+3. Data Structures and Types
+4. Algorithm Descriptions
+5. Error Handling Approaches
+6. State Management
+7. Concurrency Considerations
+8. Resource Management
+9. Integration Points
+10. Performance Optimizations
+11. Security Measures
+12. Logging and Monitoring
+13. Testing Strategies in Pseudocode
+
+Based on this guidance:""",
+
+            "Architecture.md": """Create an extensive software architecture document following the SPARC framework. Include:
+1. System Overview
+2. Architectural Style and Patterns
+3. Component Breakdown (with detailed responsibilities)
+4. Component Interactions and Dependencies
+5. Data Flow Diagrams
+6. API Specifications
+7. Database Architecture
+8. Security Architecture
+9. Deployment Architecture
+10. Performance Considerations
+11. Scalability Strategy
+12. Monitoring and Logging Architecture
+13. Disaster Recovery Plan
+14. Technology Stack Details
+15. Third-Party Integrations
+
+For each component, use this format:
+## Component: [Name]
+### Responsibility
+### Interfaces
+### Dependencies
+### Data Model
+### Error Handling
+### Performance Characteristics
+### Security Considerations
+### Testing Strategy
+
+Based on this guidance:""",
+
+            "Refinement.md": """Create a detailed refinement document following the SPARC framework. Include:
+1. Design Decisions and Rationale
+2. Performance Optimizations
+3. Security Hardening
+4. Code Quality Improvements
+5. Technical Debt Assessment
+6. Scalability Enhancements
+7. Reliability Improvements
+8. Maintainability Considerations
+9. Testing Strategy Refinements
+10. Documentation Updates
+11. Integration Optimizations
+12. Deployment Process Improvements
+13. Monitoring and Logging Enhancements
+
+Based on this guidance:""",
+
+            "Completion.md": """Create a comprehensive completion document following the SPARC framework. Include:
+1. Implementation Status
+2. Test Coverage Report
+3. Performance Benchmarks
+4. Security Audit Results
+5. Documentation Completeness
+6. Deployment Readiness
+7. Integration Test Results
+8. User Acceptance Criteria
+9. Known Issues and Workarounds
+10. Future Enhancements
+11. Maintenance Guidelines
+12. Support Documentation
+13. Training Materials
+14. Release Notes
+
+Based on this guidance:"""
+        }
+
+        try:
+            response = completion(
+                model=self.config.model,
+                messages=[{
+                    "role": "system",
+                    "content": "You are an expert software architect following the SPARC framework. Generate detailed, comprehensive documentation that follows best practices and industry standards."
+                }, {
+                    "role": "user",
+                    "content": f"{base_prompt[file_type]}\n\n{guidance}"
+                }],
+                temperature=self.config.temperature,
+                max_tokens=self.config.max_tokens,
+                api_key=self.config.litellm_api_key
+            )
+            
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"Error generating content with LiteLLM: {str(e)}")
+            return f"# {file_type[:-3]}\n\nError generating content: {str(e)}"
+
     def run_architect_mode(self):
-        """Run in architect mode to generate architecture documents using aider.chat."""
+        """Run in architect mode to generate detailed architecture documents using LiteLLM."""
         # Create architecture directory
         arch_dir = Path(self.config.architecture_dir)
         arch_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Created architecture directory at {arch_dir.resolve()}")
 
-        # Generate architecture files using aider.chat
+        # Generate architecture files
         files_to_generate = {
-            "Specification.md": self.guidance.get('specification', "Create a detailed specification for the project."),
-            "Pseudocode.md": self.guidance.get('pseudocode', "Provide high-level pseudocode for the application."),
-            "Architecture.md": self.guidance.get('architecture', "Describe the system architecture and list the components."),
-            "Refinement.md": self.guidance.get('refinement', "Use this document to refine the design and code."),
-            "Completion.md": self.guidance.get('completion', "Finalize the project details here.")
+            "Specification.md": self.guidance.get('specification', {}).get('content', "Create a detailed specification for the project."),
+            "Pseudocode.md": self.guidance.get('pseudocode', {}).get('content', "Provide high-level pseudocode for the application."),
+            "Architecture.md": self.guidance.get('architecture', {}).get('content', "Describe the system architecture and components."),
+            "Refinement.md": self.guidance.get('refinement', {}).get('content', "Refine the design and implementation details."),
+            "Completion.md": self.guidance.get('completion', {}).get('content', "Document the completion criteria and final state.")
         }
 
-        for filename, prompt in files_to_generate.items():
+        for filename, guidance in files_to_generate.items():
             file_path = arch_dir / filename
             if not file_path.exists():
-                success = self._generate_file_with_aider(file_path, prompt)
-                if success:
-                    logger.info(f"Generated {file_path}")
-                else:
-                    logger.error(f"Failed to generate {file_path}")
+                logger.info(f"Generating detailed content for {filename}...")
+                content = self._generate_detailed_content(filename, guidance)
+                with open(file_path, 'w') as f:
+                    f.write(content)
+                logger.info(f"Generated {filename}")
             else:
-                logger.info(f"{file_path} already exists. Skipping.")
+                logger.info(f"{filename} already exists. Skipping.")
 
         logger.info("Architecture files generated successfully.")
 
@@ -309,7 +432,11 @@ def main():
     config = SPARCConfig(
         max_attempts=args.max_attempts if 'max_attempts' in args else 3,
         verbose=args.verbose if 'verbose' in args else False,
-        guidance_file=args.guidance_file if 'guidance_file' in args else 'guidance.toml'
+        guidance_file=args.guidance_file if 'guidance_file' in args else 'guidance.toml',
+        model=args.model,
+        temperature=args.temperature,
+        max_tokens=args.max_tokens,
+        litellm_api_key=args.litellm_api_key
     )
     cycle = DevelopmentCycle(config)
 

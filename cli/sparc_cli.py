@@ -5,10 +5,11 @@ import sys
 import subprocess
 import argparse
 import logging
+import json
 from pathlib import Path
-
 from dataclasses import dataclass
 from typing import Optional
+from litellm import completion
 
 import toml  # Ensure toml is installed
 
@@ -31,6 +32,12 @@ class SPARCConfig:
     max_attempts: int = 3
     verbose: bool = False
     guidance_file: str = "guidance.toml"
+    
+    # LiteLLM settings
+    model: str = "claude-3-sonnet-20240229"
+    temperature: float = 0.7
+    max_tokens: int = 4096
+    litellm_api_key: Optional[str] = None
     
     # Git settings
     use_git: bool = True
@@ -289,15 +296,22 @@ def test_handle_credentials_error():
     return f"def test_{component.lower()}():\n    pass\n"
 
 def main():
-    parser = argparse.ArgumentParser(description='SPARC Framework CLI')
+    parser = argparse.ArgumentParser(description='SPARC Framework CLI with LiteLLM integration')
     subparsers = parser.add_subparsers(dest='mode', help='Modes of operation')
 
     # Common arguments for all modes
     parent_parser = argparse.ArgumentParser(add_help=False)
     parent_parser.add_argument('--model', type=str,
-                             choices=['claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'gpt-4', 'gpt-4-turbo'],
                              default='claude-3-sonnet-20240229',
-                             help='AI model to use (default: claude-3-sonnet-20240229)')
+                             help='LiteLLM model to use')
+    parent_parser.add_argument('--temperature', type=float,
+                             default=0.7,
+                             help='LiteLLM temperature parameter')
+    parent_parser.add_argument('--max-tokens', type=int,
+                             default=4096,
+                             help='Maximum tokens for LiteLLM response')
+    parent_parser.add_argument('--litellm-api-key', type=str,
+                             help='API key for LiteLLM')
 
     # Architect mode
     parser_architect = subparsers.add_parser('architect', parents=[parent_parser], help='Run in architect mode')
