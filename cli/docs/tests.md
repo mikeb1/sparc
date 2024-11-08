@@ -225,7 +225,6 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
     attempt = 0
     while attempt < max_attempts:
         try:
-        try:
             logger.info(f"\nVerification attempt {attempt + 1}/{max_attempts}")
             
             # Install requirements
