@@ -194,45 +194,21 @@ api_docs_required = true
 architecture_docs_required = true
 '''
 
-def _detect_tech_stack(project_desc: str) -> Dict[str, str]:
-    """Detect technology stack from project description."""
-    tech_stack = {
-        'framework': None,
-        'language': None,
-        'features': []
-    }
-    
-    desc_lower = project_desc.lower()
-    
-    # Detect framework/runtime
-    if 'nextjs' in desc_lower or 'next.js' in desc_lower:
-        tech_stack['framework'] = 'nextjs'
-        tech_stack['language'] = 'typescript'
-    elif 'flask' in desc_lower:
-        tech_stack['framework'] = 'flask'
-        tech_stack['language'] = 'python'
-    elif 'deno' in desc_lower:
-        tech_stack['framework'] = 'deno'
-        tech_stack['language'] = 'typescript'
-    
-    # Detect features
-    features = []
-    if 'websocket' in desc_lower:
-        features.append('websockets')
-    if 'sticky top nav' in desc_lower:
-        features.append('sticky-navigation')
-    if 'sidebar' in desc_lower:
-        features.append('sidebar')
-    if 'mobile' in desc_lower:
-        features.append('mobile-responsive')
-    if 'view' in desc_lower:
-        features.append('view-management')
-    if 'agent' in desc_lower:
-        features.append('agent-management')
-        
-    tech_stack['features'] = features
-        
-    return tech_stack
+def _detect_tech_stack(guidance_file: Path) -> Dict[str, str]:
+    """Read the tech stack from guidance.toml."""
+    try:
+        with open(guidance_file, 'r') as f:
+            guidance = toml.load(f)
+            
+        project = guidance.get('project', {})
+        return {
+            'framework': project.get('framework', ''),
+            'language': project.get('language', ''),
+            'features': project.get('features', [])
+        }
+    except Exception as e:
+        logger.error(f"Failed to read tech stack from guidance.toml: {e}")
+        return {}
 
 def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
@@ -724,13 +700,42 @@ async def async_main():
             src_file = src_dir / f"{component_lower}.py"
             test_file = test_dir / f"test_{component_lower}.py"
 
-            # Use aider to generate test file first (TDD approach)
-            test_prompt = f"""Create a comprehensive test file for the {component} component following TDD principles.
-The component is part of a swarm agent system using LangChain.js.
+            # Get tech stack from guidance file
+            tech_stack = _detect_tech_stack(Path(self.config.guidance_file))
+            
+            if not tech_stack:
+                logger.error("Could not determine project technology stack")
+                sys.exit(1)
+                
+            logger.info(f"Implementing component using: {tech_stack['framework']} with {tech_stack['language']}")
+            
+            # Set file extensions based on language
+            file_ext = {
+                'typescript': '.ts',
+                'javascript': '.js', 
+                'rust': '.rs'
+            }.get(tech_stack['language'].lower(), '.js')
+            
+            test_ext = {
+                'typescript': '.test.ts',
+                'javascript': '.test.js',
+                'rust': '_test.rs'
+            }.get(tech_stack['language'].lower(), '.test.js')
+            
+            # Update file paths with correct extensions
+            component_lower = component.lower()
+            src_file = src_dir / f"{component_lower}{file_ext}"
+            test_file = test_dir / f"{component_lower}{test_ext}"
+
+            # Generate test file using appropriate testing framework
+            test_prompt = f"""Create tests for the {component} component using appropriate testing frameworks for {tech_stack['framework']}.
+For example:
+- JavaScript/TypeScript: Jest
+- Rust: built-in testing framework
+Follow testing best practices for {tech_stack['language']}.
 Write thorough unit tests that verify all expected functionality.
 Include edge cases and error conditions.
-Use proper test isolation and mocking where appropriate.
-The tests should guide the implementation."""
+Use proper test isolation and mocking where appropriate."""
 
             logger.info(f"\n{'='*80}")
             logger.info(f"Generating tests for {component} using aider...")
@@ -779,12 +784,13 @@ The tests should guide the implementation."""
             
             logger.info(f"Generated tests at {test_file}")
 
-            # Use aider to implement the component based on the tests
-            impl_prompt = f"""Implement the {component} component to pass the tests in {test_file}.
-Follow best practices for TypeScript/JavaScript development.
+            # Generate implementation using correct language/framework
+            impl_prompt = f"""Implement the {component} component using {tech_stack['framework']} and {tech_stack['language']}.
+Follow best practices for {tech_stack['language']} development.
 Ensure proper error handling and type safety.
-The component is part of a swarm agent system using LangChain.js.
-Make the implementation clean, efficient, and well-documented."""
+The component should pass the tests in {test_file}.
+Make the implementation clean, efficient, and well-documented.
+Use appropriate patterns and practices for {tech_stack['framework']}."""
 
             logger.info(f"\n{'='*80}")
             logger.info(f"Implementing {component} using aider...")
