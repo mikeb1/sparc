@@ -316,7 +316,8 @@ def main():
 
     # Architect mode
     parser_architect = subparsers.add_parser('architect', parents=[parent_parser], help='Run in architect mode')
-    parser_architect.add_argument('project_type', type=str, help='Type of project to architect')
+    parser_architect.add_argument('project_type', nargs='?', type=str, 
+                                help='Type of project to architect (e.g., fastapi, django, cli)')
     parser_architect.add_argument('--guidance-file', type=str, default='guidance.toml',
                                 help='Path to guidance TOML file')
 
@@ -342,138 +343,71 @@ def main():
             # Load or create guidance based on project type
             guidance = {}
             if args.project_type:
-                # Initial analysis of project requirements
-                analysis_prompt = completion(
-                    model=config.model,
-                    messages=[{
-                        "role": "system",
-                        "content": """You are an expert software architect analyzing project requirements.
-Extract key architectural requirements and technology stack from the provided instructions.
-Focus on:
-- Core functionality and features
-- System architecture patterns
-- Component relationships
-- Technical constraints
-- Integration requirements"""
-                    }, {
-                        "role": "user",
-                        "content": f"Analyze these project requirements: {args.project_type}"
-                    }],
-                    temperature=0.7,
-                    max_tokens=1024
-                )
+                if args.project_type.lower() in ['fastapi', 'fastapi using websockets']:
+                    base_guidance = {
+                        'specification': {
+                            'content': '''Create a FastAPI service with:
+1. User Authentication:
+   - JWT token-based authentication 
+   - User registration and login endpoints
+   - Password hashing with bcrypt
+   - Token refresh mechanism
 
-                # Generate comprehensive architectural guidance
-                base_guidance = {
-                    'specification': {
-                        'content': f"""# Project Architecture Specification
+2. Data Models:
+   - User model with email, hashed password, and profile info
+   - SQLAlchemy ORM integration
+   - SQLite database for storage
+   - Pydantic schemas for request/response validation
 
-## Project Overview
-{analysis_prompt.choices[0].message.content}
+3. API Features:
+   - OpenAPI documentation
+   - Input validation using Pydantic
+   - Proper error handling with status codes
+   - Rate limiting for API endpoints
+   - CORS middleware configuration
 
-## Core Requirements
-1. System Architecture
-   - Component design and relationships
-   - Data flow patterns
-   - State management approach
-   - Error handling strategy
-
-2. Technical Design
-   - Technology stack recommendations
-   - Integration patterns
-   - Security considerations
-   - Performance requirements
-
-3. Component Architecture
-   - Core components and responsibilities
-   - Interface definitions
-   - Communication patterns
-   - State management
-
-4. Testing Strategy
-   - Unit testing approach
-   - Integration testing plan
-   - Test coverage requirements
-   - Mock/stub strategies
-
-5. Documentation
-   - Architecture diagrams (Mermaid/PlantUML)
-   - API specifications
-   - Component relationship maps
-   - Data flow diagrams
-
-6. Development Guidelines
-   - Code organization
-   - Error handling patterns
-   - Logging and monitoring
-   - Performance optimization
-
-7. Deployment Considerations
-   - Infrastructure requirements
-   - Scaling strategy
-   - Monitoring approach
-   - Backup/recovery plans"""
-                    },
-                    'architecture': {
-                        'content': f"""# Detailed Architecture Design
-
-## System Components
-```mermaid
-graph TD
-    A[Core Application] --> B[Component 1]
-    A --> C[Component 2]
-    B --> D[Subcomponent 1.1]
-    C --> E[Subcomponent 2.1]
-```
-
-## Component Specifications
-{analysis_prompt.choices[0].message.content}
-
-## Interface Contracts
-- Define component interfaces
-- Specify data formats
-- Document error responses
-- Detail validation rules
-
-## Testing Requirements
-- Unit test structure
-- Integration test approach
-- Performance test criteria
-- Security test cases"""
+4. Testing:
+   - Unit tests for all endpoints
+   - Integration tests with test database
+   - Test fixtures and helpers
+   - 100% code coverage target'''
+                        }
                     }
-                }
+
+                    websocket_guidance = {
+                        'specification': {
+                            'content': '''
+5. WebSocket Features:
+   - Real-time bidirectional communication
+   - Connection management and heartbeat
+   - Message serialization/deserialization
+   - Room/channel support for group messaging
+   - Client connection state tracking
+   - Reconnection handling
+   - Message queuing and delivery guarantees
+   - WebSocket authentication middleware
+   - Rate limiting for WebSocket connections
+   - Error handling and connection recovery'''
+                        }
+                    }
+
+                    guidance = base_guidance
+                    if 'websockets' in args.project_type.lower():
+                        # Merge websocket-specific guidance
+                        for key in guidance:
+                            if key in websocket_guidance:
+                                guidance[key]['content'] += '\n' + websocket_guidance[key]['content']
+                # Add more project types here
                 logger.info(f"Using predefined guidance for {args.project_type} project")
             
-            # Create guidance.toml in architecture directory
-            guidance_arch_path = arch_dir / "guidance.toml"
-            if not guidance_arch_path.exists():
-                with open(guidance_arch_path, 'w') as f:
-                    f.write(f"""[project]
-type = "{args.project_type}"
-
-[specification]
-content = "Generate detailed specifications based on project requirements"
-
-[architecture]
-content = "Generate comprehensive architecture documentation"
-
-[components]
-content = "Define component relationships and interfaces"
-
-[testing]
-content = "Specify testing strategy and requirements"
-
-[implementation]
-content = "Provide implementation guidelines"
-""")
-                logger.info("Generated guidance.toml in architecture directory")
-
             # Load custom guidance file if it exists
             if os.path.exists(config.guidance_file):
                 with open(config.guidance_file, 'r') as f:
                     custom_guidance = toml.load(f)
                     guidance.update(custom_guidance)
                 logger.info(f"Loaded custom guidance from {config.guidance_file}")
+            elif not guidance:
+                logger.warning(f"No guidance file found and no project type specified. Using default prompts.")
         except Exception as e:
             logger.warning(f"Failed to load guidance file: {e}")
             guidance = {}
@@ -496,20 +430,35 @@ content = "Provide implementation guidelines"
             logger.info("Generated guidance.toml in architecture directory")
 
         # Create README.md
-        readme_content = f"""# Project Architecture Documentation
+        readme_content = f"""# FastAPI Project Architecture Documentation
 
-## Project Type
-{args.project_type}
+## Overview
+This directory contains the architectural documentation for the FastAPI REST API project following the SPARC framework.
 
-## Documentation Structure
-- Specification.md - Detailed requirements and specifications  
-- Architecture.md - System architecture and design
-- Components.md - Component relationships and interfaces
-- Testing.md - Testing strategy and requirements
-- Implementation.md - Implementation guidelines
+## Project Structure
+The project implements a REST API with user authentication, data models, and comprehensive testing using FastAPI.
+
+## Documentation Files
+- [Specification](./Specification.md) - Detailed project requirements and specifications
+- [Pseudocode](./Pseudocode.md) - High-level implementation logic and flow
+- [Architecture](./Architecture.md) - System architecture and component design
+- [Refinement](./Refinement.md) - Design improvements and optimizations
+- [Completion](./Completion.md) - Project completion criteria and final state
+
+## Key Components
+- AuthService: JWT authentication and user authorization
+- UserService: User management and CRUD operations
+- DatabaseService: Database operations and connections
+- ErrorHandler: Centralized error handling
+
+## Testing Approach
+- Unit tests using pytest
+- Integration tests with test database
+- Mock-based testing following London TDD
+- 100% code coverage target
 
 ## Configuration
-See [guidance.toml](./guidance.toml) for project configuration and requirements.
+See [guidance.toml](./guidance.toml) for detailed configuration and requirements.
 """
         readme_path = arch_dir / "README.md"
         if not readme_path.exists():
@@ -519,55 +468,26 @@ See [guidance.toml](./guidance.toml) for project configuration and requirements.
 
         # Create architecture files using LiteLLM
         files_to_generate = [
-            ("Specification.md", "Generate detailed project specifications"),
-            ("Architecture.md", "Generate comprehensive architecture documentation"), 
-            ("Components.md", "Define component relationships and interfaces"),
-            ("Testing.md", "Specify testing strategy and requirements"),
-            ("Implementation.md", "Provide implementation guidelines")
+            "Specification.md",
+            "Pseudocode.md", 
+            "Architecture.md",
+            "Refinement.md",
+            "Completion.md"
         ]
 
-        for filename, prompt_suffix in files_to_generate:
-            file_path = arch_dir / filename
-            if not file_path.exists():
-                try:
-                    if filename == "Architecture.md":
-                        prompt = f"""Generate a comprehensive architecture document for {args.project_type} that includes:
-
-1. System Overview
-2. Component Design 
-3. Data Flow
-4. Security Architecture
-5. Testing Strategy
-6. Performance Considerations
-
-Based on this guidance: {prompt_suffix}"""
-                    else:
-                        prompt = f"Generate detailed content for {filename} based on this guidance: {prompt_suffix}"
-
-                    response = completion(
-                        model=config.model,
-                        messages=[{
-                            "role": "system",
-                            "content": """You are an expert software architect creating detailed documentation.
-Generate comprehensive documentation that is:
-- Language/platform agnostic 
-- Focused on architecture and design
-- Clear and maintainable
-- Following best practices"""
-                        }, {
-                            "role": "user",
-                            "content": prompt
-                        }],
-                        temperature=0.7,
-                        max_tokens=4096
-                    )
+        # Initialize LiteLLM configuration
+        try:
+            for filename in files_to_generate:
+                file_path = arch_dir / filename
+                if not file_path.exists():
+                    # Get guidance content for this file
+                    file_guidance = guidance.get(filename[:-3].lower(), {}).get('content', '')
                     
-                    content = response.choices[0].message.content
-                    with open(file_path, 'w') as f:
-                        f.write(content)
-                    logger.info(f"Generated {filename} with LiteLLM")
-                except Exception as e:
-                    logger.error(f"Error generating {filename}: {e}")
+                    # Generate content using LiteLLM
+                    try:
+                        # Construct detailed prompts based on file type
+                        if filename == "Architecture.md":
+                            prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
 
 1. System Overview
    - High-level architecture diagram
