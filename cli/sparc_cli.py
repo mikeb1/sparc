@@ -885,7 +885,7 @@ The tests should guide the implementation."""
             test_result = process.poll()
             
             if test_result != 0:  # Compare directly with integer
-                logger.error(f"Failed to generate tests for {component}: {test_result.stderr}")
+                logger.error(f"Failed to generate tests for {component}")
                 continue
             
             logger.info(f"Generated tests at {test_file}")
@@ -932,8 +932,8 @@ Make the implementation clean, efficient, and well-documented."""
 
             impl_result = process.poll()
 
-            if impl_result.returncode != 0:
-                logger.error(f"Failed to implement {component}: {impl_result.stderr}")
+            if impl_result != 0:  # Compare directly with integer since we're using process.poll()
+                logger.error(f"Failed to implement {component}")
                 continue
                 
             logger.info(f"Generated implementation at {src_file}")
