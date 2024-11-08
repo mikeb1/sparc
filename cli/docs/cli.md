@@ -96,8 +96,8 @@ content = "Define optimization and improvement strategies."
 content = "Specify completion criteria and deployment steps."
 """
 
-    def _generate_detailed_content(self, file_type: str, guidance: str) -> str:
-        """Generate detailed content using LiteLLM based on file type and guidance."""
+    async def _generate_detailed_content(self, file_type: str, guidance: str) -> str:
+        """Generate detailed content using LiteLLM based on file type and guidance asynchronously."""
         base_prompt = {
             "Specification.md": """Create a comprehensive software specification document following the SPARC framework. Include:
 1. Project Overview
@@ -270,8 +270,8 @@ Based on this guidance:"""
             logger.error(f"Error generating content with LiteLLM: {str(e)}")
             return f"# {file_type[:-3]}\n\nError generating content: {str(e)}"
 
-    def run_architect_mode(self):
-        """Run in architect mode to generate detailed architecture documents using LiteLLM."""
+    async def run_architect_mode(self):
+        """Run in architect mode to generate detailed architecture documents using LiteLLM concurrently."""
         # Create architecture directory
         arch_dir = Path(self.config.architecture_dir)
         arch_dir.mkdir(parents=True, exist_ok=True)
@@ -281,10 +281,8 @@ Based on this guidance:"""
         guidance_path = arch_dir / "guidance.toml"
         if not guidance_path.exists():
             logger.info("Generating guidance.toml...")
-            # Extract project description from guidance if available
             project_desc = self.guidance.get('project', {}).get('description', "")
             if not project_desc:
-                # Use a default description if none is provided
                 project_desc = "A software project following SPARC framework principles."
             
             guidance_content = self._generate_guidance_toml(project_desc)
@@ -292,15 +290,13 @@ Based on this guidance:"""
                 with open(guidance_path, 'w') as f:
                     f.write(guidance_content)
                 logger.info(f"Generated guidance.toml at {guidance_path}")
-                
-                # Reload guidance with new content
                 self.guidance = self._load_guidance(str(guidance_path))
             except Exception as e:
                 logger.error(f"Failed to write guidance.toml: {str(e)}")
         else:
             logger.info("guidance.toml already exists, using existing file")
 
-        # Generate architecture files
+        # Prepare files to generate
         files_to_generate = {
             "Specification.md": self.guidance.get('specification', {}).get('content', "Create a detailed specification for the project."),
             "Pseudocode.md": self.guidance.get('pseudocode', {}).get('content', "Provide high-level pseudocode for the application."),
@@ -309,18 +305,38 @@ Based on this guidance:"""
             "Completion.md": self.guidance.get('completion', {}).get('content', "Document the completion criteria and final state.")
         }
 
-        for filename, guidance in files_to_generate.items():
+        # Generate files concurrently
+        async def generate_file(filename: str, guidance: str) -> tuple[str, str]:
+            """Generate content for a single file."""
             file_path = arch_dir / filename
             if not file_path.exists():
                 logger.info(f"Generating detailed content for {filename}...")
-                content = self._generate_detailed_content(filename, guidance)
-                with open(file_path, 'w') as f:
-                    f.write(content)
-                logger.info(f"Generated {filename}")
+                content = await self._generate_detailed_content(filename, guidance)
+                return filename, content
             else:
                 logger.info(f"{filename} already exists. Skipping.")
+                return filename, None
 
-        logger.info("Architecture files generated successfully.")
+        # Create tasks for all files
+        tasks = [generate_file(filename, guidance) 
+                for filename, guidance in files_to_generate.items()]
+
+        # Run all tasks concurrently
+        try:
+            results = await asyncio.gather(*tasks)
+            
+            # Write results to files
+            for filename, content in results:
+                if content is not None:
+                    file_path = arch_dir / filename
+                    with open(file_path, 'w') as f:
+                        f.write(content)
+                    logger.info(f"Generated {filename}")
+            
+            logger.info("Architecture files generated successfully.")
+        except Exception as e:
+            logger.error(f"Error generating architecture files: {str(e)}")
+            raise
 
     def _generate_file_with_aider(self, file_path: Path, prompt: str) -> bool:
         """Use aider.chat to generate a file based on the prompt."""
@@ -563,12 +579,16 @@ def main():
     cycle = DevelopmentCycle(config)
 
     if args.mode == 'architect':
-        cycle.run_architect_mode()
+        await cycle.run_architect_mode()
     elif args.mode == 'implement':
         cycle.run_implementation_mode()
     else:
         parser.print_help()
         sys.exit(1)
+
+def main():
+    """Entry point that runs the async main function."""
+    asyncio.run(async_main())
 
 if __name__ == "__main__":
     main()

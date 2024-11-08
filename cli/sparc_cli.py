@@ -5,6 +5,9 @@ import sys
 import subprocess
 import argparse
 import logging
+import asyncio
+import concurrent.futures
+from typing import List, Dict
 from pathlib import Path
 import json
 
@@ -694,7 +697,7 @@ Include:
 
     return files_content
 
-def main():
+async def async_main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI')
     subparsers = parser.add_subparsers(dest='mode', help='Modes of operation')
 
