@@ -779,10 +779,14 @@ async def async_main():
         for filename, content in files_content.items():
             logger.info(f"- {filename}: {len(content):,} characters")
     elif args.mode == 'implement':
-        # Use the guidance file path to find the architecture directory
-        guidance_dir = Path(args.guidance_file).parent
+        # Handle both absolute and relative paths for guidance file
+        guidance_path = Path(args.guidance_file)
+        if not guidance_path.is_absolute():
+            guidance_path = Path.cwd() / guidance_path
+        
+        guidance_dir = guidance_path.parent
         if not guidance_dir.exists():
-            logger.error(f"Directory containing guidance file '{args.guidance_file}' not found.")
+            logger.error(f"Directory containing guidance file '{guidance_path}' not found.")
             sys.exit(1)
             
         latest_arch_dir = guidance_dir
