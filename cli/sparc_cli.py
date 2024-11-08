@@ -384,17 +384,35 @@ def _detect_tech_stack(project_desc: str) -> Dict[str, str]:
         'features': []
     }
     
+    desc_lower = project_desc.lower()
+    
     # Detect framework/runtime
-    if 'flask' in project_desc.lower():
+    if 'nextjs' in desc_lower or 'next.js' in desc_lower:
+        tech_stack['framework'] = 'nextjs'
+        tech_stack['language'] = 'typescript'
+    elif 'flask' in desc_lower:
         tech_stack['framework'] = 'flask'
         tech_stack['language'] = 'python'
-    elif 'deno' in project_desc.lower():
+    elif 'deno' in desc_lower:
         tech_stack['framework'] = 'deno'
         tech_stack['language'] = 'typescript'
     
     # Detect features
-    if 'websocket' in project_desc.lower():
-        tech_stack['features'].append('websockets')
+    features = []
+    if 'websocket' in desc_lower:
+        features.append('websockets')
+    if 'sticky top nav' in desc_lower:
+        features.append('sticky-navigation')
+    if 'sidebar' in desc_lower:
+        features.append('sidebar')
+    if 'mobile' in desc_lower:
+        features.append('mobile-responsive')
+    if 'view' in desc_lower:
+        features.append('view-management')
+    if 'agent' in desc_lower:
+        features.append('agent-management')
+        
+    tech_stack['features'] = features
         
     return tech_stack
 
