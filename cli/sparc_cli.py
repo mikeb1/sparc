@@ -409,10 +409,14 @@ def main():
         except Exception as e:
             logger.warning(f"Failed to load guidance file: {e}")
             guidance = {}
-        # Create architecture directory
-        arch_dir = Path("architecture")
+        # Create uniquely identified architecture directory
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base_name = project_desc.replace(" ", "-")[:30]  # First 30 chars, spaces to hyphens
+        arch_dir_name = f"architecture_{timestamp}_{base_name}"
+        arch_dir = Path(arch_dir_name)
         arch_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Created architecture directory")
+        logger.info(f"Created architecture directory: {arch_dir_name}")
 
         # Generate architecture files using LiteLLM
         files_content = generate_sparc_content(project_desc, config.aider_model)
@@ -428,11 +432,19 @@ def main():
                 logger.error(f"Failed to save {filename}: {str(e)}")
                 raise
     elif args.mode == 'implement':
-        # Read Architecture.md to find components
-        arch_file = Path("architecture/Architecture.md")
-        if not arch_file.exists():
-            logger.error("Architecture.md not found. Run architect mode first.")
+        # Find the most recent architecture directory
+        arch_dirs = sorted([d for d in Path().glob("architecture_*") if d.is_dir()], reverse=True)
+        if not arch_dirs:
+            logger.error("No architecture directories found. Run architect mode first.")
             sys.exit(1)
+        
+        latest_arch_dir = arch_dirs[0]
+        arch_file = latest_arch_dir / "Architecture.md"
+        if not arch_file.exists():
+            logger.error(f"Architecture.md not found in {latest_arch_dir}.")
+            sys.exit(1)
+        
+        logger.info(f"Using architecture from: {latest_arch_dir}")
 
         with open(arch_file, 'r') as f:
             content = f.read()
