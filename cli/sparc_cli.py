@@ -69,10 +69,12 @@ class SPARCConfig:
     aider_stream: bool = True
     aider_auto_commits: bool = True
 
-def _generate_component_code(component: str) -> str:
+import re
+
+def _generate_component_code(config, component: str) -> str:
     """Generate implementation code for a component based on architecture specs."""
     # Read the architecture files to determine the implementation details
-    arch_dir = Path(self.config.architecture_dir)
+    arch_dir = Path(config.architecture_dir)
     arch_file = arch_dir / "Architecture.md"
     
     if not arch_file.exists():
@@ -97,10 +99,10 @@ def _generate_component_code(component: str) -> str:
     # Generate code based on the architecture specification
     return component_spec
 
-def _generate_test_code(component: str) -> str:
+def _generate_test_code(config, component: str) -> str:
     """Generate test code based on architecture specs."""
     # Read the architecture files to determine the implementation details
-    arch_dir = Path(self.config.architecture_dir)
+    arch_dir = Path(config.architecture_dir)
     arch_file = arch_dir / "Architecture.md"
     
     if not arch_file.exists():
