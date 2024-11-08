@@ -1,0 +1,442 @@
+# SPARC Framework Guidance Configuration
+
+[project]
+framework = "Next.js"
+language = "javascript"
+features = ['sticky-nav', 'sidebar', 'mobile-view', 'agent-management']
+
+[architecture]
+# Component naming conventions
+component_style = "PascalCase"
+test_prefix = "test_"
+source_suffix = ".javascript"
+content = """
+
+
+# Specification.md
+```markdown
+# Project Specification: Node.js with Sticky Top Nav, Sidebar, Mobile View, and Agent Management System
+
+## Project Overview
+
+The goal of this project is to develop a web application using Node.js and the Next.js framework. The application will feature a sticky top navigation bar, a sidebar, and a responsive design optimized for mobile devices. Additionally, it will include an agent management system to handle various agents and their associated data.
+
+The target audience for this application includes businesses and organizations that require a robust and user-friendly platform for managing their agents and related information. The application should cater to both desktop and mobile users, ensuring a seamless experience across different devices.
+
+## Functional Requirements
+
+1. **User Authentication**
+   - Users should be able to register, log in, and log out of the application.
+   - Implement secure authentication mechanisms, such as password hashing and token-based authentication.
+
+2. **Agent Management**
+   - Allow authorized users to create, read, update, and delete agents.
+   - Each agent should have fields for basic information (e.g., name, contact details, location).
+   - Provide a search functionality to easily locate agents.
+   - Implement sorting and filtering options for better data management.
+
+3. **Dashboard**
+   - Display a comprehensive overview of agents and relevant statistics.
+   - Include visual representations (e.g., charts, graphs) for better data analysis.
+
+4. **Sticky Top Navigation Bar**
+   - Implement a sticky top navigation bar that remains visible as the user scrolls.
+   - The navigation bar should provide quick access to essential sections of the application.
+
+5. **Sidebar**
+   - Include a sidebar for additional navigation options and filtering capabilities.
+   - The sidebar should be collapsible or expandable based on user preference.
+
+6. **Responsive Design**
+   - Ensure the application is optimized for various screen sizes and devices.
+   - Implement a mobile-friendly view with a hamburger menu or alternative navigation pattern.
+
+7. **Notifications and Alerts**
+   - Provide a system for displaying notifications and alerts to users.
+   - Notifications can include updates, reminders, or important messages related to agents.
+
+8. **Reporting and Analytics**
+   - Generate comprehensive reports based on agent data and activities.
+   - Provide data visualization tools for better analysis and decision-making.
+
+9. **Role-based Access Control**
+   - Implement role-based access control to manage user permissions and access levels.
+   - Different user roles may have varying levels of access to agent data and application features.
+
+## Non-Functional Requirements
+
+1. **Performance**
+   - Optimize the application for fast load times and efficient data retrieval.
+   - Implement caching mechanisms and lazy loading techniques where appropriate.
+
+2. **Security**
+   - Follow industry-standard security practices, such as input validation and sanitization.
+   - Implement secure communication channels (HTTPS) and protection against common web vulnerabilities (e.g., XSS, CSRF).
+
+3. **Scalability**
+   - Design the application to handle increasing amounts of data and user traffic.
+   - Utilize scalable architectures and leverage cloud computing services if necessary.
+
+4. **Usability**
+   - Ensure a user-friendly and intuitive interface for seamless navigation and interaction.
+   - Follow accessibility guidelines and best practices for inclusive design.
+
+5. **Maintainability**
+   - Write clean, modular, and well-documented code for easy maintenance and future enhancements.
+   - Implement automated testing and continuous integration/deployment pipelines.
+
+6. **Compatibility**
+   - Ensure cross-browser compatibility and support for the latest versions of major browsers.
+   - Adhere to web standards and best practices for consistent behavior across platforms.
+
+## User Scenarios and User Flows
+
+1. **Agent Management**
+   - User logs in to the application.
+   - User navigates to the "Agents" section.
+   - User can view a list of existing agents, with options to sort, filter, and search.
+   - User can create a new agent by providing the required information.
+   - User can edit or delete an existing agent.
+
+2. **Dashboard and Reporting**
+   - User logs in to the application.
+   - User navigates to the "Dashboard" section.
+   - User can view an overview of agents, including statistics and visual representations.
+   - User can generate reports based on specific criteria (e.g., agent location, performance metrics).
+
+3. **Mobile View**
+   - User accesses the application from a mobile device.
+   - The application adapts to the smaller screen size, displaying a mobile-friendly layout.
+   - The navigation menu is accessible through a hamburger menu or alternative pattern.
+   - User can perform essential tasks, such as viewing agent information and receiving notifications.
+
+## UI/UX Considerations
+
+- Follow modern design principles and best practices for creating intuitive and visually appealing user interfaces.
+- Ensure consistent styling and branding throughout the application.
+- Implement accessible design practices, such as proper color contrast, keyboard navigation, and screen reader compatibility.
+- Provide clear and concise instructions, labels, and error messages to guide users through the application.
+- Optimize the user experience for both desktop and mobile devices, considering factors like touch interactions and screen real estate.
+
+## File Structure Proposal
+
+```
+project-root/
+├── components/
+│   ├── layout/
+│   │   ├── Header.js
+│   │   ├── Sidebar.js
+│   │   └── Footer.js
+│   ├── agents/
+│   │   ├── AgentList.js
+│   │   ├── AgentDetails.js
+│   │   └── AgentForm.js
+│   ├── dashboard/
+│   │   ├── Overview.js
+│   │   ├── Charts.js
+│   │   └── Reports.js
+│   └── shared/
+│       ├── Button.js
+│       ├── Modal.js
+│       └── Spinner.js
+├── pages/
+│   ├── _app.js
+│   ├── index.js
+│   ├── agents/
+│   │   ├── index.js
+│   │   ├── [id].js
+│   │   └── new.js
+│   ├── dashboard/
+│   │   └── index.js
+│   ├── auth/
+│   │   ├── login.js
+│   │   └── register.js
+│   └── api/
+│       ├── agents/
+│       │   ├── index.js
+│       │   └── [id].js
+│       └── auth/
+│           ├── login.js
+│           └── register.js
+├── styles/
+│   ├── globals.css
+│   ├── layout.css
+│   ├── agents.css
+│   └── dashboard.css
+├── utils/
+│   ├── auth.js
+│   ├── api.js
+│   └── helpers.js
+├── package.json
+├── next.config.js
+└── README.md
+```
+
+## Assumptions
+
+1. The application will be built using the Next.js framework, which provides server-side rendering and other performance optimizations out of the box.
+2. The application will use a modern JavaScript runtime environment (Node.js) and follow industry-standard best practices for web development.
+3. The application will integrate with a database system (e.g., MongoDB, PostgreSQL) for storing and retrieving agent data.
+4. The application will be deployed to a cloud hosting platform (e.g., Vercel, AWS, Azure) for production use.
+5. The application will be developed with a responsive design approach, ensuring a consistent user experience across different devices and screen sizes.
+6. The application will implement proper security measures, such as authentication, authorization, and input validation, to protect against common web vulnerabilities.
+
+## Reflection
+
+The proposed specification covers the essential functional and non-functional requirements for developing a web application with a sticky top navigation bar, sidebar, mobile view, and agent management system using Node.js and the Next.js framework.
+
+By following this specification, the development team can ensure that the application meets the desired goals and provides a seamless user experience. The inclusion of user authentication, agent management, dashboard and reporting features, responsive design, and security considerations addresses the core requirements of the project.
+
+However, it is important to note that this specification serves as a starting point and may need to be adjusted or expanded based on further requirements or feedback from stakeholders. Additionally, potential challenges may arise during development, such as integrating with third-party services, handling large amounts of data, or addressing specific performance or scalability concerns. It is recommended to continuously review and update the specification as needed, and to implement appropriate mitigation strategies to address any challenges that may arise.
+
+Overall, this specification provides a solid foundation for the development team to build a robust and user-friendly application that meets the project's objectives and delivers value to the target audience.
+```
+
+# Architecture.md
+# Software Architecture Documentation
+
+## System Components
+
+### 1. Core Services
+
+**Next.js Application**
+- This is the main application built with the Next.js framework, which serves as the front-end and handles server-side rendering (SSR).
+- It includes components for the sticky navigation, sidebar, mobile view, and agent management system.
+
+**API Server**
+- A separate Node.js server that handles API requests and integrates with the data layer and external services.
+- Responsible for processing and responding to API calls from the Next.js application.
+
+**Authentication Service**
+- Handles user authentication and authorization.
+- Integrates with the data layer to manage user accounts and permissions.
+
+### 2. Data Layer
+
+**Database**
+- A database management system (e.g., MongoDB, PostgreSQL) to store application data, such as user information, agent details, and other relevant data.
+
+**Object Storage**
+- A cloud-based object storage service (e.g., Amazon S3, Google Cloud Storage) to store and serve static assets like images, documents, and media files.
+
+### 3. External Integrations
+
+**Third-Party Services**
+- Integrations with external services or APIs may be required for specific features or functionality, such as payment gateways, messaging services, or analytics platforms.
+
+**Logging and Monitoring**
+- Integration with a logging and monitoring service (e.g., Datadog, New Relic) to track application performance, errors, and usage metrics.
+
+## Component Interactions
+
+### 1. Service Communication
+
+- The Next.js application communicates with the API server via HTTP requests (e.g., REST, GraphQL) to fetch data and perform operations.
+- The API server interacts with the data layer (database and object storage) to retrieve, store, or update data as needed.
+- The API server may also communicate with external services or APIs to integrate with third-party functionality.
+
+### 2. Data Flow
+
+- User interactions in the Next.js application (e.g., form submissions, button clicks) trigger API requests to the API server.
+- The API server processes the requests, interacts with the data layer, and responds with the appropriate data or actions.
+- The Next.js application receives the response data and updates the user interface accordingly.
+
+### 3. API Contracts
+
+- Clear and well-documented API contracts (e.g., OpenAPI, GraphQL schema) define the communication between the Next.js application and the API server.
+- These contracts specify the available endpoints, request/response formats, and data structures.
+
+## Data Flow
+
+### 1. Input Processing
+
+- User input from forms, buttons, or other UI elements in the Next.js application is collected and validated on the client-side.
+- Valid input data is then sent to the API server via HTTP requests.
+- The API server performs additional input validation and sanitization to ensure data integrity and security.
+
+### 2. Data Transformation
+
+- The API server may need to transform or manipulate data before storing or retrieving it from the data layer.
+- This could involve data normalization, aggregation, or formatting to match the application's data models.
+
+### 3. Storage Patterns
+
+- For structured data (e.g., user accounts, agent details), a relational or document-based database (e.g., MongoDB, PostgreSQL) can be used.
+- For unstructured or binary data (e.g., images, documents), an object storage service (e.g., Amazon S3, Google Cloud Storage) can be utilized.
+- Appropriate indexing and caching strategies should be implemented to optimize data retrieval and application performance.
+
+## Key Design Decisions
+
+### 1. Technology Choices
+
+- **Next.js**: A popular React framework that provides server-side rendering, static site generation, and other features out of the box, making it suitable for building modern web applications with excellent performance and developer experience.
+- **Node.js**: A JavaScript runtime that allows for building efficient and scalable server-side applications, making it a good choice for the API server.
+- **MongoDB or PostgreSQL**: Depending on the data structure and requirements, either a document-based database (MongoDB) or a relational database (PostgreSQL) can be used for storing structured application data.
+- **Amazon S3 or Google Cloud Storage**: Reliable and scalable object storage services for storing and serving static assets like images, documents, and media files.
+
+### 2. Architectural Patterns
+
+- **Microservices Architecture**: The application is divided into separate services (Next.js application, API server, authentication service) that can be developed, deployed, and scaled independently, promoting modularity and flexibility.
+- **Serverless Architecture**: Certain components or services (e.g., API server, authentication service) can be deployed as serverless functions (e.g., AWS Lambda, Google Cloud Functions) to take advantage of automatic scaling, reduced operational overhead, and pay-per-use pricing models.
+- **Event-Driven Architecture**: Certain features or workflows (e.g., background tasks, notifications) can be implemented using an event-driven approach, where events are published to a message queue (e.g., AWS SQS, RabbitMQ) and processed asynchronously by dedicated workers or serverless functions.
+
+### 3. Security Measures
+
+- **Authentication and Authorization**: Implement secure authentication and authorization mechanisms (e.g., JWT, OAuth) to protect user accounts and sensitive data.
+- **Input Validation and Sanitization**: Validate and sanitize all user input on both the client-side (Next.js application) and server-side (API server) to prevent injection attacks and data corruption.
+- **Encrypted Communication**: Use HTTPS for secure communication between the Next.js application, API server, and external services.
+- **Access Control**: Implement proper access control mechanisms to restrict access to sensitive data and functionality based on user roles and permissions.
+- **Regular Security Audits and Updates**: Regularly audit the application for security vulnerabilities and keep all dependencies and libraries up to date with the latest security patches.
+
+## File and Folder Structure
+
+```
+project-root/
+├── next-app/
+│   ├── components/
+│   │   ├── Header.js
+│   │   ├── Sidebar.js
+│   │   ├── AgentManagement/
+│   │   │   ├── AgentList.js
+│   │   │   ├── AgentDetails.js
+│   │   │   └── ...
+│   │   └── ...
+│   ├── pages/
+│   │   ├── _app.js
+│   │   ├── index.js
+│   │   ├── agents/
+│   │   │   ├── index.js
+│   │   │   ├── [id].js
+│   │   │   └── ...
+│   │   └── ...
+│   ├── styles/
+│   │   ├── globals.css
+│   │   └── ...
+│   ├── utils/
+│   │   ├── api.js
+│   │   ├── helpers.js
+│   │   └── ...
+│   ├── next.config.js
+│   └── ...
+├── api-server/
+│   ├── controllers/
+│   │   ├── agents.js
+│   │   ├── users.js
+│   │   └── ...
+│   ├── routes/
+│   │   ├── agents.js
+│   │   ├── users.js
+│   │   └── ...
+│   ├── services/
+│   │   ├── database.js
+│   │   ├── storage.js
+│   │   ├── auth.js
+│   │   └── ...
+│   ├── utils/
+│   │   ├── validators.js
+│   │   ├── helpers.js
+│   │   └── ...
+│   ├── app.js
+│   └── ...
+├── auth-service/
+│   ├── controllers/
+│   │   ├── auth.js
+│   │   └── ...
+│   ├── services/
+│   │   ├── database.js
+│   │   ├── tokens.js
+│   │   └── ...
+│   ├── utils/
+│   │   ├── validators.js
+│   │   ├── helpers.js
+│   │   └── ...
+│   ├── app.js
+│   └── ...
+├── docs/
+│   ├── api-docs/
+│   │   ├── openapi.yaml
+│   │   └── ...
+│   └── ...
+└── ...
+```
+
+### Next.js Application (`next-app/`)
+
+- `components/`: Contains reusable React components for the application, including the sticky header, sidebar, and components related to agent management.
+- `pages/`: Next.js convention for defining application routes and pages. This includes the main index page, agent management pages, and other application pages.
+- `styles/`: Styles and CSS files for the application.
+- `utils/`: Utility functions and helpers for API communication, data formatting, and other shared logic.
+- `next.config.js`: Next.js configuration file for customizing the build process, adding environment variables, and other settings.
+
+### API Server (`api-server/`)
+
+- `controllers/`: Contains the logic for handling API requests and interacting with the data layer and external services.
+- `routes/`: Defines the API routes and maps them to the corresponding controllers.
+- `services/`: Encapsulates the logic for interacting with the database, object storage, and other external services.
+- `utils/`: Utility functions and helpers for input validation, data transformation, and other shared logic.
+- `app.js`: Entry point for the API server, where the Express app is configured and started.
+
+### Authentication Service (`auth-service/`)
+
+- `controllers/`: Contains the logic for handling authentication and authorization requests.
+- `services/`: Encapsulates the logic for interacting with the user database, generating and managing access tokens, and other authentication-related operations.
+- `utils/`: Utility functions and helpers for input validation, data transformation, and other shared logic.
+- `app.js`: Entry point for the authentication service, where the Express app is configured and started.
+
+### Documentation (`docs/`)
+
+- `api-docs/`: Contains documentation for the API, such as OpenAPI specifications or GraphQL schema definitions.
+
+This folder structure follows a modular and organized approach, separating concerns and promoting code reusability and maintainability. Components are organized based on their functionality, and shared utilities and services are kept in separate directories for better organization and code sharing across the application.
+"""
+
+# Directory structure
+src_dir = "src"
+test_dir = "tests"
+docs_dir = "docs"
+
+[implementation]
+# Code generation settings
+max_attempts = 3
+test_first = true
+type_hints = true
+
+# Documentation requirements
+require_docstrings = true
+doc_style = "Google"
+
+[testing]
+# Testing requirements
+min_coverage = 80
+unit_test_required = true
+integration_test_required = true
+
+[quality]
+# Code quality requirements
+max_complexity = 10
+max_line_length = 100
+require_type_hints = true
+
+[security]
+# Security requirements
+require_input_validation = true
+require_authentication = true
+require_authorization = true
+
+[performance]
+# Performance requirements
+max_response_time_ms = 500
+max_memory_usage_mb = 512
+enable_caching = true
+
+[deployment]
+# Deployment requirements
+containerize = true
+ci_cd_required = true
+monitoring_required = true
+
+[documentation]
+# Documentation requirements
+readme_required = true
+api_docs_required = true
+architecture_docs_required = true
