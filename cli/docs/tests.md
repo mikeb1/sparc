@@ -308,13 +308,13 @@ def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):
     
     os.chdir(clean_test_dir)
 
-    # Create a basic guidance.toml file
+    # Create a basic guidance.toml file with comprehensive requirements
     guidance_content = """
 [specification]
 content = '''
 Create a FastAPI REST API service with:
 1. User Authentication:
-   - JWT token-based authentication
+   - JWT token-based authentication 
    - User registration and login endpoints
    - Password hashing with bcrypt
    - Token refresh mechanism
