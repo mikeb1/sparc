@@ -334,19 +334,25 @@ Format in Markdown."""
 
     files_content = {}
     for filename, prompt in prompts.items():
-        response = completion(
-            model=model,
-            messages=[{
-                "role": "system",
-                "content": "You are a software architect. Generate detailed technical documentation."
-            },
-            {
-                "role": "user",
-                "content": prompt
-            }],
-            temperature=0.7
-        )
-        files_content[filename] = response.choices[0].message.content
+        logger.info(f"Generating {filename}...")
+        try:
+            response = completion(
+                model=model,
+                messages=[{
+                    "role": "system",
+                    "content": "You are a software architect. Generate detailed technical documentation."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }],
+                temperature=0.7
+            )
+            files_content[filename] = response.choices[0].message.content
+            logger.info(f"Successfully generated {filename}")
+        except Exception as e:
+            logger.error(f"Failed to generate {filename}: {str(e)}")
+            raise
 
     return files_content
 
@@ -408,16 +414,13 @@ def main():
         # Save the generated content
         for filename, content in files_content.items():
             file_path = arch_dir / filename
-            with open(file_path, 'w') as f:
-                f.write(content)
-            logger.info(f"Generated {filename}")
-
-        for filename, content in files_content.items():
-            file_path = arch_dir / filename
-            if not file_path.exists():
+            try:
                 with open(file_path, 'w') as f:
                     f.write(content)
-                logger.info(f"Generated {filename}")
+                logger.info(f"Saved {filename} to {file_path}")
+            except Exception as e:
+                logger.error(f"Failed to save {filename}: {str(e)}")
+                raise
     elif args.mode == 'implement':
         # Read Architecture.md to find components
         arch_file = Path("architecture/Architecture.md")
