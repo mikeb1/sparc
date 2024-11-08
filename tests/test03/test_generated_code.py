@@ -115,6 +115,7 @@ litellm>=1.0.0
                 text=True
             )
             
+<<<<<<< HEAD
             if install_result.returncode != 0:
                 logger.error(f"Dependency installation failed:\n{install_result.stderr}")
                 logger.info("Attempting to fix dependencies...")
@@ -133,6 +134,12 @@ litellm>=1.0.0
             env["PYTHONPATH"] = str(app_dir)
             result = subprocess.run(
                 [str(python_path), "-m", "pytest", "-v", "--import-mode=importlib"],
+=======
+            # Run tests with correct Python path
+            env["PYTHONPATH"] = str(app_dir)
+            result = subprocess.run(
+                [str(python_path), "-m", "pytest", "--import-mode=importlib", "--no-cov"],
+>>>>>>> parent of 65b2ba7 (fix: Update test configuration with verbose output and expanded Python path)
                 cwd=app_dir,
                 env=env,
                 capture_output=True,
