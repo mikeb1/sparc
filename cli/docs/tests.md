@@ -437,35 +437,67 @@ content = '''
     # Copy the generated and verified application
     shutil.copytree(clean_test_dir, test_output_dir)
     
-    # Create a detailed README.md with verification results
-    readme_content = f"""# Verified Application - Generated {timestamp}
+    # Create a comprehensive test report
+    report_content = f"""# Test Verification Report - {timestamp}
 
-This application was generated and verified using the SPARC framework.
+## Test Status
+- Verification Success: {'Yes' if verification_success else 'No'}
+- Maximum Attempts: 5
+- Virtual Environment: {venv_path}
+- Python Version: {sys.version}
 
-## Components
-- ApiService: REST API endpoint handler
-- DataValidator: Input validation service
-- ErrorHandler: Error handling service
+## Components Tested
+{_get_component_list(clean_test_dir)}
 
-## Verification Status
-- Virtual Environment: Created successfully
-- Dependencies: {'Installed successfully' if verification_success else 'Installation issues encountered'}
-- Tests: {'All tests passing' if verification_success else 'Some tests failed'}
+## Test Results
+- Dependencies: {'Successfully installed' if verification_success else 'Installation issues encountered'}
+- Tests: {'All passing' if verification_success else 'Some failures detected'}
+- Coverage: See coverage_report.xml for details
 
 ## Generated Files
-- src/: Source code for each component
-- tests/: Unit tests for each component
-- architecture/: SPARC architecture documents
-- requirements.txt: Project dependencies
+- Source Code: src/
+- Test Suite: tests/
+- Architecture: architecture/
+- Dependencies: requirements.txt
 
-## Verification Log
-The application was verified in a clean virtual environment.
-Maximum verification attempts: 3
-Final status: {'Success' if verification_success else 'Failed'}
+## Next Steps
+{_get_next_steps(verification_success)}
+
+## Test Environment
+- OS: {os.name}
+- Platform: {sys.platform}
+- Python Path: {python_path}
 """
     
+def _get_component_list(app_dir: Path) -> str:
+    """Get a formatted list of components that were tested."""
+    src_dir = app_dir / "src"
+    components = []
+    if src_dir.exists():
+        for file in src_dir.glob("*.py"):
+            if file.stem != "__init__":
+                components.append(f"- {file.stem}")
+    return "\n".join(components) if components else "No components found"
+
+def _get_next_steps(success: bool) -> str:
+    """Get recommended next steps based on test results."""
+    if success:
+        return """
+1. Review test coverage reports
+2. Consider adding more test cases
+3. Proceed with deployment preparations
+"""
+    else:
+        return """
+1. Review test failure logs
+2. Check component dependencies
+3. Verify test environment setup
+4. Run tests individually to isolate failures
+5. Consider increasing test timeout values
+"""
+
     with open(test_output_dir / "README.md", "w") as f:
-        f.write(readme_content)
+        f.write(report_content)
 
     assert verification_success, "Application verification failed after maximum attempts"
     
