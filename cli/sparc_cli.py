@@ -338,19 +338,145 @@ def main():
         arch_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Created architecture directory")
 
-        # Create empty architecture files
-        files_to_generate = [
-            "Specification.md",
-            "Pseudocode.md", 
-            "Architecture.md",
-            "Refinement.md",
-            "Completion.md"
-        ]
+        # Generate architecture files with project-specific content
+        files_content = {
+            "Specification.md": f"""# Specification
 
-        for filename in files_to_generate:
+## Project Overview
+Creating a real-time web application using Vite.js and WebSocket technology.
+
+## Core Requirements
+1. Set up a Vite.js project with React
+2. Implement WebSocket client-server communication
+3. Real-time data updates
+4. Clean and modern UI
+5. Error handling and connection management
+
+## Technical Requirements
+- Vite.js for frontend development
+- WebSocket protocol for real-time communication
+- React for UI components
+- Error boundary implementation
+- Connection status indicators
+""",
+            "Architecture.md": """# Architecture
+
+## System Components
+
+### Component: WebSocketClient
+- Manages WebSocket connection
+- Handles connection lifecycle
+- Implements reconnection logic
+- Provides message sending/receiving interface
+
+### Component: ConnectionManager
+- Monitors connection status
+- Implements heartbeat mechanism
+- Handles connection errors
+- Provides connection status to UI
+
+### Component: UIComponents
+- Real-time data display components
+- Connection status indicator
+- Message input/output interfaces
+- Error boundaries
+
+### Component: MessageHandler
+- Message serialization/deserialization
+- Message queue management
+- Retry logic for failed messages
+""",
+            "Pseudocode.md": """# Pseudocode
+
+## WebSocket Setup
+```typescript
+class WebSocketClient {
+  constructor(url: string) {
+    this.ws = new WebSocket(url)
+    this.setupEventHandlers()
+  }
+
+  setupEventHandlers() {
+    this.ws.onopen = () => handleOpen()
+    this.ws.onclose = () => handleClose()
+    this.ws.onerror = (error) => handleError(error)
+    this.ws.onmessage = (message) => handleMessage(message)
+  }
+}
+```
+
+## Connection Management
+```typescript
+class ConnectionManager {
+  monitorConnection() {
+    setInterval(() => {
+      if (!isConnected) {
+        reconnect()
+      }
+      sendHeartbeat()
+    }, HEARTBEAT_INTERVAL)
+  }
+}
+```
+""",
+            "Refinement.md": """# Refinement
+
+## Implementation Details
+
+### WebSocket Connection
+- Use secure WebSocket (wss://) for production
+- Implement exponential backoff for reconnection attempts
+- Add connection timeout handling
+
+### State Management
+- Use React Context for connection state
+- Implement message queue for offline support
+- Add message delivery confirmation
+
+### Error Handling
+- Implement comprehensive error boundaries
+- Add retry mechanisms for failed connections
+- Provide user feedback for connection issues
+
+### Testing Strategy
+- Unit tests for connection logic
+- Integration tests for WebSocket communication
+- End-to-end tests for real-time features
+""",
+            "Completion.md": """# Completion
+
+## Project Structure
+```
+src/
+  components/
+    ConnectionStatus.tsx
+    MessageList.tsx
+    MessageInput.tsx
+  services/
+    WebSocketClient.ts
+    ConnectionManager.ts
+    MessageHandler.ts
+  hooks/
+    useWebSocket.ts
+    useConnection.ts
+  context/
+    WebSocketContext.tsx
+```
+
+## Development Steps
+1. Initialize Vite.js project with React
+2. Implement WebSocket service classes
+3. Create React components
+4. Add connection management
+5. Implement error handling
+6. Add tests
+7. Deploy and verify
+"""
+        }
+
+        for filename, content in files_content.items():
             file_path = arch_dir / filename
             if not file_path.exists():
-                content = guidance.get(filename[:-3].lower(), {}).get('content', f"# {filename[:-3]}\n")
                 with open(file_path, 'w') as f:
                     f.write(content)
                 logger.info(f"Generated {filename}")
