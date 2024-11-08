@@ -1,21 +1,20 @@
-# SPARC Framework Core Configuration
+# SPARC Framework Project Configuration
 
 [project]
-name = "sparc-project"
+name = "supabase-devops-cli"
+description = "swarm agents using denojs"
 version = "0.1.0"
-description = "SPARC Framework Project"
 
 [architecture]
 # Component organization
-component_style = "PascalCase"  # PascalCase for class names
+component_style = "PascalCase"
 test_prefix = "test_"
 source_suffix = ".py"
 
-# Directory structure 
+# Directory structure
 src_dir = "src"
 test_dir = "tests"
 docs_dir = "docs"
-architecture_dir = "architecture"
 
 [implementation]
 # Code generation settings
@@ -29,29 +28,19 @@ docstring_style = "Google"
 min_coverage = 85
 unit_test_required = true
 integration_test_required = true
-performance_test_required = false
 
 [quality]
 # Code quality requirements
 max_complexity = 8
-max_line_length = 88  # Black formatter default
+max_line_length = 88
 require_type_hints = true
 require_docstrings = true
-linting_tools = ["flake8", "mypy", "black"]
 
 [security]
 # Security requirements
 require_input_validation = true
 require_authentication = true
 require_authorization = true
-security_scan_required = true
-
-[performance]
-# Performance targets
-max_response_time_ms = 200
-max_memory_usage_mb = 256
-enable_caching = true
-performance_monitoring = true
 
 [deployment]
 # Deployment configuration
@@ -66,10 +55,3 @@ readme_required = true
 api_docs_required = true
 architecture_docs_required = true
 changelog_required = true
-doc_format = "markdown"
-
-[development]
-# Development workflow
-branch_naming = "feature/{feature-name}"
-commit_style = "conventional"
-code_review_required = true

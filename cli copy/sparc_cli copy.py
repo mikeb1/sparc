@@ -5,9 +5,6 @@ import sys
 import subprocess
 import argparse
 import logging
-import asyncio
-import concurrent.futures
-from typing import List, Dict
 from pathlib import Path
 import json
 
@@ -22,12 +19,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configure LiteLLM and tqdm
+# Configure LiteLLM to use our logger
 import litellm
-from tqdm import tqdm
-litellm.set_verbose = False
-litellm.success_callback = []
-litellm.logger = None
+litellm.set_verbose = False  # Disable default logging
+litellm.success_callback = []  # Disable success callbacks
+litellm.logger = None  # Completely disable LiteLLM's logger
 
 @dataclass
 class SPARCConfig:
@@ -560,10 +556,6 @@ Include:
 - Core Classes/Functions
 - Important Algorithms
 - Data Structures
-- Be compelete and verbose.
-- Output using mark down and be sure to include all necessary details.
-- This will be used to guide the implementation process.
-- Include inlined comments to explain the logic and flow of the code.
 
 # Pseudocode
 
@@ -676,33 +668,33 @@ Include:
     files_content["guidance.toml"] = guidance_content.format(project_desc=project_desc)
     
     # Generate other files using the guidance
-    with tqdm(prompts.items(), desc="Generating files") as pbar:
-        for filename, prompt in pbar:
-            pbar.set_description(f"Generating {filename}")
-            try:
-                response = completion(
-                    model=model,
-                    messages=[{
-                        "role": "system",
-                        "content": system_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }],
-                    temperature=0.7
-                )
-                content = response.choices[0].message.content
-                content_length = len(content)
-                files_content[filename] = content
-                pbar.set_postfix(chars=f"{content_length:,}")
-            except Exception as e:
-                logger.error(f"Failed to generate {filename}: {str(e)}")
-                raise
+    for filename, prompt in prompts.items():
+        logger.info(f"Generating {filename}...")
+        try:
+            logger.info(f"Requesting {filename} from {model}...")
+            response = completion(
+                model=model,
+                messages=[{
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }],
+                temperature=0.7
+            )
+            content_length = len(response.choices[0].message.content)
+            logger.info(f"Generated {filename} ({content_length:,} characters)")
+            files_content[filename] = response.choices[0].message.content
+            logger.info(f"Successfully generated {filename}")
+        except Exception as e:
+            logger.error(f"Failed to generate {filename}: {str(e)}")
+            raise
 
     return files_content
 
-async def async_main():
+def main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI')
     subparsers = parser.add_subparsers(dest='mode', help='Modes of operation')
 
@@ -767,15 +759,10 @@ async def async_main():
             try:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(content)
-                logger.info(f"Saved {filename} ({len(content):,} chars) to {file_path}")
+                logger.info(f"Saved {filename} to {file_path}")
             except Exception as e:
                 logger.error(f"Failed to save {filename}: {str(e)}")
                 raise
-                
-        # Print summary
-        logger.info("\nGenerated files summary:")
-        for filename, content in files_content.items():
-            logger.info(f"- {filename}: {len(content):,} characters")
     elif args.mode == 'implement':
         # Find the most recent architecture directory
         arch_dirs = sorted([d for d in Path().glob("architecture_*") if d.is_dir()], reverse=True)
@@ -828,10 +815,6 @@ async def async_main():
                 logger.info(f"Generated {test_file}")
 
 
-
-def main():
-    """Synchronous wrapper for async_main()"""
-    asyncio.run(async_main())
 
 if __name__ == "__main__":
     main()
