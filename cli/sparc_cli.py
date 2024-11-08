@@ -294,6 +294,73 @@ def test_handle_credentials_error():
 '''
     return f"def test_{component.lower()}():\n    pass\n"
 
+def _generate_guidance_toml(tech_stack: Dict[str, str]) -> str:
+    """Generate guidance.toml content based on tech stack."""
+    return f'''# SPARC Framework Guidance Configuration
+
+[project]
+framework = "{tech_stack['framework']}"
+language = "{tech_stack['language']}"
+features = {tech_stack['features']}
+
+[architecture]
+# Component naming conventions
+component_style = "PascalCase"
+test_prefix = "test_"
+source_suffix = ".{tech_stack['language']}"
+
+# Directory structure
+src_dir = "src"
+test_dir = "tests"
+docs_dir = "docs"
+
+[implementation]
+# Code generation settings
+max_attempts = 3
+test_first = true
+type_hints = true
+
+# Documentation requirements
+require_docstrings = true
+doc_style = "Google"
+
+[testing]
+# Testing requirements
+min_coverage = 80
+unit_test_required = true
+integration_test_required = true
+
+[quality]
+# Code quality requirements
+max_complexity = 10
+max_line_length = 100
+require_type_hints = true
+
+[security]
+# Security requirements
+require_input_validation = true
+require_authentication = true
+require_authorization = true
+
+[performance]
+# Performance requirements
+max_response_time_ms = 500
+max_memory_usage_mb = 512
+enable_caching = true
+
+[deployment]
+# Deployment requirements
+containerize = true
+ci_cd_required = true
+monitoring_required = true
+
+[documentation]
+# Documentation requirements
+readme_required = true
+api_docs_required = true
+architecture_docs_required = true
+'''
+
 def _detect_tech_stack(project_desc: str) -> Dict[str, str]:
     """Detect technology stack from project description."""
     tech_stack = {
@@ -531,6 +598,11 @@ Include:
     }
 
     files_content = {}
+    
+    # Add guidance.toml to the output
+    files_content["guidance.toml"] = _generate_guidance_toml(tech_stack)
+    
+    # Generate other files
     for filename, prompt in prompts.items():
         logger.info(f"Generating {filename}...")
         try:
@@ -620,7 +692,7 @@ def main():
         for filename, content in files_content.items():
             file_path = arch_dir / filename
             try:
-                with open(file_path, 'w') as f:
+                with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(content)
                 logger.info(f"Saved {filename} to {file_path}")
             except Exception as e:
