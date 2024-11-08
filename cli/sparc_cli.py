@@ -795,10 +795,10 @@ async def async_main():
             # Also check the current directory
             arch_file = Path("Architecture.md")
         if not arch_file.exists():
-            logger.error(f"Architecture.md not found in {latest_arch_dir}.")
+            logger.error(f"Architecture.md not found in {guidance_dir}.")
             sys.exit(1)
         
-        logger.info(f"Using architecture from: {latest_arch_dir}")
+        logger.info(f"Using architecture from: {guidance_dir}")
 
         with open(arch_file, 'r') as f:
             content = f.read()
