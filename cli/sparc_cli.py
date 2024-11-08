@@ -676,22 +676,22 @@ Include:
         for filename, prompt in pbar:
             pbar.set_description(f"Generating {filename}")
             try:
-            response = completion(
-                model=model,
-                messages=[{
-                    "role": "system",
-                    "content": system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }],
-                temperature=0.7
-            )
-            content = response.choices[0].message.content
-            content_length = len(content)
-            files_content[filename] = content
-            pbar.set_postfix(chars=f"{content_length:,}")
+                response = completion(
+                    model=model,
+                    messages=[{
+                        "role": "system",
+                        "content": system_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }],
+                    temperature=0.7
+                )
+                content = response.choices[0].message.content
+                content_length = len(content)
+                files_content[filename] = content
+                pbar.set_postfix(chars=f"{content_length:,}")
         except Exception as e:
             logger.error(f"Failed to generate {filename}: {str(e)}")
             raise
