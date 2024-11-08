@@ -43,3 +43,48 @@ The CLI supports automatic Git integration:
 - Repository initialization
 - Automatic commits
 - Dirty state handling
+# Developer Guide
+
+## Code Structure
+
+- `cli/sparc_cli.py` - Main CLI implementation
+- `architecture/` - Generated architecture files
+- `src/` - Generated source code
+- `tests/` - Generated test files
+
+## Components
+
+### SPARCConfig Class
+Configuration dataclass with settings for:
+- Core directories
+- Development settings
+- LiteLLM settings
+- Git integration
+- Testing configuration
+
+### Main Functions
+- `architect` mode - Generates architecture documentation
+- `implement` mode - Generates implementation code
+- Component generators for source and test code
+
+## Development Workflow
+
+1. Fork the repository
+2. Create a feature branch
+3. Make changes
+4. Run tests
+5. Submit pull request
+
+## Testing
+
+Run tests:
+```bash
+pytest tests/
+```
+
+## Git Integration
+
+The CLI supports automatic Git integration:
+- Repository initialization
+- Automatic commits
+- Dirty state handling
