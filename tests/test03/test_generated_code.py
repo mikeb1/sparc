@@ -6,6 +6,7 @@ import venv
 import sys
 import time
 import logging
+import traceback
 from pathlib import Path
 from datetime import datetime
 
