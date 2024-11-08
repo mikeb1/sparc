@@ -539,8 +539,8 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
                 with open(arch_file, 'r') as f:
                     content = f.read()
                 if "Component:" not in content:
-                    # Generate Architecture.md with detailed component specs
                     try:
+                        # Generate Architecture.md with detailed component specs
                         prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
 
 1. System Overview
@@ -627,9 +627,6 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
 
 Based on the following requirements:
 {file_guidance}"""
-                    else:
-                        # Default prompt for other files
-                        prompt = f"Generate detailed content for {filename} based on this guidance:\n\n{file_guidance}"
 
                         response = completion(
                             model=config.model,
