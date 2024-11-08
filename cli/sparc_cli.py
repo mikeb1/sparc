@@ -294,8 +294,41 @@ def test_handle_credentials_error():
 '''
     return f"def test_{component.lower()}():\n    pass\n"
 
+def _detect_tech_stack(project_desc: str) -> Dict[str, str]:
+    """Detect technology stack from project description."""
+    tech_stack = {
+        'framework': None,
+        'language': None,
+        'features': []
+    }
+    
+    # Detect framework/runtime
+    if 'flask' in project_desc.lower():
+        tech_stack['framework'] = 'flask'
+        tech_stack['language'] = 'python'
+    elif 'deno' in project_desc.lower():
+        tech_stack['framework'] = 'deno'
+        tech_stack['language'] = 'typescript'
+    
+    # Detect features
+    if 'websocket' in project_desc.lower():
+        tech_stack['features'].append('websockets')
+        
+    return tech_stack
+
 def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
+    
+    tech_stack = _detect_tech_stack(project_desc)
+    
+    # Add tech stack context to system prompt
+    system_prompt = f"""You are a software architect. Generate detailed technical documentation.
+Technology Stack:
+- Framework/Runtime: {tech_stack['framework']}
+- Language: {tech_stack['language']}
+- Features: {', '.join(tech_stack['features'])}
+
+Focus on best practices and patterns specific to this technology stack."""
     
     prompts = {
         "Specification.md": f"""Generate a detailed software specification for: {project_desc}
@@ -506,7 +539,7 @@ Include:
                 model=model,
                 messages=[{
                     "role": "system",
-                    "content": "You are a software architect. Generate detailed technical documentation."
+                    "content": system_prompt
                 },
                 {
                     "role": "user",
