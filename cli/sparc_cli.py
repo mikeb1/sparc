@@ -398,47 +398,6 @@ def main():
                 logger.info(f"Generated {test_file}")
 
 
-    args = parser.parse_args()
-
-    if args.mode == 'architect':
-        try:
-            import toml
-            if os.path.exists(args.guidance_file):
-                with open(args.guidance_file, 'r') as f:
-                    guidance = toml.load(f)
-            else:
-                guidance = {}
-        except Exception as e:
-            logger.warning(f"Failed to load guidance file: {e}")
-            guidance = {}
-
-        # Create architecture directory
-        arch_dir = Path("architecture")
-        arch_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Created architecture directory")
-
-        # Create empty architecture files
-        files_to_generate = [
-            "Specification.md",
-            "Pseudocode.md", 
-            "Architecture.md",
-            "Refinement.md",
-            "Completion.md"
-        ]
-
-        for filename in files_to_generate:
-            file_path = arch_dir / filename
-            if not file_path.exists():
-                content = guidance.get(filename[:-3].lower(), {}).get('content', f"# {filename[:-3]}\n")
-                with open(file_path, 'w') as f:
-                    f.write(content)
-                logger.info(f"Generated {filename}")
-    elif args.mode == 'implement':
-        # Implementation mode code here
-        pass
-    else:
-        parser.print_help()
-        sys.exit(1)
 
 if __name__ == "__main__":
     main()
