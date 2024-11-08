@@ -532,6 +532,8 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
         if arch_file.exists():
             with open(arch_file, 'r') as f:
                 content = f.read()
+                
+            # Only regenerate if no components are defined
             if "Component:" not in content:
                 try:
                     # Generate Architecture.md with detailed component specs
@@ -639,11 +641,17 @@ Based on the following requirements:
                     if not content:
                         content = f"# Architecture\n\nError: No content generated"
                     
+                    # Write the generated content
                     with open(arch_file, 'w') as f:
                         f.write(content)
                     logger.info("Generated Architecture.md with LiteLLM")
-                else:
-                    logger.info("Architecture.md already exists with components. Skipping.")
+                except Exception as e:
+                    logger.error(f"Failed to generate Architecture.md: {str(e)}")
+                    content = "# Architecture\n\nError generating content"
+                    with open(arch_file, 'w') as f:
+                        f.write(content)
+            else:
+                logger.info("Architecture.md already exists with components. Skipping.")
     
     elif args.mode == 'implement':
         # Read Architecture.md to find components
