@@ -49,6 +49,7 @@ pytest-cov>=2.12.1
 alembic>=1.7.1
 email-validator>=2.0.0
 python-dotenv>=1.0.0
+litellm>=1.0.0
 """
         with open(app_dir / "requirements.txt", "w") as f:
             f.write(requirements.strip())
@@ -129,13 +130,21 @@ python-dotenv>=1.0.0
     logger.error(f"Application verification failed after {max_attempts} attempts")
     return False
 
-def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):
+@pytest.mark.asyncio
+async def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):
     """Test that generated code works in a fresh virtual environment."""
     try:
         # Copy the sparc_cli.py script to the test directory
         shutil.copy(cli_script, clean_test_dir)
         
         os.chdir(clean_test_dir)
+
+        # Generate architecture files with AI assistance
+        arch_dir = clean_test_dir / "architecture"
+        arch_dir.mkdir(exist_ok=True)
+        
+        success = await generate_architecture_files(arch_dir, guidance)
+        assert success, "Failed to generate architecture files"
 
         # Create a basic guidance.toml file
         guidance_content = """
@@ -244,12 +253,81 @@ python-dotenv>=1.0.0
     with open(app_dir / "requirements.txt", "w") as f:
         f.write(requirements.strip())
 
-def _fix_test_errors(app_dir: Path, error_output: str) -> bool:
-    """Parse test errors and apply fixes."""
+async def analyze_error_with_ai(error_output: str, files: dict) -> dict:
+    """Use Claude 3.5 Sonnet to analyze errors and suggest fixes."""
+    from litellm import completion
+    
+    prompt = f"""You are an expert Python developer analyzing test failures in a FastAPI application.
+Please analyze this error output and the relevant source files to suggest specific fixes:
+
+Error Output:
+{error_output}
+
+Source Files:
+{files}
+
+Please provide:
+1. Root cause analysis
+2. Specific code changes needed
+3. Additional context or warnings
+4. Suggested test improvements
+
+Format your response as a JSON object with these keys:
+- root_cause: str
+- code_changes: dict[str, str] (filename -> suggested changes)
+- context: str
+- test_improvements: str
+"""
+
+    try:
+        response = await completion(
+            model="claude-3-sonnet-20240229",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+            max_tokens=2000
+        )
+        
+        return response.choices[0].message.content
+    except Exception as e:
+        logger.error(f"AI analysis failed: {str(e)}")
+        return None
+
+async def _fix_test_errors(app_dir: Path, error_output: str) -> bool:
+    """Parse test errors and apply fixes using AI assistance."""
     fixed = False
     
-    # Fix import errors
-    if "ImportError: cannot import name 'DatabaseService'" in error_output:
+    # Collect relevant files for analysis
+    files = {}
+    for file_pattern in ["src/*.py", "tests/test_*.py"]:
+        for file_path in app_dir.glob(file_pattern):
+            try:
+                files[str(file_path)] = file_path.read_text()
+            except Exception as e:
+                logger.error(f"Failed to read {file_path}: {str(e)}")
+    
+    # Get AI analysis
+    analysis = await analyze_error_with_ai(error_output, files)
+    if not analysis:
+        return fixed
+    
+    try:
+        fixes = json.loads(analysis)
+        logger.info(f"AI Analysis: {fixes['root_cause']}")
+        
+        # Apply suggested code changes
+        for filename, changes in fixes['code_changes'].items():
+            file_path = app_dir / filename
+            if file_path.exists():
+                logger.info(f"Applying changes to {filename}")
+                file_path.write_text(changes)
+                fixed = True
+        
+        # Log additional context and improvements
+        logger.info(f"Context: {fixes['context']}")
+        logger.info(f"Suggested test improvements: {fixes['test_improvements']}")
+        
+        # Fix common issues
+        if "DatabaseService" in error_output:
         db_service_path = app_dir / "src" / "databaseservice.py"
         if db_service_path.exists():
             content = db_service_path.read_text()

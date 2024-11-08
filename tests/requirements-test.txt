@@ -1,8 +1,6 @@
 pytest>=7.0.0
+pytest-asyncio>=0.21.0
 toml>=0.10.0
 aider-chat>=0.62.1
-dataclasses>=0.6; python_version < "3.7"
-pytest>=7.0.0
-toml>=0.10.0
-aider-chat>=0.62.1
+litellm>=1.0.0
 dataclasses>=0.6; python_version < "3.7"
