@@ -677,10 +677,10 @@ Include:
 
     files_content = {}
     
-    # Add guidance.toml to the output first
-    files_content["guidance.toml"] = guidance_content.format(project_desc=project_desc)
+    # Generate architecture content first
+    architecture_content = ""
     
-    # Generate other files using the guidance
+    # Generate files using the guidance
     with tqdm(prompts.items(), desc="Generating files") as pbar:
         for filename, prompt in pbar:
             pbar.set_description(f"Generating {filename}")
