@@ -51,67 +51,118 @@ class DevelopmentCycle:
     def _generate_detailed_content(self, file_type: str, guidance: str) -> str:
         """Generate detailed content using LiteLLM based on file type and guidance."""
         base_prompt = {
-            "Specification.md": """Create an extremely detailed software specification document following the SPARC framework. Include:
-1. Project Overview and Goals
-2. Functional Requirements (detailed user stories, use cases)
-3. Non-Functional Requirements (performance, security, scalability)
-4. Technical Constraints and Dependencies
-5. User Interface Requirements
-6. Data Requirements and Database Schema
-7. Integration Requirements
-8. Security Requirements
-9. Performance Requirements
-10. Deployment Requirements
-11. Testing Requirements
-12. Timeline and Milestones
-13. Risk Assessment and Mitigation Strategies
+            "Specification.md": """Create a comprehensive software specification document following the SPARC framework. Include:
+1. Project Overview
+   - Goals and Objectives
+   - Stakeholders
+   - Success Criteria
+2. Functional Requirements
+   - User Stories
+   - Use Cases
+   - Data Flow
+   - Business Rules
+3. Non-Functional Requirements
+   - Performance Metrics
+   - Security Standards
+   - Scalability Requirements
+   - Reliability Targets
+4. Technical Architecture
+   - System Components
+   - Integration Points
+   - Data Architecture
+   - Security Architecture
+5. Implementation Details
+   - Technology Stack
+   - Development Approach
+   - Testing Strategy
+   - Deployment Plan
+6. Project Management
+   - Timeline
+   - Resource Requirements
+   - Risk Management
+   - Quality Assurance
 
 Based on this guidance:""",
 
-            "Pseudocode.md": """Create a comprehensive pseudocode document following the SPARC framework. Include:
-1. High-Level System Flow
-2. Detailed Component Interactions
-3. Data Structures and Types
-4. Algorithm Descriptions
-5. Error Handling Approaches
-6. State Management
-7. Concurrency Considerations
-8. Resource Management
-9. Integration Points
-10. Performance Optimizations
-11. Security Measures
-12. Logging and Monitoring
-13. Testing Strategies in Pseudocode
+            "Pseudocode.md": """Create a detailed pseudocode document following the SPARC framework. Include:
+1. System Architecture
+   - Component Overview
+   - Communication Flow
+   - Data Flow Diagrams
+2. Core Algorithms
+   - Main Processing Logic
+   - Data Transformations
+   - Business Rules Implementation
+3. Data Structures
+   - Key Classes/Objects
+   - Database Schema
+   - Cache Structures
+4. Error Handling
+   - Exception Scenarios
+   - Recovery Procedures
+   - Logging Strategy
+5. Integration Logic
+   - API Endpoints
+   - External Services
+   - Message Queues
+6. Performance Considerations
+   - Optimization Points
+   - Caching Strategy
+   - Resource Management
+7. Security Implementation
+   - Authentication Flow
+   - Authorization Logic
+   - Data Protection
 
 Based on this guidance:""",
 
-            "Architecture.md": """Create an extensive software architecture document following the SPARC framework. Include:
-1. System Overview
-2. Architectural Style and Patterns
-3. Component Breakdown (with detailed responsibilities)
-4. Component Interactions and Dependencies
-5. Data Flow Diagrams
-6. API Specifications
-7. Database Architecture
-8. Security Architecture
-9. Deployment Architecture
-10. Performance Considerations
-11. Scalability Strategy
-12. Monitoring and Logging Architecture
-13. Disaster Recovery Plan
-14. Technology Stack Details
-15. Third-Party Integrations
+            "Architecture.md": """Create a detailed software architecture document following the SPARC framework. Include:
+1. System Architecture
+   - Architectural Patterns
+   - Design Principles
+   - System Boundaries
+2. Component Design
+   - Core Components
+   - Component Interfaces
+   - Dependencies
+   - State Management
+3. Data Architecture
+   - Data Models
+   - Storage Solutions
+   - Data Flow
+   - Caching Strategy
+4. Integration Architecture
+   - API Design
+   - Event Handling
+   - Message Queues
+   - External Services
+5. Security Architecture
+   - Authentication
+   - Authorization
+   - Data Protection
+   - Audit Logging
+6. Deployment Architecture
+   - Infrastructure
+   - Scalability
+   - High Availability
+   - Disaster Recovery
+7. Development Guidelines
+   - Coding Standards
+   - Testing Strategy
+   - Documentation
+   - Version Control
 
 For each component, use this format:
 ## Component: [Name]
-### Responsibility
-### Interfaces
-### Dependencies
-### Data Model
+### Purpose and Scope
+### Technical Specifications
+### Dependencies and Interfaces
+### Data Management
 ### Error Handling
-### Performance Characteristics
-### Security Considerations
-### Testing Strategy
+### Performance Requirements
+### Security Measures
+### Testing Approach
+### Deployment Considerations
 
 Based on this guidance:""",
 
