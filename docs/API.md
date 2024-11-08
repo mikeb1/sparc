@@ -11,13 +11,22 @@ Options:
 - `project description`: Free-form description of the project to architect
 - `--guidance-file`: Path to guidance TOML file (default: guidance.toml)
 - `--model`: LiteLLM model choices (default: claude-3-sonnet-20240229):
-  - claude-3-opus-20240229
-  - claude-3-sonnet-20240229
-  - gpt-4
-  - gpt-4-turbo
-- `--temperature`: Model temperature
-- `--max-tokens`: Maximum tokens
-- `--litellm-api-key`: API key
+  - claude-3-opus-20240229 (most capable, largest context)
+  - claude-3-sonnet-20240229 (balanced performance/cost)
+  - gpt-4 (alternative option)
+  - gpt-4-turbo (faster alternative)
+
+The architect mode:
+1. Analyzes the project description
+2. Creates a timestamped architecture directory
+3. Generates comprehensive documentation:
+   - Specification.md - Detailed requirements
+   - Architecture.md - System design
+   - Pseudocode.md - Implementation guidance
+   - Refinement.md - Implementation details
+   - Completion.md - Completion criteria
+   - guidance.toml - Configuration
+4. Provides progress logging for each generated file
 
 ### implement
 ```bash
@@ -25,8 +34,24 @@ python3 cli/sparc_cli.py implement [options]
 ```
 
 Options:
-- `--max-attempts`: Maximum implementation attempts
+- `--max-attempts`: Maximum implementation attempts (default: 3)
+- `--guidance-file`: Path to guidance file
 - Model options (same as architect)
+
+The implement mode uses a test-driven development (TDD) approach:
+1. Creates a timestamped implementation directory with src/ and tests/
+2. For each component:
+   - Generates comprehensive test files first
+   - Uses aider to implement the component to pass tests
+   - Provides real-time progress and error logging
+   - Runs tests with visual feedback
+   - Reports test results and implementation status
+
+Implementation uses the aider tool with:
+- Auto-confirmation of prompts
+- Diff-based edit format
+- 5-minute timeout per component
+- Comprehensive error handling
 
 ### Generated Code Structure
 - `src/` directory:

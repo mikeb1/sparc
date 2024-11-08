@@ -72,27 +72,36 @@ Testing Features:
 
 ## LiteLLM Integration
 
-Advanced AI Model Integration:
+The framework uses LiteLLM for advanced AI model integration:
 
-Supported Models:
-- Claude 3 Opus (claude-3-opus-20240229)
-  - Best for complex architectures
-  - Highest reasoning capability
-  - Longer context window
-- Claude 3 Sonnet (claude-3-sonnet-20240229)
-  - Default choice
-  - Balanced performance
-  - Cost-effective
-- GPT-4 (gpt-4)
-  - Alternative option
-  - Strong reasoning
-- GPT-4 Turbo (gpt-4-turbo)
-  - Faster processing
-  - Recent knowledge
+Model Configuration:
+- Default model: claude-3-sonnet-20240229
+- Model selection via --model flag
+- Configurable temperature (default: 0.7)
+- Configurable max tokens (default: 4000)
+- API key management via environment variables
 
-Configuration Options:
-- Temperature control (0.0-1.0)
-- Max tokens limit
-- API key management
-- Response streaming
-- Custom prompts
+Progress Tracking:
+- Real-time progress bars using tqdm
+- Character count reporting for generated files
+- Detailed logging of generation steps
+- Error handling with specific error messages
+
+Implementation Features:
+- Test-Driven Development (TDD) workflow
+- Component-by-component implementation
+- Automatic test generation and execution
+- Real-time progress feedback
+- Comprehensive error handling:
+  - Model API errors
+  - File I/O errors
+  - Test failures
+  - Timeout handling
+  - Process management
+
+Aider Integration:
+- AI-powered code generation
+- Diff-based code editing
+- Auto-confirmation of changes
+- Timeout protection (5 minutes per component)
+- Detailed logging of changes
