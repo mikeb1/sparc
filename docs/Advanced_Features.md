@@ -11,11 +11,20 @@ Custom project specifications
 ```
 
 ## Architecture Generation
-The CLI supports generating architecture for various project types:
-- Backend services (FastAPI, Express, etc.)
-- Frontend applications (React, Vue, etc.)
-- Specialized systems (swarm agents, websockets, etc.)
+The CLI uses advanced AI models to generate comprehensive architecture documentation for any project type:
+
+Project Categories:
+- Backend services (REST APIs, GraphQL, etc.)
+- Frontend applications (SPA, SSR, etc.)
+- Real-time systems (WebSocket, Event-driven)
 - Cross-platform applications
+- Specialized systems (AI agents, distributed systems)
+
+Generation Process:
+1. Analyzes project description
+2. Detects technology stack
+3. Generates tailored documentation
+4. Creates guidance configuration
 
 Generated files include:
 - Specification.md
@@ -41,12 +50,27 @@ Automated testing features:
 
 ## LiteLLM Integration
 
-Advanced model configuration:
-Supported models:
+Advanced AI Model Integration:
+
+Supported Models:
 - Claude 3 Opus (claude-3-opus-20240229)
+  - Best for complex architectures
+  - Highest reasoning capability
+  - Longer context window
 - Claude 3 Sonnet (claude-3-sonnet-20240229)
+  - Default choice
+  - Balanced performance
+  - Cost-effective
 - GPT-4 (gpt-4)
+  - Alternative option
+  - Strong reasoning
 - GPT-4 Turbo (gpt-4-turbo)
-- Temperature control
-- Token limits
+  - Faster processing
+  - Recent knowledge
+
+Configuration Options:
+- Temperature control (0.0-1.0)
+- Max tokens limit
 - API key management
+- Response streaming
+- Custom prompts
