@@ -304,6 +304,49 @@ Include:
 - Core Requirements
 - Technical Requirements
 - Constraints and Assumptions
+
+# Specification
+
+## Objective
+Develop a comprehensive specification document for the project.
+
+## Research and Analysis
+- Use tools like Perplexity to gather information on various approaches, architectures, and relevant technical papers.
+- Document findings in markdown files, including pros and cons of different approaches.
+
+## Project Overview
+- Elaborate on the project goal, providing context and background.
+- Describe the target audience and their needs, including demographics and user personas.
+
+## Functional Requirements
+- List and describe each functional requirement.
+- Break down complex features into smaller, manageable components.
+
+## Non-Functional Requirements
+- Detail each non-functional requirement, explaining its importance.
+- Include performance metrics, security standards, and scalability considerations.
+
+## User Scenarios and User Flows
+- Describe typical user scenarios and provide user flow diagrams.
+- Include step-by-step interactions and decision points.
+
+## UI/UX Considerations
+- Discuss UI/UX guidelines and include design sketches if applicable.
+- Reference design principles and accessibility standards.
+
+## File Structure Proposal
+- Suggest an organized file and directory structure.
+- Use markdown files to outline and guide the process.
+
+## Assumptions
+- List assumptions made during the specification process.
+- Justify each assumption and its impact on the project.
+
+## Reflection
+- Justify the inclusion of each requirement.
+- Consider potential challenges and propose mitigation strategies.
+- Reflect on how each element contributes to the overall project goals.
+
 Format in Markdown.""",
 
         "Architecture.md": f"""Generate a detailed software architecture for: {project_desc}
@@ -312,13 +355,106 @@ Include:
 - Component Interactions
 - Data Flow
 - Key Design Decisions
-Format in Markdown.""",
+# Architecture
+
+## Objective
+Develop a comprehensive system architecture and technical design that serves as a blueprint for the entire development process. This includes selecting appropriate architectural styles, technologies, data models, and ensuring alignment with both functional and non-functional requirements. The objective is to create a robust, scalable, and maintainable architecture that guides the development of any new applications.
+
+## Tasks
+- **Utilize AI Models**:
+  - **Advanced AI Assistance**: Leverage advanced AI models (e.g., GPT-4) to explore complex architectural solutions and optimize design decisions.
+  - **Cost-effective Implementation**: Use cost-effective AI models (e.g., GPT-3.5) for drafting documentation and generating code snippets.
+  - **Documentation**: Record interactions with AI models, including queries and responses, to maintain a knowledge base.
+
+- **Architectural Style**:
+  - **Evaluation of Styles**: Analyze various architectural styles (e.g., monolithic, microservices, event-driven) in the context of the project requirements.
+  - **Selection Criteria**: Define criteria for selecting the architectural style, such as scalability needs, team expertise, and deployment environments.
+  - **Justification**: Provide a detailed justification for the chosen style, including how it addresses both functional and non-functional requirements.
+
+- **System Architecture Diagram**:
+  - **Detailed Visualization**: Create comprehensive diagrams illustrating all system components, their responsibilities, and interactions.
+  - **Diagramming Tools**: Utilize tools like Lucidchart, Draw.io, or Markdown-based diagrams for consistency and ease of collaboration.
+  - **Annotations**: Include annotations and legends to explain components and data flows clearly.
+
+- **Technology Stack**:
+  - **Assessment of Options**: Research and evaluate potential technologies and frameworks for each layer of the application.
+  - **Decision Matrix**: Develop a decision matrix to compare technologies based on factors like performance, scalability, community support, and compatibility.
+  - **Rationale**: Document the reasoning behind each technology choice, citing how it meets project needs.
+
+- **Data Models and Schemas**:
+  - **Data Modeling**: Design comprehensive data models using entity-relationship diagrams (ERDs) or class diagrams.
+  - **Schema Definition**: Define database schemas with detailed descriptions of tables, fields, relationships, and constraints.
+  - **Data Flow and Storage**: Explain how data is stored, retrieved, and manipulated within the system.
+
+- **Key Components**:
+  - **Component Breakdown**: Identify and describe all key components or modules, outlining their functionality and interfaces.
+  - **Interaction Diagrams**: Create sequence or collaboration diagrams to depict how components interact during operations.
+  - **APIs and Services**: Specify details about internal and external APIs, including endpoints, protocols, and authentication methods.
+
+- **Scalability, Security, and Performance**:
+  - **Scalability Planning**: Outline strategies for scaling the system horizontally and vertically.
+  - **Security Protocols**: Detail security measures such as encryption, authentication, authorization, and input validation.
+  - **Performance Optimization**: Identify potential bottlenecks and propose optimization techniques (e.g., caching, load balancing).
+
+- **Integration Points**:
+  - **External Systems**: List external systems or services the application will interact with.
+  - **Integration Methods**: Describe methods of integration, including APIs, messaging systems, or middleware.
+  - **Data Transformation**: Explain how data will be transformed and validated during integration.
+
+## Reflection
+- **Architectural Decisions Justification**:
+  - Provide in-depth justification for each architectural decision, aligning choices with project goals and constraints.
+  - Discuss alternatives considered and reasons for their acceptance or rejection.
+
+- **Risk Assessment and Mitigation**:
+  - Identify potential risks associated with the architecture (e.g., single points of failure, technology obsolescence).
+  - Propose mitigation strategies for each identified risk.
+
+- **Future-proofing and Extensibility**:
+  - Reflect on how the architecture accommodates future growth, new features, and technology updates.
+  - Consider patterns and practices that enhance modularity and extensibility.
+
+- **Impact of AI Utilization**:
+  - Discuss how utilizing AI models influenced architectural decisions.
+  - Highlight benefits such as improved efficiency, innovation, or potential limitations encountered.
+
+- **Development and Maintenance Considerations**:
+  - Analyze how architectural choices affect development workflows, team dynamics, and maintenance efforts.
+  - Address any training needs or resource allocations required due to technology choices.
+
+Format in Markdown.
+
+"",
 
         "Pseudocode.md": f"""Generate pseudocode for key components of: {project_desc}
 Include:
 - Core Classes/Functions
 - Important Algorithms
 - Data Structures
+# Pseudocode
+
+## Objective
+Create a pseudocode outline serving as a development roadmap.
+
+## Tasks
+- **Translate the Specification**: Convert the detailed specification into high-level pseudocode that outlines the logic and flow of the application.
+- **Organize Pseudocode**: Use markdown files to maintain clarity and structure. Ensure that the pseudocode is easy to follow and logically organized.
+- **Identify Key Components**: Clearly define key functions, classes, and modules. Use descriptive names that convey the purpose and functionality of each component.
+- **Inline Comments and Descriptions**:
+  - Provide detailed inline comments for each code block, explaining the logic and purpose.
+  - Use comments to describe the expected input and output for functions and methods.
+  - Highlight any assumptions or constraints that affect the implementation.
+- **Language Options**: Consider how the pseudocode can be translated into different programming languages such as Python, JavaScript, and TypeScript. Note any language-specific considerations or optimizations.
+- **Complex Implementations**: Use placeholders for complex logic that requires further development. Include notes on what needs to be addressed and potential approaches.
+- **Modularity and Reusability**: Ensure that the pseudocode is modular, allowing for easy updates and maintenance. Design components to be reusable across different parts of the application.
+
+## Reflection
+- **Alignment with Specifications**: Verify that the pseudocode accurately reflects the requirements and goals outlined in the specification.
+- **Logical Issues and Inefficiencies**: Identify any potential logical errors or inefficiencies in the pseudocode. Consider how these can be addressed or optimized.
+- **Alternative Approaches**: Explore different approaches to algorithms and data handling. Evaluate the pros and cons of each option.
+- **Clarity and Readability**: Reflect on the clarity and readability of the pseudocode. Ensure that it is accessible to all team members, regardless of their technical background.
+- **Language Considerations**: Discuss how the pseudocode can be effectively translated into Python, JavaScript, or TypeScript, and any specific considerations for each language.
+
 Format in Markdown with code blocks.""",
 
         "Refinement.md": f"""Generate implementation details and refinements for: {project_desc}
