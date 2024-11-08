@@ -44,7 +44,7 @@ class SPARCConfig:
     stream: bool = True
     
     # Aider settings
-    aider_model: str = "gpt-4"  # or other available model
+    aider_model: str = "claude-3-sonnet-20240229"  # Default to Claude 3.5 Sonnet
     aider_edit_format: str = "diff"
     aider_stream: bool = True
     aider_auto_commits: bool = True
@@ -53,19 +53,31 @@ def main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI')
     subparsers = parser.add_subparsers(dest='mode', help='Modes of operation')
 
+    # Common arguments for all modes
+    parent_parser = argparse.ArgumentParser(add_help=False)
+    parent_parser.add_argument('--model', type=str,
+                             choices=['claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'gpt-4', 'gpt-4-turbo'],
+                             default='claude-3-sonnet-20240229',
+                             help='AI model to use (default: claude-3-sonnet-20240229)')
+
     # Architect mode
-    parser_architect = subparsers.add_parser('architect', help='Run in architect mode')
+    parser_architect = subparsers.add_parser('architect', parents=[parent_parser], help='Run in architect mode')
     parser_architect.add_argument('--guidance-file', type=str, default='guidance.toml',
                                 help='Path to guidance TOML file')
 
     # Implement mode
-    parser_implement = subparsers.add_parser('implement', help='Run in implementation mode')
+    parser_implement = subparsers.add_parser('implement', parents=[parent_parser], help='Run in implementation mode')
     parser_implement.add_argument('--max-attempts', type=int, default=3,
                                 help='Maximum attempts for implementation')
     parser_implement.add_argument('--guidance-file', type=str, default='guidance.toml',
                                 help='Path to guidance TOML file')
 
     args = parser.parse_args()
+    
+    # Update config with selected model
+    config = SPARCConfig(
+        aider_model=args.model if hasattr(args, 'model') else 'claude-3-sonnet-20240229'
+    )
 
     if args.mode == 'architect':
         try:

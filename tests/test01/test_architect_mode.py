@@ -37,8 +37,8 @@ Provides standardized error handling.
     with open(clean_test_dir / "guidance.toml", "w") as f:
         f.write(guidance_content)
 
-    # Run the architect mode with aider integration
-    cmd = ["python", "sparc_cli.py", "architect", "--guidance-file", "guidance.toml"]
+    # Run the architect mode with aider integration using Claude 3.5 Sonnet
+    cmd = ["python", "sparc_cli.py", "architect", "--guidance-file", "guidance.toml", "--model", "claude-3-sonnet-20240229"]
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     # Check that the command executed successfully

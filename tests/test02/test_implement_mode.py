@@ -61,8 +61,8 @@ ErrorHandler:
     result_architect = subprocess.run(cmd_architect, capture_output=True, text=True)
     assert result_architect.returncode == 0, f"Architect mode failed: {result_architect.stderr}"
 
-    # Run the implement mode
-    cmd_implement = ["python", "sparc_cli.py", "implement", "--max-attempts", "2", "--guidance-file", "guidance.toml"]
+    # Run the implement mode with Claude 3.5 Sonnet
+    cmd_implement = ["python", "sparc_cli.py", "implement", "--max-attempts", "2", "--guidance-file", "guidance.toml", "--model", "claude-3-sonnet-20240229"]
     result_implement = subprocess.run(cmd_implement, capture_output=True, text=True)
     assert result_implement.returncode == 0, f"Implement mode failed: {result_implement.stderr}"
 
