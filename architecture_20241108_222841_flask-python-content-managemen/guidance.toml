@@ -1,0 +1,318 @@
+# SPARC Framework Guidance Configuration
+
+[project]
+framework = "Flask"
+language = "Python"
+features = ['content management system', 'Supabase']
+
+[architecture]
+# Component naming conventions
+component_style = "PascalCase"
+test_prefix = "test_"
+source_suffix = ".Python"
+content = """
+
+
+# Specification.md
+```markdown
+# Content Management System (CMS) with Flask, Python, and Supabase
+
+## Project Overview
+
+The goal of this project is to develop a robust and scalable Content Management System (CMS) using Flask, a Python web framework, and Supabase, an open-source Firebase alternative. The CMS will provide a user-friendly interface for creating, managing, and publishing various types of content, including articles, blog posts, pages, and multimedia assets.
+
+The target audience for this CMS includes content creators, bloggers, small to medium-sized businesses, and organizations seeking a flexible and cost-effective solution for managing their online presence. The system should cater to users with varying technical proficiencies, offering an intuitive and accessible experience.
+
+## Core Requirements
+
+1. **User Authentication and Authorization**
+   - Implement secure user authentication and authorization mechanisms.
+   - Support user roles and permissions for content management and administration.
+   - Integrate with Supabase for user management and authentication.
+
+2. **Content Management**
+   - Allow users to create, edit, and delete various types of content (e.g., articles, blog posts, pages).
+   - Provide a rich text editor for formatting and styling content.
+   - Support multimedia content (images, videos, audio files) uploads and management.
+   - Implement content versioning and revision history.
+   - Enable content scheduling and publishing workflows.
+
+3. **Content Organization and Navigation**
+   - Categorize and tag content for better organization and discoverability.
+   - Implement a hierarchical structure for pages and content organization.
+   - Provide a user-friendly navigation system for browsing and accessing content.
+
+4. **Search and Filtering**
+   - Implement a robust search functionality for finding content based on keywords, tags, categories, or metadata.
+   - Allow users to filter content based on various criteria (e.g., publish date, author, category).
+
+5. **User Management**
+   - Provide an administrative interface for managing user accounts, roles, and permissions.
+   - Support user profiles and allow users to update their personal information.
+
+6. **Analytics and Reporting**
+   - Track and analyze content performance metrics (e.g., views, engagement, shares).
+   - Generate reports on content performance, user activity, and system usage.
+
+7. **Responsive and Accessible Design**
+   - Ensure the CMS is responsive and accessible across various devices and screen sizes.
+   - Adhere to web accessibility standards (e.g., WCAG) for inclusive user experience.
+
+8. **Extensibility and Customization**
+   - Design the CMS with a modular and extensible architecture to accommodate future features and integrations.
+   - Allow for customization of the user interface, branding, and themes.
+
+## Technical Requirements
+
+1. **Flask Framework**
+   - Utilize Flask, a lightweight and flexible Python web framework, for building the CMS.
+   - Leverage Flask's routing, templating, and request handling capabilities.
+   - Implement Flask extensions and plugins as needed (e.g., Flask-Login, Flask-WTF, Flask-Migrate).
+
+2. **Supabase Integration**
+   - Integrate Supabase as the backend database and authentication provider.
+   - Utilize Supabase's PostgreSQL database for storing content, user data, and metadata.
+   - Leverage Supabase's authentication and authorization features for user management.
+   - Implement real-time updates and notifications using Supabase's realtime functionality.
+
+3. **Front-end Technologies**
+   - Utilize modern front-end technologies such as HTML, CSS, and JavaScript.
+   - Consider using a front-end framework or library (e.g., React, Vue.js) for building the user interface.
+   - Implement a responsive and accessible design using CSS frameworks (e.g., Bootstrap, Tailwind CSS).
+
+4. **Rich Text Editor**
+   - Integrate a rich text editor (e.g., TinyMCE, CKEditor, Quill) for content creation and formatting.
+   - Support various formatting options, including headings, lists, links, and multimedia embedding.
+
+5. **File and Media Management**
+   - Implement file and media upload and management functionality.
+   - Leverage Supabase's storage capabilities for storing and serving media assets.
+   - Optimize media assets for performance and delivery (e.g., image compression, lazy loading).
+
+6. **Search and Indexing**
+   - Implement a search functionality using full-text search capabilities provided by PostgreSQL or a dedicated search engine (e.g., ElasticSearch, Algolia).
+   - Index content and metadata for efficient search and retrieval.
+
+7. **Caching and Performance Optimization**
+   - Implement caching mechanisms (e.g., Flask-Caching, Redis) to improve performance and reduce server load.
+   - Optimize database queries and leverage indexing strategies for efficient data retrieval.
+
+8. **Security and Data Protection**
+   - Implement industry-standard security practices, such as input validation, output encoding, and protection against common web vulnerabilities (e.g., XSS, CSRF, SQL injection).
+   - Ensure data protection and privacy by following best practices for handling sensitive information.
+   - Implement secure communication protocols (e.g., HTTPS) and encrypt sensitive data at rest and in transit.
+
+9. **Testing and Continuous Integration**
+   - Implement unit tests and integration tests to ensure code quality and functionality.
+   - Set up a continuous integration (CI) pipeline for automated testing, building, and deployment.
+
+10. **Deployment and Scalability**
+    - Containerize the application using Docker for consistent deployment across different environments.
+    - Leverage cloud platforms (e.g., AWS, Google Cloud, DigitalOcean) for hosting and scaling the application as needed.
+
+## Constraints and Assumptions
+
+1. **Compatibility**
+   - The CMS should be compatible with modern web browsers and devices.
+   - Ensure cross-browser compatibility and responsive design for optimal user experience.
+
+2. **Performance and Scalability**
+   - The CMS should be designed to handle increasing traffic and content volumes as the user base grows.
+   - Implement caching, optimization techniques, and scalable architectures to ensure acceptable performance.
+
+3. **Security and Data Protection**
+   - Prioritize security and data protection by following industry best practices and adhering to relevant regulations (e.g., GDPR, CCPA).
+   - Implement secure authentication, authorization, and data encryption mechanisms.
+
+4. **Accessibility**
+   - Ensure the CMS meets web accessibility standards (e.g., WCAG 2.1) to provide an inclusive experience for users with disabilities.
+   - Conduct accessibility testing and audits throughout the development process.
+
+5. **Extensibility and Customization**
+   - Design the CMS with a modular and extensible architecture to accommodate future features and integrations.
+   - Allow for customization of the user interface, branding, and themes to cater to diverse client requirements.
+
+6. **Third-Party Dependencies**
+   - Rely on well-established and actively maintained third-party libraries and frameworks.
+   - Regularly monitor and update dependencies to address security vulnerabilities and compatibility issues.
+
+7. **Cost and Resource Constraints**
+   - Develop the CMS within the allocated budget and resource constraints.
+   - Leverage open-source technologies and cloud services to optimize costs and resource utilization.
+
+8. **Maintenance and Support**
+   - Plan for ongoing maintenance and support of the CMS after deployment.
+   - Establish processes for bug fixes, security updates, and feature enhancements.
+
+This specification document provides a comprehensive overview of the requirements, technical considerations, and constraints for the Content Management System (CMS) project. It serves as a guide for the development team, ensuring a shared understanding of the project goals, features, and technical implementation details.
+
+Throughout the development process, this document should be regularly reviewed and updated to reflect any changes or additional requirements that may arise. Continuous collaboration and communication among stakeholders, including developers, designers, and end-users, will be crucial to the successful implementation of the CMS.
+
+```
+
+# Architecture.md
+# Flask Python Content Management System with Supabase
+
+## System Components
+
+1. **Flask Application**: The core of the system, built using the Flask web framework. It handles HTTP requests, renders templates, and orchestrates the application logic.
+
+2. **Supabase Integration**: Supabase is a Firebase alternative that provides a PostgreSQL database, authentication, and storage services. The Flask application will interact with Supabase to store and retrieve data, manage user authentication, and handle file uploads.
+
+3. **Content Management Module**: This module will handle the creation, editing, and deletion of content items (e.g., blog posts, pages, media files). It will interact with the Supabase integration to store and retrieve content data.
+
+4. **User Management Module**: This module will handle user registration, authentication, and authorization. It will leverage Supabase's authentication services for secure user management.
+
+5. **Template Rendering Module**: This module will be responsible for rendering HTML templates using Flask's template engine (Jinja2). It will fetch data from the Content Management Module and User Management Module to generate dynamic content.
+
+6. **Static File Handling**: Flask will serve static files (CSS, JavaScript, images) from a designated directory.
+
+7. **Admin Interface**: An administrative interface will be provided to manage content, users, and other system settings. This interface will interact with the Content Management Module and User Management Module.
+
+## Component Interactions
+
+1. **Flask Application and Supabase Integration**: The Flask application will interact with Supabase using the Supabase Python client library. It will establish a connection to the Supabase database and authenticate users using Supabase's authentication services.
+
+2. **Content Management Module and Supabase Integration**: The Content Management Module will use the Supabase integration to store and retrieve content data from the PostgreSQL database. It will also leverage Supabase's storage services for file uploads and management.
+
+3. **User Management Module and Supabase Integration**: The User Management Module will interact with Supabase's authentication services to handle user registration, login, and authorization. It will also store and retrieve user data from the Supabase database.
+
+4. **Template Rendering Module and Other Modules**: The Template Rendering Module will fetch data from the Content Management Module, User Management Module, and other relevant modules to generate dynamic HTML templates.
+
+5. **Admin Interface and Other Modules**: The Admin Interface will interact with the Content Management Module, User Management Module, and other relevant modules to provide administrative functionality for managing content, users, and system settings.
+
+## Data Flow
+
+1. **Input Processing**: User input (e.g., content creation, user registration) will be processed by the Flask application and validated according to defined rules.
+
+2. **Data Transformation**: Data may need to be transformed or processed (e.g., content formatting, file handling) before being stored or rendered.
+
+3. **Storage Patterns**: Content data will be stored in the Supabase PostgreSQL database using appropriate data models and schemas. User data and authentication information will be stored and managed by Supabase's authentication services. File uploads will be stored in Supabase's storage services.
+
+4. **Data Retrieval**: Data will be retrieved from the Supabase database and storage services as needed by the Content Management Module, User Management Module, and other relevant modules.
+
+5. **Template Rendering**: The Template Rendering Module will fetch the required data from other modules and render dynamic HTML templates using the Jinja2 template engine.
+
+## Key Design Decisions
+
+1. **Technology Choices**:
+   - **Flask**: A lightweight and flexible Python web framework, suitable for building small to medium-sized applications.
+   - **Supabase**: A Firebase alternative that provides a PostgreSQL database, authentication, and storage services, reducing the need for separate services and simplifying the overall architecture.
+
+2. **Architectural Patterns**:
+   - **Model-View-Controller (MVC)**: The application will follow the MVC architectural pattern, separating concerns between data models, presentation logic, and control logic.
+   - **Modular Design**: The application will be organized into separate modules (e.g., Content Management, User Management) for better maintainability and scalability.
+
+3. **Security Measures**:
+   - **User Authentication and Authorization**: Supabase's authentication services will be used to handle user registration, login, and authorization, ensuring secure access to the application and its features.
+   - **Input Validation**: User input will be validated to prevent injection attacks and other security vulnerabilities.
+   - **Secure File Uploads**: File uploads will be handled securely using Supabase's storage services, which provide built-in security features.
+
+## File and Folder Structure
+
+```
+project/
+├── app/
+│   ├── __init__.py
+│   ├── routes.py
+│   ├── models.py
+│   ├── utils.py
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   ├── login.html
+│   │   ├── ...
+│   ├── static/
+│   │   ├── css/
+│   │   ├── js/
+│   │   ├── images/
+│   ├── content/
+│   │   ├── __init__.py
+│   │   ├── views.py
+│   │   ├── forms.py
+│   │   ├── ...
+│   ├── users/
+│   │   ├── __init__.py
+│   │   ├── views.py
+│   │   ├── forms.py
+│   │   ├── ...
+│   ├── admin/
+│   │   ├── __init__.py
+│   │   ├── views.py
+│   │   ├── ...
+├── config.py
+├── requirements.txt
+├── run.py
+```
+
+- `app/`: The main Flask application directory.
+  - `__init__.py`: Initializes the Flask application and registers blueprints.
+  - `routes.py`: Defines the main application routes.
+  - `models.py`: Defines data models and interacts with the Supabase database.
+  - `utils.py`: Utility functions used across the application.
+  - `templates/`: Directory for HTML templates.
+  - `static/`: Directory for static files (CSS, JavaScript, images).
+  - `content/`: Module for managing content (e.g., blog posts, pages).
+  - `users/`: Module for managing user authentication and authorization.
+  - `admin/`: Module for the administrative interface.
+- `config.py`: Configuration settings for the Flask application and Supabase integration.
+- `requirements.txt`: List of Python dependencies required by the application.
+- `run.py`: Entry point for running the Flask application.
+
+## Detailed Diagrams
+
+![Flask CMS Architecture](flask-cms-architecture.png)
+
+This diagram illustrates the high-level architecture of the Flask Content Management System with Supabase integration. It shows the main components, their interactions, and the data flow between them.
+"""
+
+# Directory structure
+src_dir = "src"
+test_dir = "tests"
+docs_dir = "docs"
+
+[implementation]
+# Code generation settings
+max_attempts = 3
+test_first = true
+type_hints = true
+
+# Documentation requirements
+require_docstrings = true
+doc_style = "Google"
+
+[testing]
+# Testing requirements
+min_coverage = 80
+unit_test_required = true
+integration_test_required = true
+
+[quality]
+# Code quality requirements
+max_complexity = 10
+max_line_length = 100
+require_type_hints = true
+
+[security]
+# Security requirements
+require_input_validation = true
+require_authentication = true
+require_authorization = true
+
+[performance]
+# Performance requirements
+max_response_time_ms = 500
+max_memory_usage_mb = 512
+enable_caching = true
+
+[deployment]
+# Deployment requirements
+containerize = true
+ci_cd_required = true
+monitoring_required = true
+
+[documentation]
+# Documentation requirements
+readme_required = true
+api_docs_required = true
+architecture_docs_required = true

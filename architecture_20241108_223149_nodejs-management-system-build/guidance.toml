@@ -1,0 +1,328 @@
+# SPARC Framework Guidance Configuration
+
+[project]
+framework = "nodejs"
+language = "javascript"
+features = ['management system', 'sqlite']
+
+[architecture]
+# Component naming conventions
+component_style = "PascalCase"
+test_prefix = "test_"
+source_suffix = ".javascript"
+content = """
+
+
+# Specification.md
+```markdown
+# Node.js Management System with SQLite
+
+## Project Overview
+
+The Node.js Management System is a comprehensive application built using Node.js and SQLite. The primary goal of this project is to provide a robust and efficient solution for managing various aspects of an organization or business. The system will offer a user-friendly interface and a wide range of features to streamline operations, enhance productivity, and facilitate data management.
+
+The target audience for this application includes business owners, managers, and employees who require a centralized platform to handle tasks such as employee management, inventory tracking, customer relationship management, and project management. The system will cater to users with varying levels of technical expertise, ensuring a seamless and intuitive experience for all.
+
+## Core Requirements
+
+1. **User Management**
+   - User authentication and authorization
+   - Role-based access control
+   - User profile management
+
+2. **Employee Management**
+   - Employee onboarding and offboarding
+   - Employee information management (personal details, contact information, job roles, etc.)
+   - Leave management (request, approval, and tracking)
+   - Performance evaluation and feedback
+
+3. **Inventory Management**
+   - Product catalog management
+   - Stock tracking and monitoring
+   - Purchase order management
+   - Vendor management
+
+4. **Customer Relationship Management (CRM)**
+   - Customer information management
+   - Sales pipeline and opportunity tracking
+   - Customer support and issue tracking
+   - Email and communication integration
+
+5. **Project Management**
+   - Project creation and tracking
+   - Task assignment and collaboration
+   - Gantt charts and project timelines
+   - Resource allocation and management
+
+6. **Reporting and Analytics**
+   - Customizable reports and dashboards
+   - Data visualization and charts
+   - Export functionality (CSV, PDF, etc.)
+
+## Technical Requirements
+
+1. **Architecture**
+   - Follow the Model-View-Controller (MVC) architectural pattern
+   - Implement a RESTful API for communication between the client and server
+   - Utilize Node.js and Express.js for the server-side application
+   - Use React or Vue.js for the client-side user interface
+
+2. **Database**
+   - Leverage SQLite as the primary database management system
+   - Implement an Object-Relational Mapping (ORM) library like Sequelize or Prisma for database interactions
+
+3. **Authentication and Authorization**
+   - Implement JSON Web Tokens (JWT) for user authentication
+   - Integrate with third-party authentication providers (e.g., Google, Facebook) for seamless login
+
+4. **Security**
+   - Implement industry-standard security practices, such as input validation, encryption, and secure HTTP headers
+   - Conduct regular security audits and vulnerability assessments
+
+5. **Deployment and Scaling**
+   - Containerize the application using Docker for easy deployment and scaling
+   - Implement load balancing and horizontal scaling strategies for high-traffic scenarios
+
+6. **Testing and Continuous Integration**
+   - Implement unit tests and integration tests using frameworks like Jest or Mocha
+   - Set up a Continuous Integration (CI) pipeline for automated testing and deployment
+
+## Constraints and Assumptions
+
+1. **Performance**
+   - The application should be able to handle a large number of concurrent users without significant performance degradation.
+   - Implement caching mechanisms and optimize database queries for improved response times.
+
+2. **Scalability**
+   - The system should be designed to scale horizontally to accommodate increasing user loads and data volumes.
+   - Leverage cloud-based services or containerization for easy scaling and deployment.
+
+3. **Data Integrity**
+   - Implement robust data validation and sanitization mechanisms to ensure data integrity and prevent security vulnerabilities.
+   - Implement appropriate backup and recovery strategies to protect against data loss.
+
+4. **User Experience**
+   - The user interface should be intuitive, responsive, and accessible, adhering to industry-standard guidelines and best practices.
+   - Provide comprehensive documentation and user guides to facilitate seamless adoption and usage.
+
+5. **Compatibility**
+   - The application should be compatible with the latest versions of popular web browsers and mobile devices.
+   - Ensure cross-browser compatibility and responsive design for optimal user experience across various platforms.
+
+6. **Extensibility**
+   - The codebase should be modular and extensible, allowing for easy integration of new features and third-party services.
+   - Implement a plugin architecture or modular design to enable future enhancements and customizations.
+
+7. **Compliance**
+   - Ensure compliance with relevant industry regulations, such as data privacy laws (e.g., GDPR, CCPA) and accessibility standards (e.g., WCAG 2.1).
+
+8. **Maintainability**
+   - Adhere to coding standards and best practices to ensure code readability and maintainability.
+   - Implement version control and code reviews to maintain code quality and facilitate collaboration.
+
+9. **Documentation**
+   - Provide comprehensive technical documentation, including architecture diagrams, API documentation, and deployment guides.
+   - Maintain up-to-date documentation throughout the development lifecycle.
+
+By adhering to these requirements, constraints, and assumptions, the Node.js Management System will offer a robust, scalable, and user-friendly solution that meets the needs of the target audience while ensuring high performance, data integrity, and compliance with industry standards.
+```
+
+# Architecture.md
+# NodeJS Management System with SQLite
+
+## System Components
+
+### Core Services
+
+1. **API Gateway**: This component acts as the entry point for all incoming requests. It handles request validation, authentication, and routing to the appropriate service.
+
+2. **User Management Service**: Responsible for handling user-related operations such as authentication, authorization, and user profile management.
+
+3. **Resource Management Service**: Manages various resources within the system, such as projects, tasks, documents, etc.
+
+4. **Notification Service**: Handles the delivery of notifications to users, either through email, push notifications, or other channels.
+
+5. **Audit Service**: Logs and tracks important system events for auditing and compliance purposes.
+
+### Data Layer
+
+1. **SQLite Database**: The primary data store for the application, responsible for persisting and retrieving data.
+
+2. **ORM (Object-Relational Mapping) Layer**: Provides an abstraction over the SQLite database, allowing developers to interact with data using domain-specific models and queries.
+
+### External Integrations
+
+1. **Email Service Provider**: Integrates with a third-party email service provider to send transactional emails (e.g., notifications, password resets).
+
+2. **Push Notification Service**: Integrates with a third-party push notification service to deliver real-time notifications to mobile devices.
+
+## Component Interactions
+
+### Service Communication
+
+The core services communicate with each other using a lightweight messaging system or an event bus. This allows for loose coupling and asynchronous communication between services.
+
+1. **API Gateway**: Receives incoming requests and forwards them to the appropriate service based on the request path and method.
+
+2. **User Management Service**: Handles user authentication and authorization requests, and provides user data to other services as needed.
+
+3. **Resource Management Service**: Interacts with the User Management Service to validate user permissions and access control. It also interacts with the Notification Service to send notifications related to resource updates.
+
+4. **Notification Service**: Receives notification requests from other services and delivers them to users via appropriate channels (email, push notifications).
+
+5. **Audit Service**: Listens to events from other services and logs relevant data for auditing purposes.
+
+### Data Flow
+
+1. **Input Processing**: Incoming requests are validated and processed by the API Gateway before being forwarded to the appropriate service.
+
+2. **Data Transformation**: Services may transform data between different formats (e.g., from request payloads to domain models) before persisting or processing it.
+
+3. **Storage Patterns**: The ORM layer provides an abstraction over the SQLite database, allowing services to interact with data using domain-specific models and queries. Common patterns like the Repository pattern or the Unit of Work pattern can be employed for data access and management.
+
+## Key Design Decisions
+
+### Technology Choices
+
+- **Node.js**: A popular JavaScript runtime for building scalable and efficient server-side applications.
+- **Express.js**: A minimalistic and flexible web application framework for Node.js, used for building the API Gateway and other HTTP-based services.
+- **SQLite**: A lightweight, file-based relational database management system, chosen for its simplicity and ease of deployment.
+- **ORM (e.g., Sequelize, TypeORM)**: An Object-Relational Mapping library that provides an abstraction over the SQLite database, allowing developers to work with domain models instead of raw SQL queries.
+
+### Architectural Patterns
+
+- **Microservices Architecture**: The system is decomposed into small, independent services that communicate with each other using lightweight messaging or an event bus. This promotes loose coupling, scalability, and maintainability.
+- **Hexagonal Architecture (Ports and Adapters)**: This architectural pattern separates the application core from external dependencies, promoting testability and flexibility in swapping out external components.
+- **Repository Pattern**: Used in conjunction with the ORM layer to abstract data access logic and provide a consistent interface for querying and persisting data.
+
+### Security Measures
+
+- **Authentication and Authorization**: The User Management Service handles user authentication (e.g., using JSON Web Tokens) and authorization based on roles and permissions.
+- **Input Validation**: The API Gateway and other services validate incoming requests to prevent common web vulnerabilities like SQL injection and cross-site scripting (XSS).
+- **Encryption**: Sensitive data, such as user passwords, should be encrypted before storage using industry-standard algorithms (e.g., bcrypt for password hashing).
+- **Audit Logging**: The Audit Service logs relevant system events for auditing and compliance purposes, helping to detect and investigate potential security incidents.
+- **Secure Communication**: All communication between services and external integrations should be encrypted using TLS/SSL to prevent eavesdropping and man-in-the-middle attacks.
+
+## File and Folder Structure
+
+```
+src/
+├── api-gateway/
+│   ├── routes/
+│   │   ├── users.js
+│   │   ├── resources.js
+│   │   └── ...
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   ├── validation.js
+│   │   └── ...
+│   ├── index.js
+│   └── ...
+├── services/
+│   ├── user-management/
+│   │   ├── controllers/
+│   │   ├── models/
+│   │   ├── repositories/
+│   │   └── ...
+│   ├── resource-management/
+│   │   ├── controllers/
+│   │   ├── models/
+│   │   ├── repositories/
+│   │   └── ...
+│   ├── notification/
+│   │   ├── providers/
+│   │   ├── handlers/
+│   │   └── ...
+│   ├── audit/
+│   │   ├── loggers/
+│   │   └── ...
+│   └── ...
+├── database/
+│   ├── models/
+│   ├── migrations/
+│   ├── seeders/
+│   └── ...
+├── shared/
+│   ├── utils/
+│   ├── constants/
+│   └── ...
+├── config/
+│   ├── database.js
+│   ├── services.js
+│   └── ...
+├── app.js
+└── ...
+```
+
+- **`src/api-gateway`**: Contains the API Gateway implementation, including routes, middleware, and other related files.
+- **`src/services`**: Contains the implementation of various services, such as user management, resource management, notification, and audit services.
+- **`src/database`**: Contains database-related files, including models, migrations, and seeders.
+- **`src/shared`**: Contains shared utilities, constants, and other reusable code.
+- **`src/config`**: Contains configuration files for various components, such as database connection settings and service configurations.
+- **`app.js`**: The entry point of the application, responsible for setting up and running the server.
+
+Each service folder (`src/services/*`) typically contains the following structure:
+
+- **`controllers`**: Handles incoming requests, validates input, and coordinates with other components to perform the requested operation.
+- **`models`**: Defines the domain models and their relationships.
+- **`repositories`**: Implements the Repository pattern for abstracting data access logic and providing a consistent interface for querying and persisting data.
+
+The `src/database` folder contains the following:
+
+- **`models`**: Defines the database models and their relationships using the ORM.
+- **`migrations`**: Contains database migration scripts for creating and modifying database tables.
+- **`seeders`**: Contains scripts for seeding the database with initial or test data.
+
+This structure follows the principle of separating concerns and promotes maintainability, testability, and extensibility of the codebase.
+"""
+
+# Directory structure
+src_dir = "src"
+test_dir = "tests"
+docs_dir = "docs"
+
+[implementation]
+# Code generation settings
+max_attempts = 3
+test_first = true
+type_hints = true
+
+# Documentation requirements
+require_docstrings = true
+doc_style = "Google"
+
+[testing]
+# Testing requirements
+min_coverage = 80
+unit_test_required = true
+integration_test_required = true
+
+[quality]
+# Code quality requirements
+max_complexity = 10
+max_line_length = 100
+require_type_hints = true
+
+[security]
+# Security requirements
+require_input_validation = true
+require_authentication = true
+require_authorization = true
+
+[performance]
+# Performance requirements
+max_response_time_ms = 500
+max_memory_usage_mb = 512
+enable_caching = true
+
+[deployment]
+# Deployment requirements
+containerize = true
+ci_cd_required = true
+monitoring_required = true
+
+[documentation]
+# Documentation requirements
+readme_required = true
+api_docs_required = true
+architecture_docs_required = true
