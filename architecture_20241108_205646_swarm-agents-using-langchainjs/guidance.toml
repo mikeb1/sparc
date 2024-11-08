@@ -1,15 +1,52 @@
 # SPARC Framework Project Configuration
 
 [project]
-name = "supabase-devops-cli"
+name = "langchain-swarm-agents"
 description = "swarm agents using langchainjs"
 version = "0.1.0"
 
 [architecture]
+content = """
+## Component: AgentManager
+Manages the lifecycle and coordination of agents in the swarm:
+- Create and destroy agents
+- Monitor agent health
+- Coordinate task distribution
+- Handle agent communication
+
+## Component: CommunicationService
+Handles all inter-agent communication:
+- Message routing
+- State synchronization
+- Event broadcasting
+- Connection management
+
+## Component: TaskScheduler
+Manages task distribution and execution:
+- Task queue management
+- Priority handling
+- Load balancing
+- Task status tracking
+
+## Component: StateManager
+Handles distributed state management:
+- State synchronization
+- Conflict resolution
+- State persistence
+- Recovery management
+
+## Component: MonitoringService
+Provides system monitoring and metrics:
+- Performance tracking
+- Resource utilization
+- Error logging
+- Health checks
+"""
+
 # Component organization
 component_style = "PascalCase"
 test_prefix = "test_"
-source_suffix = ".py"
+source_suffix = ".ts"
 
 # Directory structure
 src_dir = "src"
