@@ -2,7 +2,84 @@ import os
 import shutil
 import subprocess
 import pytest
+import venv
+import sys
+import time
+import logging
 from pathlib import Path
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+def create_and_activate_venv(venv_path: Path) -> tuple[dict, Path]:
+    """Create a virtual environment and return the environment variables needed to use it."""
+    venv.create(venv_path, with_pip=True)
+    
+    # Get path to activation scripts
+    if sys.platform == "win32":
+        activate_script = venv_path / "Scripts" / "activate.bat"
+        python_path = venv_path / "Scripts" / "python.exe"
+    else:
+        activate_script = venv_path / "bin" / "activate"
+        python_path = venv_path / "bin" / "python"
+
+    # Create environment variables dict
+    env = os.environ.copy()
+    env["VIRTUAL_ENV"] = str(venv_path)
+    env["PATH"] = str(venv_path / "bin") + os.pathsep + env["PATH"]
+    
+    return env, python_path
+
+def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts: int = 3) -> bool:
+    """
+    Verify the application works by installing dependencies and running tests.
+    Will attempt to fix issues if verification fails.
+    """
+    attempt = 0
+    while attempt < max_attempts:
+        try:
+            # Install requirements
+            subprocess.run(
+                [str(python_path), "-m", "pip", "install", "-r", "requirements.txt"],
+                cwd=app_dir,
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            # Run application tests
+            result = subprocess.run(
+                [str(python_path), "-m", "pytest"],
+                cwd=app_dir,
+                env=env,
+                capture_output=True,
+                text=True
+            )
+            
+            if result.returncode == 0:
+                return True
+                
+            # If tests failed, try to fix issues
+            fix_cmd = ["python", "sparc_cli.py", "implement", "--fix-issues"]
+            fix_result = subprocess.run(
+                fix_cmd,
+                cwd=app_dir,
+                capture_output=True,
+                text=True
+            )
+            
+            attempt += 1
+            if attempt < max_attempts:
+                time.sleep(2)  # Wait before retrying
+                
+        except Exception as e:
+            logger.error(f"Verification attempt {attempt + 1} failed: {str(e)}")
+            attempt += 1
+            if attempt < max_attempts:
+                time.sleep(2)
+    
+    return False
 
 def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):
     """Test that generated code works in a fresh virtual environment."""
