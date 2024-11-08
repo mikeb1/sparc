@@ -841,19 +841,64 @@ async def async_main():
             src_file = src_dir / f"{component_lower}.py"
             test_file = test_dir / f"test_{component_lower}.py"
 
-            # Generate source file with actual implementation
-            if not src_file.exists():
-                src_content = _generate_component_code(component)
-                with open(src_file, 'w') as f:
-                    f.write(src_content)
-                logger.info(f"Generated {src_file}")
+            # Use aider to generate test file first (TDD approach)
+            test_prompt = f"""Create a comprehensive test file for the {component} component following TDD principles.
+The component is part of a swarm agent system using LangChain.js.
+Write thorough unit tests that verify all expected functionality.
+Include edge cases and error conditions.
+Use proper test isolation and mocking where appropriate.
+The tests should guide the implementation."""
 
-            # Generate corresponding test file
-            if not test_file.exists():
-                test_content = _generate_test_code(component)
-                with open(test_file, 'w') as f:
-                    f.write(test_content)
-                logger.info(f"Generated {test_file}")
+            logger.info(f"Generating tests for {component} using aider...")
+            test_result = subprocess.run([
+                "aider",
+                "--model", "claude-3-sonnet-20240229",
+                "--edit-format", "diff",
+                "--message", test_prompt,
+                str(test_file)
+            ], capture_output=True, text=True)
+            
+            if test_result.returncode != 0:
+                logger.error(f"Failed to generate tests for {component}: {test_result.stderr}")
+                continue
+            
+            logger.info(f"Generated tests at {test_file}")
+
+            # Use aider to implement the component based on the tests
+            impl_prompt = f"""Implement the {component} component to pass the tests in {test_file}.
+Follow best practices for TypeScript/JavaScript development.
+Ensure proper error handling and type safety.
+The component is part of a swarm agent system using LangChain.js.
+Make the implementation clean, efficient, and well-documented."""
+
+            logger.info(f"Implementing {component} using aider...")
+            impl_result = subprocess.run([
+                "aider",
+                "--model", "claude-3-sonnet-20240229",
+                "--edit-format", "diff",
+                "--message", impl_prompt,
+                str(src_file)
+            ], capture_output=True, text=True)
+
+            if impl_result.returncode != 0:
+                logger.error(f"Failed to implement {component}: {impl_result.stderr}")
+                continue
+                
+            logger.info(f"Generated implementation at {src_file}")
+
+            # Run tests to verify implementation
+            logger.info(f"Running tests for {component}...")
+            test_run = subprocess.run([
+                "pytest",
+                "-v",
+                str(test_file)
+            ], capture_output=True, text=True)
+
+            if test_run.returncode != 0:
+                logger.error(f"Tests failed for {component}: {test_run.stdout}")
+                continue
+                
+            logger.info(f"Tests passed for {component}")
 
 
 
