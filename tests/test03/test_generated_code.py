@@ -31,10 +31,25 @@ def create_and_activate_venv(venv_path: Path) -> tuple[dict, Path]:
     return env, python_path
 
 def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts: int = 3) -> bool:
-    """
-    Verify the application works by installing dependencies and running tests.
-    Will attempt to fix issues if verification fails.
-    """
+    """Verify the application works by installing dependencies and running tests."""
+    # Create requirements.txt if it doesn't exist
+    if not (app_dir / "requirements.txt").exists():
+        requirements = """
+fastapi>=0.68.0
+uvicorn>=0.15.0
+sqlalchemy>=1.4.23
+pydantic>=1.8.2
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.5
+pytest>=6.2.4
+httpx>=0.18.2
+pytest-cov>=2.12.1
+alembic>=1.7.1
+"""
+        with open(app_dir / "requirements.txt", "w") as f:
+            f.write(requirements.strip())
+
     attempt = 0
     while attempt < max_attempts:
         try:
@@ -48,9 +63,9 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
                 text=True
             )
             
-            # Run application tests
+            # Run tests with coverage
             result = subprocess.run(
-                [str(python_path), "-m", "pytest"],
+                [str(python_path), "-m", "pytest", "--cov=src", "--cov-report=term-missing"],
                 cwd=app_dir,
                 env=env,
                 capture_output=True,

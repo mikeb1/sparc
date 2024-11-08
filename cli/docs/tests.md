@@ -283,22 +283,110 @@ def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):
     guidance_content = """
 [specification]
 content = '''
-Create a simple REST API service with:
-- Basic CRUD operations
-- Error handling
-- Input validation
+Create a FastAPI REST API service with:
+1. User Authentication:
+   - JWT token-based authentication
+   - User registration and login endpoints
+   - Password hashing with bcrypt
+   - Token refresh mechanism
+
+2. Data Models:
+   - User model with email, hashed password, and profile info
+   - SQLAlchemy ORM integration
+   - SQLite database for storage
+   - Pydantic schemas for request/response validation
+
+3. API Features:
+   - OpenAPI documentation
+   - Input validation using Pydantic
+   - Proper error handling with status codes
+   - Rate limiting for API endpoints
+   - CORS middleware configuration
+
+4. Testing:
+   - Unit tests for all endpoints
+   - Integration tests with test database
+   - Test fixtures and helpers
+   - 100% code coverage target
 '''
 
 [architecture]
 content = '''
-## Component: ApiService
-Handles REST API endpoints.
+## Component: AuthService
+Handles user authentication and JWT operations:
+- generate_jwt_token(user_data: dict) -> str
+- verify_jwt_token(token: str) -> dict
+- hash_password(password: str) -> str
+- verify_password(plain_password: str, hashed_password: str) -> bool
+- get_password_hash(password: str) -> str
 
-## Component: DataValidator
-Validates input data.
+## Component: UserService
+Manages user operations:
+- create_user(user_data: UserCreate) -> User
+- get_user_by_email(email: str) -> User
+- update_user(user_id: int, user_data: UserUpdate) -> User
+- delete_user(user_id: int) -> bool
+- get_users(skip: int = 0, limit: int = 100) -> List[User]
+
+## Component: DatabaseService
+Handles database operations:
+- get_db() -> Generator[Session, None, None]
+- init_db() -> None
+- create_tables() -> None
+- get_user_by_id(db: Session, user_id: int) -> User
+- create_user_in_db(db: Session, user: UserCreate) -> User
 
 ## Component: ErrorHandler
-Manages error responses.
+Manages error responses:
+- handle_validation_error(exc: ValidationError) -> JSONResponse
+- handle_credentials_error() -> JSONResponse
+- handle_not_found_error() -> JSONResponse
+- handle_database_error(exc: SQLAlchemyError) -> JSONResponse
+'''
+
+[pseudocode]
+content = '''
+1. Database Setup:
+   ```
+   def init_db():
+       create_engine(DATABASE_URL)
+       create_database_tables()
+       setup_migrations()
+   ```
+
+2. Authentication Flow:
+   ```
+   def login_user(email, password):
+       user = find_user_by_email(email)
+       if not user or not verify_password(password, user.hashed_password):
+           raise InvalidCredentials
+       return generate_jwt_token(user.id)
+   ```
+
+3. User Management:
+   ```
+   def register_user(user_data):
+       validate_user_data(user_data)
+       check_email_unique(user_data.email)
+       hashed_password = hash_password(user_data.password)
+       user = create_user_in_db(user_data, hashed_password)
+       return user
+   ```
+
+4. API Routes:
+   ```
+   @app.post("/auth/register")
+   def register(user_data: UserCreate):
+       return register_user(user_data)
+
+   @app.post("/auth/login")
+   def login(credentials: LoginCredentials):
+       return login_user(credentials)
+
+   @app.get("/users/me")
+   def get_current_user(token: str):
+       return get_user_from_token(token)
+   ```
 '''
 """
     with open(clean_test_dir / "guidance.toml", "w") as f:
