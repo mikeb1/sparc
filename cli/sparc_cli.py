@@ -5,14 +5,10 @@ import sys
 import subprocess
 import argparse
 import logging
-import json
 from pathlib import Path
+
 from dataclasses import dataclass
 from typing import Optional
-from litellm import completion
-
-import toml
-from litellm import completion
 
 # Configure logging
 logging.basicConfig(
@@ -33,12 +29,6 @@ class SPARCConfig:
     max_attempts: int = 3
     verbose: bool = False
     guidance_file: str = "guidance.toml"
-    
-    # LiteLLM settings
-    model: str = "claude-3-sonnet-20240229"
-    temperature: float = 0.7
-    max_tokens: int = 4096
-    litellm_api_key: Optional[str] = None
     
     # Git settings
     use_git: bool = True
@@ -189,21 +179,21 @@ class ErrorHandler:
         return JSONResponse(
             status_code=401,
             content={"detail": "Invalid credentials"},
-            headers={"WWW-Authenticate": "Bearer"},
+            headers={"WWW-Authenticate": "Bearer"}
         )
 
     @staticmethod
     def handle_not_found_error() -> JSONResponse:
         return JSONResponse(
             status_code=404,
-            content={"detail": "Resource not found"},
+            content={"detail": "Resource not found"}
         )
 
     @staticmethod
     def handle_database_error(exc: SQLAlchemyError) -> JSONResponse:
         return JSONResponse(
             status_code=500,
-            content={"detail": "Database error occurred"},
+            content={"detail": "Database error occurred"}
         )
 '''
     return f"class {component}:\n    pass\n"
@@ -297,27 +287,18 @@ def test_handle_credentials_error():
     return f"def test_{component.lower()}():\n    pass\n"
 
 def main():
-    parser = argparse.ArgumentParser(description='SPARC Framework CLI with LiteLLM integration')
+    parser = argparse.ArgumentParser(description='SPARC Framework CLI')
     subparsers = parser.add_subparsers(dest='mode', help='Modes of operation')
 
     # Common arguments for all modes
     parent_parser = argparse.ArgumentParser(add_help=False)
     parent_parser.add_argument('--model', type=str,
+                             choices=['claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'gpt-4', 'gpt-4-turbo'],
                              default='claude-3-sonnet-20240229',
-                             help='LiteLLM model to use')
-    parent_parser.add_argument('--temperature', type=float,
-                             default=0.7,
-                             help='LiteLLM temperature parameter')
-    parent_parser.add_argument('--max-tokens', type=int,
-                             default=4096,
-                             help='Maximum tokens for LiteLLM response')
-    parent_parser.add_argument('--litellm-api-key', type=str,
-                             help='API key for LiteLLM')
+                             help='AI model to use (default: claude-3-sonnet-20240229)')
 
     # Architect mode
     parser_architect = subparsers.add_parser('architect', parents=[parent_parser], help='Run in architect mode')
-    parser_architect.add_argument('project_type', nargs='?', type=str, 
-                                help='Type of project to architect (e.g., fastapi, django, cli)')
     parser_architect.add_argument('--guidance-file', type=str, default='guidance.toml',
                                 help='Path to guidance TOML file')
 
@@ -329,211 +310,29 @@ def main():
                                 help='Path to guidance TOML file')
 
     args = parser.parse_args()
-
-    # Initialize config based on arguments
+    
+    # Update config with selected model
     config = SPARCConfig(
-        aider_model=args.model if hasattr(args, 'model') else 'claude-3-sonnet-20240229',
-        max_attempts=args.max_attempts if hasattr(args, 'max_attempts') else 3,
-        verbose=args.verbose if hasattr(args, 'verbose') else False,
-        guidance_file=args.guidance_file if hasattr(args, 'guidance_file') else 'guidance.toml'
+        aider_model=args.model if hasattr(args, 'model') else 'claude-3-sonnet-20240229'
     )
 
     if args.mode == 'architect':
         try:
-            # Load or create guidance based on project type
-            guidance = {}
-            if args.project_type:
-                if args.project_type.lower() in ['fastapi', 'fastapi using websockets', 'vitejs', 'vitejs using websockets']:
-                    if 'vitejs' in args.project_type.lower():
-                        base_guidance = {
-                            'specification': {
-                                'content': '''Create a Vite.js frontend application with:
-1. Application Structure:
-   - Vue 3 with Composition API
-   - TypeScript support
-   - Modular component architecture
-   - State management using Pinia
-   - Vue Router for navigation
-
-2. Core Features:
-   - User authentication UI
-   - Protected routes
-   - Form validation
-   - Error handling
-   - Loading states
-   - Responsive design
-
-3. Build & Development:
-   - Hot module replacement
-   - Environment configuration
-   - Asset optimization
-   - Code splitting
-   - Development server
-
-4. Testing:
-   - Unit tests with Vitest
-   - Component testing
-   - E2E tests with Cypress
-   - Test coverage reporting'''
-                            }
-                        }
-                    else:
-                        base_guidance = {
-                            'specification': {
-                                'content': '''Create a FastAPI service with:
-1. User Authentication:
-   - JWT token-based authentication 
-   - User registration and login endpoints
-   - Password hashing with bcrypt
-   - Token refresh mechanism
-
-2. Data Models:
-   - User model with email, hashed password, and profile info
-   - SQLAlchemy ORM integration
-   - SQLite database for storage
-   - Pydantic schemas for request/response validation
-
-3. API Features:
-   - OpenAPI documentation
-   - Input validation using Pydantic
-   - Proper error handling with status codes
-   - Rate limiting for API endpoints
-   - CORS middleware configuration
-
-4. Testing:
-   - Unit tests for all endpoints
-   - Integration tests with test database
-   - Test fixtures and helpers
-   - 100% code coverage target'''
-                        }
-                    }
-
-                    if 'websockets' in args.project_type.lower():
-                        if 'vitejs' in args.project_type.lower():
-                            websocket_guidance = {
-                                'specification': {
-                                    'content': '''
-5. WebSocket Features:
-   - WebSocket client setup and configuration
-   - Real-time message handling
-   - Connection state management
-   - Auto-reconnection logic
-   - Message queuing during disconnection
-   - Binary message support
-   - Heartbeat implementation
-   - Room/channel management
-   - Typed message events
-   - Error handling and recovery
-   
-6. WebSocket UI Components:
-   - Real-time chat interface
-   - Connection status indicator
-   - Message composition
-   - Typing indicators
-   - Message history display
-   - User presence indicators
-   - Notification system
-   - File sharing UI
-   - Emoji support
-   - Message threading'''
-                                }
-                            }
-                        else:
-                            websocket_guidance = {
-                                'specification': {
-                                    'content': '''
-5. WebSocket Features:
-   - Real-time bidirectional communication
-   - Connection management and heartbeat
-   - Message serialization/deserialization
-   - Room/channel support for group messaging
-   - Client connection state tracking
-   - Reconnection handling
-   - Message queuing and delivery guarantees
-   - WebSocket authentication middleware
-   - Rate limiting for WebSocket connections
-   - Error handling and connection recovery'''
-                                }
-                            }
-
-                    guidance = base_guidance
-                    if 'websockets' in args.project_type.lower():
-                        # Merge websocket-specific guidance
-                        for key in guidance:
-                            if key in websocket_guidance:
-                                guidance[key]['content'] += '\n' + websocket_guidance[key]['content']
-                # Add more project types here
-                logger.info(f"Using predefined guidance for {args.project_type} project")
-            
-            # Load custom guidance file if it exists
-            if os.path.exists(config.guidance_file):
-                with open(config.guidance_file, 'r') as f:
-                    custom_guidance = toml.load(f)
-                    guidance.update(custom_guidance)
-                logger.info(f"Loaded custom guidance from {config.guidance_file}")
-            elif not guidance:
-                logger.warning(f"No guidance file found and no project type specified. Using default prompts.")
+            import toml
+            if os.path.exists(args.guidance_file):
+                with open(args.guidance_file, 'r') as f:
+                    guidance = toml.load(f)
+            else:
+                guidance = {}
         except Exception as e:
             logger.warning(f"Failed to load guidance file: {e}")
             guidance = {}
-
         # Create architecture directory
-        arch_dir = Path(config.architecture_dir)
+        arch_dir = Path("architecture")
         arch_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Created architecture directory at {arch_dir.resolve()}")
+        logger.info(f"Created architecture directory")
 
-        # Save guidance.toml to architecture directory 
-        guidance_arch_path = arch_dir / "guidance.toml"
-        if not guidance_arch_path.exists():
-            with open(guidance_arch_path, 'w') as f:
-                # Format each section with proper indentation and line breaks
-                for section, content in guidance.items():
-                    f.write(f"[{section}]\n")
-                    f.write('content = """\n')
-                    f.write(content['content'].strip())
-                    f.write('\n"""\n\n')
-            logger.info("Generated guidance.toml in architecture directory")
-
-        # Create README.md
-        # Generate appropriate README based on project type
-        if args.project_type and 'vitejs' in args.project_type.lower():
-            readme_content = f"""# Vite.js Project Architecture Documentation
-
-## Overview
-This directory contains the architectural documentation for the Vite.js frontend project following the SPARC framework.
-
-## Project Structure
-The project implements a modern frontend application with Vue 3, TypeScript, and comprehensive testing using Vitest and Cypress.
-
-## Documentation Files
-- [Specification](./Specification.md) - Detailed project requirements and specifications
-- [Pseudocode](./Pseudocode.md) - High-level implementation logic and flow
-- [Architecture](./Architecture.md) - System architecture and component design
-- [Refinement](./Refinement.md) - Design improvements and optimizations
-- [Completion](./Completion.md) - Project completion criteria and final state
-
-## Key Components
-- AuthService: JWT authentication and user authorization
-- UserService: User management and CRUD operations
-- DatabaseService: Database operations and connections
-- ErrorHandler: Centralized error handling
-
-## Testing Approach
-- Unit tests using pytest
-- Integration tests with test database
-- Mock-based testing following London TDD
-- 100% code coverage target
-
-## Configuration
-See [guidance.toml](./guidance.toml) for detailed configuration and requirements.
-"""
-        readme_path = arch_dir / "README.md"
-        if not readme_path.exists():
-            with open(readme_path, 'w') as f:
-                f.write(readme_content)
-            logger.info("Generated README.md in architecture directory")
-
-        # Create architecture files using LiteLLM
+        # Create empty architecture files
         files_to_generate = [
             "Specification.md",
             "Pseudocode.md", 
@@ -542,149 +341,16 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
             "Completion.md"
         ]
 
-        # Initialize LiteLLM configuration
-        try:
-            for filename in files_to_generate:
-                file_path = arch_dir / filename
-                if not file_path.exists():
-                    # Get guidance content for this file
-                    file_guidance = guidance.get(filename[:-3].lower(), {}).get('content', '')
-                    
-                    # Generate content using LiteLLM
-                    try:
-                        # Construct detailed prompts based on file type
-                        if filename == "Architecture.md":
-                            prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
-
-1. System Overview
-   - High-level architecture diagram
-   - Key design patterns and principles
-   - System boundaries and constraints
-
-2. Component Specifications (for each component, provide detailed specifications):
-
-## Component: AuthService
-- Purpose: Handle JWT authentication and user authorization
-- Key Methods:
-  - generate_jwt_token(user_data: dict) -> str
-  - verify_jwt_token(token: str) -> dict
-  - hash_password(password: str) -> str
-  - verify_password(plain_password: str, hashed_password: str) -> bool
-- Dependencies: PyJWT, passlib, bcrypt
-- Test Requirements:
-  - Unit tests for token generation/verification
-  - Password hashing tests
-  - Integration tests with UserService
-
-## Component: UserService
-- Purpose: Manage user operations and data
-- Key Methods:
-  - create_user(user_data: UserCreate) -> User
-  - get_user_by_email(email: str) -> User
-  - update_user(user_id: int, user_data: UserUpdate) -> User
-  - delete_user(user_id: int) -> bool
-- Dependencies: SQLAlchemy, Pydantic
-- Test Requirements:
-  - CRUD operation tests
-  - Input validation tests
-  - Error handling tests
-
-## Component: DatabaseService
-- Purpose: Handle database operations and connections
-- Key Methods:
-  - get_db() -> Generator[Session, None, None]
-  - init_db() -> None
-  - create_tables() -> None
-- Dependencies: SQLAlchemy, SQLite
-- Test Requirements:
-  - Connection pool tests
-  - Transaction tests
-  - Migration tests
-
-## Component: ErrorHandler
-- Purpose: Centralized error handling and responses
-- Key Methods:
-  - handle_validation_error(exc: ValidationError) -> JSONResponse
-  - handle_credentials_error() -> JSONResponse
-  - handle_not_found_error() -> JSONResponse
-- Dependencies: FastAPI, Pydantic
-- Test Requirements:
-  - Error response format tests
-  - Status code tests
-  - Custom error handling tests
-
-3. Integration Patterns
-   - Component interaction diagrams
-   - API endpoint mappings
-   - Authentication flow
-   - Database access patterns
-
-4. Security Architecture
-   - JWT token handling
-   - Password hashing strategy
-   - Rate limiting implementation
-   - CORS configuration
-
-5. Testing Strategy
-   - Unit testing approach using pytest
-   - Integration testing setup
-   - Test database configuration
-   - Mock usage guidelines
-   - Coverage requirements
-
-6. Performance Considerations
-   - Database query optimization
-   - Caching strategy
-   - Connection pooling
-   - Async operation handling
-
-Based on the following requirements:
-{file_guidance}"""
-                        else:
-                            # Default prompt for other files
-                            prompt = f"Generate detailed content for {filename} based on this guidance:\n\n{file_guidance}"
-
-                        response = completion(
-                            model=config.model,
-                            messages=[{
-                                "role": "system",
-                                "content": "You are an expert software architect following the SPARC framework. Generate detailed, comprehensive documentation that follows best practices and industry standards."
-                            }, {
-                                "role": "user",
-                                "content": prompt
-                            }],
-                            temperature=config.temperature,
-                            max_tokens=config.max_tokens
-                        )
-                        
-                        content = response.choices[0].message.content
-                        if not content:
-                            content = f"# {filename[:-3]}\n\nError: No content generated"
-                    except Exception as e:
-                        logger.error(f"Error generating content with LiteLLM for {filename}: {str(e)}")
-                        content = f"# {filename[:-3]}\n\nError generating content: {str(e)}"
-                    
-                    with open(file_path, 'w') as f:
-                        f.write(content)
-                    logger.info(f"Generated {filename} with LiteLLM")
-                else:
-                    logger.info(f"{filename} already exists. Skipping.")
-        except Exception as e:
-            logger.warning(f"Error using LiteLLM: {str(e)}. Falling back to basic content generation.")
-            # Fallback to basic content generation
-            for filename in files_to_generate:
-                file_path = arch_dir / filename
-                if not file_path.exists():
-                    content = guidance.get(filename[:-3].lower(), {}).get('content', f"# {filename[:-3]}\n")
-                    with open(file_path, 'w') as f:
-                        f.write(content)
-                    logger.info(f"Generated {filename}")
-                else:
-                    logger.info(f"{filename} already exists. Skipping.")
-    
+        for filename in files_to_generate:
+            file_path = arch_dir / filename
+            if not file_path.exists():
+                content = guidance.get(filename[:-3].lower(), {}).get('content', f"# {filename[:-3]}\n")
+                with open(file_path, 'w') as f:
+                    f.write(content)
+                logger.info(f"Generated {filename}")
     elif args.mode == 'implement':
         # Read Architecture.md to find components
-        arch_file = Path(config.architecture_dir) / "Architecture.md"
+        arch_file = Path("architecture/Architecture.md")
         if not arch_file.exists():
             logger.error("Architecture.md not found. Run architect mode first.")
             sys.exit(1)
@@ -692,7 +358,7 @@ Based on the following requirements:
         with open(arch_file, 'r') as f:
             content = f.read()
 
-        # Parse components using regex
+        # Parse components
         import re
         components = re.findall(r'## Component: (\w+)', content)
         if not components:
@@ -700,10 +366,10 @@ Based on the following requirements:
             sys.exit(1)
 
         # Create source and test directories
-        src_dir = Path(config.source_dir)
-        test_dir = Path(config.test_dir)
-        src_dir.mkdir(parents=True, exist_ok=True)
-        test_dir.mkdir(parents=True, exist_ok=True)
+        src_dir = Path("src")
+        test_dir = Path("tests")
+        src_dir.mkdir(exist_ok=True)
+        test_dir.mkdir(exist_ok=True)
 
         # Generate files for each component
         for component in components:
@@ -717,8 +383,6 @@ Based on the following requirements:
                 with open(src_file, 'w') as f:
                     f.write(src_content)
                 logger.info(f"Generated {src_file}")
-            else:
-                logger.info(f"{src_file} already exists. Skipping.")
 
             # Generate corresponding test file
             if not test_file.exists():
@@ -726,36 +390,46 @@ Based on the following requirements:
                 with open(test_file, 'w') as f:
                     f.write(test_content)
                 logger.info(f"Generated {test_file}")
+
+
+    args = parser.parse_args()
+
+    if args.mode == 'architect':
+        try:
+            import toml
+            if os.path.exists(args.guidance_file):
+                with open(args.guidance_file, 'r') as f:
+                    guidance = toml.load(f)
             else:
-                logger.info(f"{test_file} already exists. Skipping.")
+                guidance = {}
+        except Exception as e:
+            logger.warning(f"Failed to load guidance file: {e}")
+            guidance = {}
 
-        # Initialize Git repository if enabled
-        if config.use_git:
-            if not (Path(".git")).exists():
-                logger.info("Initializing new Git repository.")
-                subprocess.run(["git", "init"], check=True)
-            else:
-                logger.info("Git repository already initialized.")
+        # Create architecture directory
+        arch_dir = Path("architecture")
+        arch_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Created architecture directory")
 
-            # Add files to Git
-            subprocess.run(["git", "add", "."], check=True)
-            commit_message = "Initial commit by SPARC CLI"
-            if config.aider_auto_commits:
-                subprocess.run(["git", "commit", "-m", commit_message], check=True)
-                logger.info("Committed initial files to Git.")
+        # Create empty architecture files
+        files_to_generate = [
+            "Specification.md",
+            "Pseudocode.md", 
+            "Architecture.md",
+            "Refinement.md",
+            "Completion.md"
+        ]
 
-        # Optionally run tests
-        if config.auto_test:
-            test_cmd = config.test_cmd if config.test_cmd else "pytest"
-            logger.info(f"Running tests with command: {test_cmd}")
-            result = subprocess.run(test_cmd.split(), capture_output=True, text=True)
-            if result.returncode == 0:
-                logger.info("All tests passed.")
-            else:
-                logger.error(f"Tests failed:\n{result.stdout}\n{result.stderr}")
-                if not config.dirty_commits:
-                    sys.exit(1)
-
+        for filename in files_to_generate:
+            file_path = arch_dir / filename
+            if not file_path.exists():
+                content = guidance.get(filename[:-3].lower(), {}).get('content', f"# {filename[:-3]}\n")
+                with open(file_path, 'w') as f:
+                    f.write(content)
+                logger.info(f"Generated {filename}")
+    elif args.mode == 'implement':
+        # Implementation mode code here
+        pass
     else:
         parser.print_help()
         sys.exit(1)
