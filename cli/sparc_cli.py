@@ -393,6 +393,50 @@ def main():
         arch_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Created architecture directory at {arch_dir.resolve()}")
 
+        # Save guidance.toml to architecture directory
+        guidance_arch_path = arch_dir / "guidance.toml"
+        if not guidance_arch_path.exists():
+            with open(guidance_arch_path, 'w') as f:
+                toml.dump(guidance, f)
+            logger.info("Generated guidance.toml in architecture directory")
+
+        # Create README.md
+        readme_content = f"""# FastAPI Project Architecture Documentation
+
+## Overview
+This directory contains the architectural documentation for the FastAPI REST API project following the SPARC framework.
+
+## Project Structure
+The project implements a REST API with user authentication, data models, and comprehensive testing using FastAPI.
+
+## Documentation Files
+- [Specification](./Specification.md) - Detailed project requirements and specifications
+- [Pseudocode](./Pseudocode.md) - High-level implementation logic and flow
+- [Architecture](./Architecture.md) - System architecture and component design
+- [Refinement](./Refinement.md) - Design improvements and optimizations
+- [Completion](./Completion.md) - Project completion criteria and final state
+
+## Key Components
+- AuthService: JWT authentication and user authorization
+- UserService: User management and CRUD operations
+- DatabaseService: Database operations and connections
+- ErrorHandler: Centralized error handling
+
+## Testing Approach
+- Unit tests using pytest
+- Integration tests with test database
+- Mock-based testing following London TDD
+- 100% code coverage target
+
+## Configuration
+See [guidance.toml](./guidance.toml) for detailed configuration and requirements.
+"""
+        readme_path = arch_dir / "README.md"
+        if not readme_path.exists():
+            with open(readme_path, 'w') as f:
+                f.write(readme_content)
+            logger.info("Generated README.md in architecture directory")
+
         # Create architecture files using LiteLLM
         files_to_generate = [
             "Specification.md",
