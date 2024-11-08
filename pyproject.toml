@@ -6,3 +6,16 @@ build-backend = "setuptools.build_meta"
 name = "sparc"
 version = "0.1.0"
 description = "SPARC Framework CLI"
+dependencies = [
+    "pytest>=7.0.0",
+    "toml>=0.10.0",
+    "aider-chat>=0.62.1"
+]
+
+[tool.setuptools]
+packages = ["cli"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
