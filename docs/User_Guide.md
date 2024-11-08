@@ -18,6 +18,20 @@
 Generate architecture documentation:
 ```bash
 python3 cli/sparc_cli.py architect "project-type"
+
+# Output directory will be created as:
+# architecture_YYYYMMDD_HHMMSS_project-name/
+#   - Specification.md
+#   - Architecture.md 
+#   - Pseudocode.md
+#   - Refinement.md
+#   - Completion.md
+#   - guidance.toml
+
+# Progress and file generation will be logged:
+# 2024-03-21 10:15:23 - INFO - Architecting project: my-project
+# 2024-03-21 10:15:24 - INFO - Generated Specification.md (12,345 chars)
+# ...
 ```
 
 Supported project types:
@@ -59,8 +73,9 @@ Your project specifications here
 ```
 
 ### Environment Variables
-- `OPENAI_API_KEY` - OpenAI API key
-- `AIDER_MODEL` - Default model choice
+- `LITELLM_API_KEY` - API key for model access
+- `OPENAI_API_KEY` - OpenAI API key (if using OpenAI models)
+- `ANTHROPIC_API_KEY` - Anthropic API key (if using Claude models)
 
 ## Troubleshooting
 

@@ -23,8 +23,9 @@ Project Categories:
 Generation Process:
 1. Analyzes project description
 2. Detects technology stack
-3. Generates tailored documentation
-4. Creates guidance configuration
+3. Creates uniquely named output directory (architecture_YYYYMMDD_HHMMSS_project-name)
+4. Generates documentation files with progress tracking
+5. Reports character count for each generated file
 
 Generated files include:
 - Specification.md
