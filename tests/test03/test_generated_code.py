@@ -46,6 +46,8 @@ pytest>=6.2.4
 httpx>=0.18.2
 pytest-cov>=2.12.1
 alembic>=1.7.1
+email-validator>=2.0.0
+python-dotenv>=1.0.0
 """
         with open(app_dir / "requirements.txt", "w") as f:
             f.write(requirements.strip())
@@ -64,9 +66,9 @@ alembic>=1.7.1
             )
             
             # Run tests with coverage and correct Python path
-            env["PYTHONPATH"] = str(app_dir)
+            env["PYTHONPATH"] = f"{str(app_dir)}/src:{str(app_dir)}/tests"
             result = subprocess.run(
-                [str(python_path), "-m", "pytest", "--cov=src", "--cov-report=term-missing"],
+                [str(python_path), "-m", "pytest", "--import-mode=importlib"],
                 cwd=app_dir,
                 env=env,
                 capture_output=True,
