@@ -855,12 +855,18 @@ async def async_main():
         
         # Look for component patterns in different sections
         component_patterns = [
-            r'## Component: (\w+)',  # Classic component header
-            r'### (\w+Component)\b',  # Component suffix pattern
-            r'## (\w+Service)\b',     # Service suffix pattern
-            r'## Components\s+[-*]\s*(\w+)',  # Bullet list items
-            r'class (\w+):',          # Class definitions
-            r'interface (\w+)\s*{',    # TypeScript interfaces
+            r'## Component: (\w+)',            # Classic component header
+            r'### (\w+Component)\b',           # Component suffix pattern
+            r'### (\w+Service)\b',             # Service suffix pattern
+            r'### (\w+)\b',                    # Any ### header
+            r'## (\w+Service)\b',              # Service in ## header
+            r'## (\w+Component)\b',            # Component in ## header
+            r'## Components\s+[-*]\s*(\w+)',   # Bullet list items
+            r'[-*]\s*(\w+(?:Component|Service))\b',  # Bullet points with suffix
+            r'[-*]\s*(\w+)\b(?:\s*-[^\n]+)?',  # Any bullet point with optional description
+            r'class (\w+)[\s:{]',              # Class definitions (more flexible)
+            r'interface (\w+)\s*[:{]',         # TypeScript interfaces (more flexible)
+            r'\b((?:[A-Z][a-z0-9]+){2,})\b',   # PascalCase words (2+ parts)
         ]
         
         components = set()
@@ -869,7 +875,12 @@ async def async_main():
             components.update(matches)
             
         # Filter out common words that might match but aren't components
-        excluded_words = {'Component', 'Service', 'Class', 'Interface', 'Implementation'}
+        excluded_words = {
+            'Component', 'Service', 'Class', 'Interface', 'Implementation',
+            'React', 'Next', 'JavaScript', 'TypeScript', 'Node', 'Express',
+            'Frontend', 'Backend', 'Database', 'System', 'Module', 'Function',
+            'Architecture', 'Design', 'Pattern', 'Testing', 'Documentation'
+        }
         components = {c for c in components if c not in excluded_words}
         
         if not components:
