@@ -378,7 +378,7 @@ async def _fix_test_errors(app_dir: Path, error_output: str) -> bool:
             if db_service_path.exists():
                 content = db_service_path.read_text()
                 if "class DatabaseService:" not in content:
-                new_content = """from typing import Generator
+                    new_content = """from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
@@ -421,13 +421,13 @@ def get_db() -> Generator[Session, None, None]:
                     fixed = True
                     logger.info(f"Fixed relative imports in {py_file.name}")
 
-    # Create __init__.py files if missing
-    for dir_path in [app_dir / "src", app_dir / "tests"]:
-        init_file = dir_path / "__init__.py"
-        if not init_file.exists():
-            init_file.touch()
-            fixed = True
-            logger.info(f"Created {init_file}")
+        # Create __init__.py files if missing
+        for dir_path in [app_dir / "src", app_dir / "tests"]:
+            init_file = dir_path / "__init__.py"
+            if not init_file.exists():
+                init_file.touch()
+                fixed = True
+                logger.info(f"Created {init_file}")
 
     return fixed
 
