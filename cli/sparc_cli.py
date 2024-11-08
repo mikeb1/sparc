@@ -626,85 +626,46 @@ The testing strategy follows the London method of TDD, emphasizing behavior veri
     - For example, caching sensitive data should be handled securely.
 """,
 
-        "Completion.md": f"""Generate completion criteria and project structure for: {project_desc}
+        "Completion.md": f'''Generate completion criteria and project structure for: {project_desc}
 Include:
 - Project Structure
 - Development Steps
 - Testing Requirements
 - Deployment Considerations
-# Completion.md
 
-## Objective
-Finalize the project, ensuring it is ready for deployment and meets all specified requirements, with a focus on integration and scalability.
+# Completion Criteria
 
-## Tasks
-- **Extensive Testing**:
-  - Conduct unit tests for all core functionalities and dependencies.
-  - Test authentication and authorization flows.
-  - Verify data operations and database interactions.
-  - Execute integration tests for all application interfaces and endpoints.
-  - Validate data models and schema validations.
-  - Test security features and access controls.
-  - Ensure third-party integrations function correctly.
-  - Achieve comprehensive test coverage using appropriate testing tools.
+## Project Structure
+- Source code organization
+- Configuration files
+- Documentation
+- Test suite
 
-- **Compliance and Quality Assurance**:
-  - Ensure the application meets all scalability, usability, and robustness criteria.
-  - Conduct security audits to identify and mitigate vulnerabilities.
-  - Perform performance testing to ensure the application meets speed and efficiency requirements.
-  - Verify API key management and security best practices.
-  - Monitor and optimize resource usage and operational costs.
+## Development Steps
+1. Environment setup
+2. Core implementation
+3. Testing
+4. Documentation
+5. Deployment preparation
 
-- **Deployment and Rollback Plans**:
-  - Prepare detailed deployment plans, including steps for deploying the application to production environments.
-  - Develop rollback plans to revert changes in case of deployment issues.
-  - Automate deployment processes using CI/CD pipelines where possible.
-  - Ensure environment configurations are consistent across development, staging, and production.
+## Testing Requirements
+- Unit tests
+- Integration tests
+- Performance tests
+- Security tests
 
-- **Documentation and Support Materials**:
-  - Create comprehensive user documentation, including user guides and FAQs.
-  - Develop technical documentation for developers and maintainers.
-  - Prepare training materials and support resources for end-users.
-  - Document configuration options and best practices.
-  - Include examples of different configurations and their use cases.
+## Deployment Considerations
+- Environment configuration
+- Dependencies
+- Monitoring
+- Maintenance
 
-- **Post-Deployment Monitoring and Maintenance**:
-  - Set up monitoring tools to track application performance and user activity.
-  - Plan for regular maintenance and updates to address bugs and introduce new features.
-  - Establish a feedback loop with users to gather insights and improve the application.
-  - Monitor system health and respond to incidents promptly.
-
-- **Final Review and Sign-Off**:
-  - Conduct a final review with stakeholders to ensure all requirements are met.
-  - Obtain formal sign-off from stakeholders, confirming project completion.
-  - Ensure all deliverables are handed over appropriately and all documentation is up to date.
-
-## Reflection
-- **Overall Development Process**:
-  - Reflect on the entire development process, identifying strengths and areas for improvement.
-  - Discuss how effectively the development framework guided the project from start to finish.
-
-- **Lessons Learned**:
-  - Identify key lessons learned during the project, including challenges faced and solutions implemented.
-  - Document best practices and strategies for future projects.
-
-- **Project Goals and Requirements**:
-  - Confirm that all project goals and requirements have been met satisfactorily.
-  - Evaluate the project's success in achieving its intended outcomes.
-
-- **Future Updates and Enhancements**:
-  - Plan for future updates and enhancements based on user feedback and emerging needs.
-  - Consider potential areas for innovation and improvement in subsequent versions.
-
-- **Effectiveness of Development Framework**:
-  - Discuss the effectiveness of the development framework in guiding the project.
-  - Provide feedback on the framework's strengths and potential areas for refinement.
-
----
-
-Format in Markdown.
-
-"""
+## Final Checklist
+- All tests passing
+- Documentation complete
+- Security review done
+- Performance benchmarks met
+'''
     }
 
     files_content = {}
