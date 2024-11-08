@@ -202,7 +202,7 @@ httpx>=0.18.2
 """
     
     with open(test_output_dir / "README.md", "w") as f:
-        f.write(readme_content)
+        f.write(report_content)
 
     assert verification_success, "Application verification failed after maximum attempts"
     
