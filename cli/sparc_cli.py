@@ -391,10 +391,10 @@ def test_handle_credentials_error():
 '''
         return f"def test_{component.lower()}():\n    pass\n"
 
-        logger.info("Implementation completed successfully")
-    else:
-        parser.print_help()
-        sys.exit(1)
+    logger.info("Implementation completed successfully")
+else:
+    parser.print_help()
+    sys.exit(1)
 
 if __name__ == "__main__":
     main()
