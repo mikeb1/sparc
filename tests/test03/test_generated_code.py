@@ -63,7 +63,8 @@ alembic>=1.7.1
                 text=True
             )
             
-            # Run tests with coverage
+            # Run tests with coverage and correct Python path
+            env["PYTHONPATH"] = str(app_dir)
             result = subprocess.run(
                 [str(python_path), "-m", "pytest", "--cov=src", "--cov-report=term-missing"],
                 cwd=app_dir,
