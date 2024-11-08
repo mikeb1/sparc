@@ -10,6 +10,7 @@ import concurrent.futures
 from typing import List, Dict
 from pathlib import Path
 import json
+import toml
 
 from litellm import completion
 from dataclasses import dataclass
