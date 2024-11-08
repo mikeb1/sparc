@@ -789,8 +789,11 @@ async def async_main():
             logger.error(f"Directory containing guidance file '{guidance_path}' not found.")
             sys.exit(1)
             
-        latest_arch_dir = guidance_dir
-        arch_file = latest_arch_dir / "Architecture.md"
+        # Look for Architecture.md in the same directory as guidance.toml
+        arch_file = guidance_dir / "Architecture.md"
+        if not arch_file.exists():
+            # Also check the current directory
+            arch_file = Path("Architecture.md")
         if not arch_file.exists():
             logger.error(f"Architecture.md not found in {latest_arch_dir}.")
             sys.exit(1)
