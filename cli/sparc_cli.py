@@ -511,7 +511,8 @@ required_platforms = ["linux"]
 readme_required = true
 api_docs_required = true
 architecture_docs_required = true
-changelog_required = true"""
+changelog_required = true
+"""
 
     # Add tech stack context to system prompt
     system_prompt = (
