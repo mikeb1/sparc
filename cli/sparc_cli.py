@@ -804,7 +804,22 @@ async def async_main():
         except Exception as e:
             logger.error(f"Failed to read architecture content from guidance.toml: {str(e)}")
             sys.exit(1)
+
+        # Create uniquely identified implementation directory
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base_name = guidance_dir.name
+        impl_dir_name = f"implementation_{timestamp}_{base_name}"
+        impl_dir = Path(impl_dir_name)
+        impl_dir.mkdir(parents=True, exist_ok=True)
         
+        # Create src and tests directories inside implementation directory
+        src_dir = impl_dir / "src"
+        test_dir = impl_dir / "tests"
+        src_dir.mkdir(exist_ok=True)
+        test_dir.mkdir(exist_ok=True)
+        
+        logger.info(f"Created implementation directory: {impl_dir_name}")
         logger.info(f"Using architecture from: {guidance_dir}")
 
         content = architecture_content
@@ -816,11 +831,9 @@ async def async_main():
             logger.error("No components found in Architecture.md")
             sys.exit(1)
 
-        # Create source and test directories
-        src_dir = Path("src")
-        test_dir = Path("tests")
-        src_dir.mkdir(exist_ok=True)
-        test_dir.mkdir(exist_ok=True)
+        # Use the previously created directories in impl_dir
+        src_dir = impl_dir / "src"
+        test_dir = impl_dir / "tests"
 
         # Generate files for each component
         for component in components:
