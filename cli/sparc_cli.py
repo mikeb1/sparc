@@ -6,9 +6,11 @@ import subprocess
 import argparse
 import logging
 from pathlib import Path
+import json
 
+from litellm import completion
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Dict
 
 # Configure logging
 logging.basicConfig(
@@ -286,6 +288,68 @@ def test_handle_credentials_error():
 '''
     return f"def test_{component.lower()}():\n    pass\n"
 
+def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
+    """Generate SPARC architecture content using LiteLLM."""
+    
+    prompts = {
+        "Specification.md": f"""Generate a detailed software specification for: {project_desc}
+Include:
+- Project Overview
+- Core Requirements
+- Technical Requirements
+- Constraints and Assumptions
+Format in Markdown.""",
+
+        "Architecture.md": f"""Generate a detailed software architecture for: {project_desc}
+Include:
+- System Components
+- Component Interactions
+- Data Flow
+- Key Design Decisions
+Format in Markdown.""",
+
+        "Pseudocode.md": f"""Generate pseudocode for key components of: {project_desc}
+Include:
+- Core Classes/Functions
+- Important Algorithms
+- Data Structures
+Format in Markdown with code blocks.""",
+
+        "Refinement.md": f"""Generate implementation details and refinements for: {project_desc}
+Include:
+- Detailed Implementation Steps
+- Error Handling
+- Testing Strategy
+- Performance Considerations
+Format in Markdown.""",
+
+        "Completion.md": f"""Generate completion criteria and project structure for: {project_desc}
+Include:
+- Project Structure
+- Development Steps
+- Testing Requirements
+- Deployment Considerations
+Format in Markdown."""
+    }
+
+    files_content = {}
+    for filename, prompt in prompts.items():
+        response = completion(
+            model=model,
+            messages=[{
+                "role": "system",
+                "content": "You are a software architect. Generate detailed technical documentation."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }],
+            temperature=0.7
+        )
+        files_content[filename] = response.choices[0].message.content
+
+    return files_content
+
 def main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI')
     subparsers = parser.add_subparsers(dest='mode', help='Modes of operation')
@@ -338,8 +402,15 @@ def main():
         arch_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Created architecture directory")
 
-        # Generate architecture files with project-specific content
-        files_content = {
+        # Generate architecture files using LiteLLM
+        files_content = generate_sparc_content(project_desc, config.aider_model)
+        
+        # Save the generated content
+        for filename, content in files_content.items():
+            file_path = arch_dir / filename
+            with open(file_path, 'w') as f:
+                f.write(content)
+            logger.info(f"Generated {filename}")
             "Specification.md": f"""# Specification
 
 ## Project Overview
