@@ -779,13 +779,13 @@ async def async_main():
         for filename, content in files_content.items():
             logger.info(f"- {filename}: {len(content):,} characters")
     elif args.mode == 'implement':
-        # Find the most recent architecture directory
-        arch_dirs = sorted([d for d in Path().glob("architecture_*") if d.is_dir()], reverse=True)
-        if not arch_dirs:
-            logger.error("No architecture directories found. Run architect mode first.")
+        # Use the guidance file path to find the architecture directory
+        guidance_dir = Path(args.guidance_file).parent
+        if not guidance_dir.exists():
+            logger.error(f"Directory containing guidance file '{args.guidance_file}' not found.")
             sys.exit(1)
-        
-        latest_arch_dir = arch_dirs[0]
+            
+        latest_arch_dir = guidance_dir
         arch_file = latest_arch_dir / "Architecture.md"
         if not arch_file.exists():
             logger.error(f"Architecture.md not found in {latest_arch_dir}.")
