@@ -55,20 +55,36 @@ python-dotenv>=1.0.0
     attempt = 0
     while attempt < max_attempts:
         try:
+            logger.info(f"\nVerification attempt {attempt + 1}/{max_attempts}")
+            
             # Install requirements
-            subprocess.run(
+            logger.info("Installing dependencies...")
+            install_result = subprocess.run(
                 [str(python_path), "-m", "pip", "install", "-r", "requirements.txt"],
                 cwd=app_dir,
                 env=env,
-                check=True,
                 capture_output=True,
                 text=True
             )
             
-            # Run tests with correct Python path and verbose output
-            env["PYTHONPATH"] = f"{str(app_dir)}/src:{str(app_dir)}/tests"
+            if install_result.returncode != 0:
+                logger.error(f"Dependency installation failed:\n{install_result.stderr}")
+                logger.info("Attempting to fix dependencies...")
+                # Try to fix dependencies by running implement mode with --fix-deps
+                subprocess.run(
+                    ["python", "sparc_cli.py", "implement", "--fix-deps"],
+                    cwd=app_dir,
+                    capture_output=True,
+                    text=True
+                )
+            else:
+                logger.info("Dependencies installed successfully")
+            
+            # Run tests with proper Python path
+            logger.info("Running tests...")
+            env["PYTHONPATH"] = str(app_dir)
             result = subprocess.run(
-                [str(python_path), "-m", "pytest", "-v", "--import-mode=importlib", "--tb=short"],
+                [str(python_path), "-m", "pytest", "-v", "--import-mode=importlib"],
                 cwd=app_dir,
                 env=env,
                 capture_output=True,
@@ -91,16 +107,25 @@ python-dotenv>=1.0.0
                 text=True
             )
             
+            if fix_result.returncode == 0:
+                logger.info("Fixes applied, retrying verification...")
+            else:
+                logger.error(f"Fix attempt failed:\n{fix_result.stderr}")
+            
             attempt += 1
             if attempt < max_attempts:
-                time.sleep(2)  # Wait before retrying
+                logger.info(f"Waiting before retry {attempt + 1}/{max_attempts}...")
+                time.sleep(3)  # Increased wait time between attempts
                 
         except Exception as e:
-            logger.error(f"Verification attempt {attempt + 1} failed: {str(e)}")
+            logger.error(f"Verification attempt {attempt + 1} failed with error: {str(e)}")
+            logger.error(f"Stack trace:\n{traceback.format_exc()}")
             attempt += 1
             if attempt < max_attempts:
-                time.sleep(2)
+                logger.info(f"Waiting before retry {attempt + 1}/{max_attempts}...")
+                time.sleep(3)
     
+    logger.error(f"Application verification failed after {max_attempts} attempts")
     return False
 
 def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):
