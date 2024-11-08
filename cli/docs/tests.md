@@ -220,27 +220,41 @@ def create_and_activate_venv(venv_path: Path) -> tuple[dict, Path]:
     
     return env, python_path
 
-def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts: int = 3) -> bool:
-    """
-    Verify the application works by installing dependencies and running tests.
-    Will attempt to fix issues if verification fails.
-    """
+def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts: int = 5) -> bool:
+    """Verify the application works by installing dependencies and running tests."""
     attempt = 0
     while attempt < max_attempts:
         try:
+            logger.info(f"\nVerification attempt {attempt + 1}/{max_attempts}")
+            
             # Install requirements
-            subprocess.run(
+            logger.info("Installing dependencies...")
+            install_result = subprocess.run(
                 [str(python_path), "-m", "pip", "install", "-r", "requirements.txt"],
                 cwd=app_dir,
                 env=env,
-                check=True,
                 capture_output=True,
                 text=True
             )
             
-            # Run application tests
+            if install_result.returncode != 0:
+                logger.error(f"Dependency installation failed:\n{install_result.stderr}")
+                logger.info("Attempting to fix dependencies...")
+                # Try to fix dependencies by running implement mode with --fix-deps
+                subprocess.run(
+                    ["python", "sparc_cli.py", "implement", "--fix-deps"],
+                    cwd=app_dir,
+                    capture_output=True,
+                    text=True
+                )
+            else:
+                logger.info("Dependencies installed successfully")
+            
+            # Run tests with proper Python path
+            logger.info("Running tests...")
+            env["PYTHONPATH"] = str(app_dir)
             result = subprocess.run(
-                [str(python_path), "-m", "pytest"],
+                [str(python_path), "-m", "pytest", "-v", "--import-mode=importlib"],
                 cwd=app_dir,
                 env=env,
                 capture_output=True,
@@ -248,10 +262,14 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
             )
             
             if result.returncode == 0:
+                logger.info("All tests passed successfully!")
                 return True
-                
+            
+            logger.error(f"Test failures:\n{result.stdout}\n{result.stderr}")
+            
             # If tests failed, try to fix issues
-            fix_cmd = ["python", "sparc_cli.py", "implement", "--fix-issues"]
+            logger.info("Attempting to fix test failures...")
+            fix_cmd = ["python", "sparc_cli.py", "implement", "--fix-issues", "--model", "claude-3-sonnet-20240229"]
             fix_result = subprocess.run(
                 fix_cmd,
                 cwd=app_dir,
@@ -259,16 +277,25 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
                 text=True
             )
             
+            if fix_result.returncode == 0:
+                logger.info("Fixes applied, retrying verification...")
+            else:
+                logger.error(f"Fix attempt failed:\n{fix_result.stderr}")
+            
             attempt += 1
             if attempt < max_attempts:
-                time.sleep(2)  # Wait before retrying
+                logger.info(f"Waiting before retry {attempt + 1}/{max_attempts}...")
+                time.sleep(3)  # Increased wait time between attempts
                 
         except Exception as e:
-            logger.error(f"Verification attempt {attempt + 1} failed: {str(e)}")
+            logger.error(f"Verification attempt {attempt + 1} failed with error: {str(e)}")
+            logger.error(f"Stack trace:\n{traceback.format_exc()}")
             attempt += 1
             if attempt < max_attempts:
-                time.sleep(2)
+                logger.info(f"Waiting before retry {attempt + 1}/{max_attempts}...")
+                time.sleep(3)
     
+    logger.error(f"Application verification failed after {max_attempts} attempts")
     return False
 
 def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):

@@ -204,3 +204,29 @@ Final status: {'Success' if verification_success else 'Failed'}
     
     print(f"\nVerified application saved to: {test_output_dir}")
     print("Test 3 passed: Generated code works in clean environment")
+def _get_component_list(app_dir: Path) -> str:
+    """Get a formatted list of components that were tested."""
+    src_dir = app_dir / "src"
+    components = []
+    if src_dir.exists():
+        for file in src_dir.glob("*.py"):
+            if file.stem != "__init__":
+                components.append(f"- {file.stem}")
+    return "\n".join(components) if components else "No components found"
+
+def _get_next_steps(success: bool) -> str:
+    """Get recommended next steps based on test results."""
+    if success:
+        return """
+1. Review test coverage reports
+2. Consider adding more test cases
+3. Proceed with deployment preparations
+"""
+    else:
+        return """
+1. Review test failure logs
+2. Check component dependencies
+3. Verify test environment setup
+4. Run tests individually to isolate failures
+5. Consider increasing test timeout values
+"""
