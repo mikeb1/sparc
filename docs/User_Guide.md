@@ -21,12 +21,19 @@ python3 cli/sparc_cli.py architect "project-type"
 ```
 
 Supported project types:
-- "fastapi"
+Any project description, for example:
+- "fastapi backend"
 - "fastapi using websockets"
+- "swarm agents using denojs"
+- "react frontend with typescript"
 
-Options:
+CLI Options:
 - `--guidance-file` - Custom guidance TOML file
-- `--model` - LiteLLM model (default: claude-3-sonnet-20240229)
+- `--model` - LiteLLM model choices:
+  - claude-3-opus-20240229
+  - claude-3-sonnet-20240229 (default)
+  - gpt-4
+  - gpt-4-turbo
 - `--temperature` - Model temperature (default: 0.7)
 - `--max-tokens` - Maximum tokens (default: 4096)
 - `--litellm-api-key` - API key for LiteLLM

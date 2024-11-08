@@ -4,13 +4,17 @@
 
 ### architect
 ```bash
-python3 cli/sparc_cli.py architect [project_type] [options]
+python3 cli/sparc_cli.py architect "project description" [options]
 ```
 
 Options:
-- `project_type`: Type of project to architect
-- `--guidance-file`: Path to guidance TOML file
-- `--model`: LiteLLM model name
+- `project description`: Free-form description of the project to architect
+- `--guidance-file`: Path to guidance TOML file (default: guidance.toml)
+- `--model`: LiteLLM model choices (default: claude-3-sonnet-20240229):
+  - claude-3-opus-20240229
+  - claude-3-sonnet-20240229
+  - gpt-4
+  - gpt-4-turbo
 - `--temperature`: Model temperature
 - `--max-tokens`: Maximum tokens
 - `--litellm-api-key`: API key

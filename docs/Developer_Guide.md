@@ -17,6 +17,11 @@ Configuration dataclass with settings for:
 - Git integration
 - Testing configuration
 
+### Architecture Generation
+- `generate_sparc_content()` - Generates architecture documentation
+- `_detect_tech_stack()` - Detects technology stack from project description
+- `_generate_guidance_toml()` - Generates guidance configuration
+
 ### Main Functions
 - `architect` mode - Generates architecture documentation
 - `implement` mode - Generates implementation code
