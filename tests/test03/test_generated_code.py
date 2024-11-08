@@ -131,19 +131,18 @@ python-dotenv>=1.0.0
 
 def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):
     """Test that generated code works in a fresh virtual environment."""
-    
-    # Copy the sparc_cli.py script to the test directory
-    shutil.copy(cli_script, clean_test_dir)
-    
-    os.chdir(clean_test_dir)
+    try:
+        # Copy the sparc_cli.py script to the test directory
+        shutil.copy(cli_script, clean_test_dir)
+        
+        os.chdir(clean_test_dir)
 
-    # Create a basic guidance.toml file with a real REST API
-    guidance_content = """
+        # Create a basic guidance.toml file
+        guidance_content = """
 [specification]
 content = '''
 Create a FastAPI REST service with:
-- User registration and login endpoints
-- JWT token authentication
+- User authentication using JWT tokens
 - SQLite database for storage
 - Input validation using Pydantic
 '''
@@ -151,90 +150,51 @@ Create a FastAPI REST service with:
 [architecture]
 content = '''
 ## Component: AuthService
-Handles user authentication and JWT tokens.
+Handles JWT token generation and validation.
 
 ## Component: UserService
-Manages user registration and profile data.
+Manages user operations and data.
 
 ## Component: DatabaseService
-Handles SQLite database operations.
+Handles database operations and connections.
 '''
 """
-    with open(clean_test_dir / "guidance.toml", "w") as f:
-        f.write(guidance_content)
+        with open(clean_test_dir / "guidance.toml", "w") as f:
+            f.write(guidance_content)
 
-    # Create requirements.txt
-    requirements = """
-fastapi>=0.68.0
-uvicorn>=0.15.0
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-python-multipart>=0.0.5
-SQLAlchemy>=1.4.23
-pytest>=6.2.4
-httpx>=0.18.2
-"""
-    with open(clean_test_dir / "requirements.txt", "w") as f:
-        f.write(requirements)
+        # Run architect and implement modes
+        logger.info("Running architect mode...")
+        subprocess.run(["python", "sparc_cli.py", "architect", "--guidance-file", "guidance.toml"], check=True)
+        logger.info("Running implement mode...")
+        subprocess.run(["python", "sparc_cli.py", "implement", "--guidance-file", "guidance.toml"], check=True)
 
-    # Run architect and implement modes with enhanced logging
-    logger.info("Running architect mode...")
-    subprocess.run(["python", "sparc_cli.py", "architect", "--guidance-file", "guidance.toml"], check=True)
-    logger.info("Running implement mode...")
-    subprocess.run(["python", "sparc_cli.py", "implement", "--guidance-file", "guidance.toml"], check=True)
+        # Create virtual environment for testing
+        venv_path = clean_test_dir / ".venv"
+        logger.info(f"Creating virtual environment at {venv_path}")
+        env, python_path = create_and_activate_venv(venv_path)
 
-    # Create virtual environment for testing
-    venv_path = clean_test_dir / ".venv"
-    logger.info(f"Creating virtual environment at {venv_path}")
-    env, python_path = create_and_activate_venv(venv_path)
+        # Verify application with increased attempts and better error handling
+        verification_success = verify_application(clean_test_dir, python_path, env, max_attempts=5)
+        
+        # Save test results
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        test_output_dir = output_dir / f"verified_app_{timestamp}"
+        logger.info(f"Saving test results to {test_output_dir}")
+        
+        shutil.copytree(clean_test_dir, test_output_dir)
+        
+        # Create detailed test report
+        _create_test_report(test_output_dir, verification_success, venv_path, python_path)
 
-    # Verify application with increased attempts and logging
-    verification_success = verify_application(clean_test_dir, python_path, env, max_attempts=5)
-    
-    # Save detailed test results
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    test_output_dir = output_dir / f"verified_app_{timestamp}"
-    logger.info(f"Saving test results to {test_output_dir}")
-    
-    # Copy the generated and verified application
-    shutil.copytree(clean_test_dir, test_output_dir)
-    
-    # Create a comprehensive test report
-    report_content = f"""# Test Verification Report - {timestamp}
-
-## Test Status
-- Verification Success: {'Yes' if verification_success else 'No'}
-- Maximum Attempts: 5
-- Virtual Environment: {venv_path}
-- Python Version: {sys.version}
-
-## Components Tested
-{_get_component_list(clean_test_dir)}
-
-## Test Results
-- Dependencies: {'Successfully installed' if verification_success else 'Installation issues encountered'}
-- Tests: {'All passing' if verification_success else 'Some failures detected'}
-- Coverage: See coverage_report.xml for details
-
-## Generated Files
-- Source Code: src/
-- Test Suite: tests/
-- Architecture: architecture/
-- Dependencies: requirements.txt
-
-## Next Steps
-{_get_next_steps(verification_success)}
-
-## Test Environment
-- OS: {os.name}
-- Platform: {sys.platform}
-- Python Path: {python_path}
-"""
-    
-    with open(test_output_dir / "README.md", "w") as f:
-        f.write(report_content)
-
-    assert verification_success, "Application verification failed after maximum attempts"
+        assert verification_success, "Application verification failed after maximum attempts"
+        
+        print(f"\nVerified application saved to: {test_output_dir}")
+        print("Test 3 passed: Generated code works in clean environment")
+        
+    except Exception as e:
+        logger.error(f"Test failed with error: {str(e)}")
+        logger.error(f"Stack trace:\n{traceback.format_exc()}")
+        raise
     
     print(f"\nVerified application saved to: {test_output_dir}")
     print("Test 3 passed: Generated code works in clean environment")
