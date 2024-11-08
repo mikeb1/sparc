@@ -374,10 +374,10 @@ async def _fix_test_errors(app_dir: Path, error_output: str) -> bool:
         
         # Fix common issues
         if "DatabaseService" in error_output:
-        db_service_path = app_dir / "src" / "databaseservice.py"
-        if db_service_path.exists():
-            content = db_service_path.read_text()
-            if "class DatabaseService:" not in content:
+            db_service_path = app_dir / "src" / "databaseservice.py"
+            if db_service_path.exists():
+                content = db_service_path.read_text()
+                if "class DatabaseService:" not in content:
                 new_content = """from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -411,15 +411,15 @@ def get_db() -> Generator[Session, None, None]:
                 fixed = True
                 logger.info("Fixed DatabaseService class definition")
 
-    # Fix relative imports
-    if "ImportError" in error_output and "cannot import name" in error_output:
-        for py_file in (app_dir / "tests").glob("test_*.py"):
-            content = py_file.read_text()
-            if "from ." in content:
-                new_content = content.replace("from .", "from src.")
-                py_file.write_text(new_content)
-                fixed = True
-                logger.info(f"Fixed relative imports in {py_file.name}")
+        # Fix relative imports
+        if "ImportError" in error_output and "cannot import name" in error_output:
+            for py_file in (app_dir / "tests").glob("test_*.py"):
+                content = py_file.read_text()
+                if "from ." in content:
+                    new_content = content.replace("from .", "from src.")
+                    py_file.write_text(new_content)
+                    fixed = True
+                    logger.info(f"Fixed relative imports in {py_file.name}")
 
     # Create __init__.py files if missing
     for dir_path in [app_dir / "src", app_dir / "tests"]:
