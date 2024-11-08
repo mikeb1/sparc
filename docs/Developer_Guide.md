@@ -27,6 +27,18 @@ Configuration dataclass with settings for:
 - `implement` mode - Generates implementation code
 - Component generators for source and test code
 
+### Implementation Components
+- `AgentManager` - Manages swarm of AI agents
+- `MonitoringService` - Handles system monitoring
+- `StateManager` - Manages conversation state
+- `CommunicationService` - Handles inter-agent communication
+
+### Testing Strategy
+- Unit tests for each service
+- Integration tests for agent interactions
+- Monitoring service tests
+- State management tests
+
 ## Development Workflow
 
 1. Fork the repository

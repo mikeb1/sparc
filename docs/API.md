@@ -28,6 +28,18 @@ Options:
 - `--max-attempts`: Maximum implementation attempts
 - Model options (same as architect)
 
+### Generated Code Structure
+- `src/` directory:
+  - Agent management (`agent/`)
+  - Monitoring services (`monitoring/`)
+  - State management (`state/`)
+  - Communication services (`communication/`)
+  
+- `tests/` directory:
+  - Unit tests for each component
+  - Integration tests
+  - Test fixtures and utilities
+
 ## Configuration
 
 ### SPARCConfig

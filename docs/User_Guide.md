@@ -52,6 +52,23 @@ CLI Options:
 - `--max-tokens` - Maximum tokens (default: 4096)
 - `--litellm-api-key` - API key for LiteLLM
 
+### Implementation Output Structure
+```bash
+python3 cli/sparc_cli.py implement "architecture_dir"
+
+# Output directory will be created as:
+# implementation_YYYYMMDD_HHMMSS_architecture_dir/
+#   - src/
+#   - tests/
+```
+
+Progress logging:
+```bash
+2024-03-21 10:30:45 - INFO - Implementing from architecture: architecture_dir
+2024-03-21 10:30:46 - INFO - Generated source files in src/
+2024-03-21 10:30:47 - INFO - Generated test files in tests/
+```
+
 ### Implement Mode
 Generate implementation code:
 ```bash
