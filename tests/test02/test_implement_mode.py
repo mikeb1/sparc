@@ -5,20 +5,53 @@ import pytest
 from pathlib import Path
 
 def test_implement_mode_develops_components(clean_test_dir, cli_script):
-    """Test that implement mode develops components successfully."""
+    """Test that implement mode develops components successfully using aider."""
     
     # Copy the sparc_cli.py script to the test directory
     shutil.copy(cli_script, clean_test_dir)
     
     os.chdir(clean_test_dir)
 
-    # Create a basic guidance.toml file
+    # Create a basic guidance.toml file with real implementation requirements
     guidance_content = """
 [specification]
-content = "Create a simple calculator application"
+content = '''
+Create a REST API service with:
+- User authentication using JWT tokens
+- CRUD operations for a blog post resource
+- Error handling with proper HTTP status codes
+'''
 
 [architecture]
-content = "## Component: Calculator\\nHandles basic math operations."
+content = '''
+## Component: AuthService
+Handles JWT token generation, validation, and user authentication.
+
+## Component: BlogPostManager
+Manages CRUD operations for blog posts with proper validation.
+
+## Component: ErrorHandler
+Provides standardized error handling with appropriate HTTP status codes.
+'''
+
+[pseudocode]
+content = '''
+AuthService:
+- generate_token(user_data) -> str
+- validate_token(token) -> dict
+- authenticate_user(username, password) -> bool
+
+BlogPostManager:
+- create_post(user_id, title, content) -> Post
+- get_post(post_id) -> Post
+- update_post(post_id, updates) -> Post
+- delete_post(post_id) -> bool
+
+ErrorHandler:
+- handle_auth_error() -> Response(401)
+- handle_not_found() -> Response(404)
+- handle_validation_error() -> Response(400)
+'''
 """
     with open(clean_test_dir / "guidance.toml", "w") as f:
         f.write(guidance_content)

@@ -5,19 +5,50 @@ import pytest
 from pathlib import Path
 
 def test_architect_mode_generates_files(clean_test_dir, cli_script):
-    """Test that architect mode generates all expected architecture files."""
+    """Test that architect mode generates all expected architecture files using aider."""
     
     # Copy the sparc_cli.py script to the test directory
     shutil.copy(cli_script, clean_test_dir)
     
     os.chdir(clean_test_dir)
 
-    # Run the architect mode
-    cmd = ["python", "sparc_cli.py", "architect"]
+    # Create a basic guidance.toml with real project requirements
+    guidance_content = """
+[specification]
+content = '''
+Create a simple REST API service with:
+- User authentication
+- CRUD operations for a resource
+- Basic error handling
+'''
+
+[architecture]
+content = '''
+## Component: AuthService
+Handles user authentication and authorization.
+
+## Component: ResourceManager 
+Manages CRUD operations for resources.
+
+## Component: ErrorHandler
+Provides standardized error handling.
+'''
+"""
+    with open(clean_test_dir / "guidance.toml", "w") as f:
+        f.write(guidance_content)
+
+    # Run the architect mode with aider integration
+    cmd = ["python", "sparc_cli.py", "architect", "--guidance-file", "guidance.toml"]
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     # Check that the command executed successfully
     assert result.returncode == 0, f"Architect mode failed: {result.stderr}"
+
+    # Print the output for debugging
+    print("\nArchitect mode output:")
+    print(result.stdout)
+    if result.stderr:
+        print("Errors:", result.stderr)
 
     # Check that the architecture directory was created
     arch_dir = clean_test_dir / "architecture"

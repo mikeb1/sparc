@@ -42,6 +42,12 @@ class SPARCConfig:
     # Output settings
     pretty: bool = True
     stream: bool = True
+    
+    # Aider settings
+    aider_model: str = "gpt-4"  # or other available model
+    aider_edit_format: str = "diff"
+    aider_stream: bool = True
+    aider_auto_commits: bool = True
 
 def main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI')
