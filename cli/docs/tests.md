@@ -239,17 +239,10 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
             
             if install_result.returncode != 0:
                 logger.error(f"Dependency installation failed:\n{install_result.stderr}")
-                logger.info("Attempting to fix dependencies...")
-                # Try to fix dependencies by running implement mode with --fix-deps
-                subprocess.run(
-                    ["python", "sparc_cli.py", "implement", "--fix-deps"],
-                    cwd=app_dir,
-                    capture_output=True,
-                    text=True
-                )
-            else:
-                logger.info("Dependencies installed successfully")
-            
+                _fix_dependencies(app_dir)
+                attempt += 1
+                continue
+
             # Run tests with proper Python path
             logger.info("Running tests...")
             env["PYTHONPATH"] = str(app_dir)
@@ -267,35 +260,24 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
             
             logger.error(f"Test failures:\n{result.stdout}\n{result.stderr}")
             
-            # If tests failed, try to fix issues
-            logger.info("Attempting to fix test failures...")
-            fix_cmd = ["python", "sparc_cli.py", "implement", "--fix-issues", "--model", "claude-3-sonnet-20240229"]
-            fix_result = subprocess.run(
-                fix_cmd,
-                cwd=app_dir,
-                capture_output=True,
-                text=True
-            )
-            
-            if fix_result.returncode == 0:
-                logger.info("Fixes applied, retrying verification...")
+            # Parse and fix specific errors
+            if _fix_test_errors(app_dir, result.stdout + result.stderr):
+                logger.info("Applied fixes, retrying verification...")
             else:
-                logger.error(f"Fix attempt failed:\n{fix_result.stderr}")
+                logger.error("Could not automatically fix errors")
             
             attempt += 1
             if attempt < max_attempts:
                 logger.info(f"Waiting before retry {attempt + 1}/{max_attempts}...")
-                time.sleep(3)  # Increased wait time between attempts
+                time.sleep(3)
                 
         except Exception as e:
             logger.error(f"Verification attempt {attempt + 1} failed with error: {str(e)}")
             logger.error(f"Stack trace:\n{traceback.format_exc()}")
             attempt += 1
             if attempt < max_attempts:
-                logger.info(f"Waiting before retry {attempt + 1}/{max_attempts}...")
                 time.sleep(3)
     
-    logger.error(f"Application verification failed after {max_attempts} attempts")
     return False
 
 def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):

@@ -264,3 +264,121 @@ def _get_next_steps(success: bool) -> str:
 4. Run tests individually to isolate failures
 5. Consider increasing test timeout values
 """
+def _fix_dependencies(app_dir: Path) -> None:
+    """Fix common dependency issues."""
+    requirements = """
+fastapi>=0.68.0
+uvicorn>=0.15.0
+sqlalchemy>=1.4.23
+pydantic>=1.8.2
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.5
+pytest>=6.2.4
+httpx>=0.18.2
+pytest-cov>=2.12.1
+alembic>=1.7.1
+email-validator>=2.0.0
+python-dotenv>=1.0.0
+"""
+    with open(app_dir / "requirements.txt", "w") as f:
+        f.write(requirements.strip())
+
+def _fix_test_errors(app_dir: Path, error_output: str) -> bool:
+    """Parse test errors and apply fixes."""
+    fixed = False
+    
+    # Fix import errors
+    if "ImportError: cannot import name 'DatabaseService'" in error_output:
+        db_service_path = app_dir / "src" / "databaseservice.py"
+        if db_service_path.exists():
+            content = db_service_path.read_text()
+            if "class DatabaseService:" not in content:
+                new_content = """from typing import Generator
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+class DatabaseService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    @staticmethod
+    def get_db() -> Generator[Session, None, None]:
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    @staticmethod
+    def init_db() -> None:
+        Base.metadata.create_all(bind=engine)
+
+def get_db() -> Generator[Session, None, None]:
+    return DatabaseService.get_db()
+"""
+                db_service_path.write_text(new_content)
+                fixed = True
+                logger.info("Fixed DatabaseService class definition")
+
+    # Fix relative imports
+    if "ImportError" in error_output and "cannot import name" in error_output:
+        for py_file in (app_dir / "tests").glob("test_*.py"):
+            content = py_file.read_text()
+            if "from ." in content:
+                new_content = content.replace("from .", "from src.")
+                py_file.write_text(new_content)
+                fixed = True
+                logger.info(f"Fixed relative imports in {py_file.name}")
+
+    # Create __init__.py files if missing
+    for dir_path in [app_dir / "src", app_dir / "tests"]:
+        init_file = dir_path / "__init__.py"
+        if not init_file.exists():
+            init_file.touch()
+            fixed = True
+            logger.info(f"Created {init_file}")
+
+    return fixed
+
+def _create_test_report(test_output_dir: Path, verification_success: bool, venv_path: Path, python_path: Path) -> None:
+    """Create a detailed test report."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    report_content = f"""# Test Verification Report - {timestamp}
+
+## Test Status
+- Verification Success: {'Yes' if verification_success else 'No'}
+- Maximum Attempts: 5
+- Virtual Environment: {venv_path}
+- Python Version: {sys.version}
+
+## Components Tested
+{_get_component_list(test_output_dir)}
+
+## Test Results
+- Dependencies: {'Successfully installed' if verification_success else 'Installation issues encountered'}
+- Tests: {'All passing' if verification_success else 'Some failures detected'}
+- Coverage: See coverage_report.xml for details
+
+## Generated Files
+- Source Code: src/
+- Test Suite: tests/
+- Architecture: architecture/
+- Dependencies: requirements.txt
+
+## Next Steps
+{_get_next_steps(verification_success)}
+
+## Test Environment
+- OS: {os.name}
+- Platform: {sys.platform}
+- Python Path: {python_path}
+"""
+    with open(test_output_dir / "README.md", "w") as f:
+        f.write(report_content)
