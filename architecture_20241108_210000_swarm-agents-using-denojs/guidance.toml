@@ -1,15 +1,52 @@
 # SPARC Framework Project Configuration
 
 [project]
-name = "supabase-devops-cli"
-description = "swarm agents using denojs"
+name = "deno-swarm-agents"
+description = "A swarm of autonomous agents using Deno.js"
 version = "0.1.0"
 
 [architecture]
+content = """
+## Component: AgentManager
+Manages the lifecycle and coordination of agents in the swarm:
+- Create and destroy agents
+- Monitor agent health
+- Coordinate task distribution
+- Handle agent communication
+
+## Component: CommunicationService
+Handles all inter-agent communication:
+- Message routing
+- State synchronization
+- Event broadcasting
+- Connection management
+
+## Component: TaskScheduler
+Manages task distribution and execution:
+- Task queue management
+- Priority handling
+- Load balancing
+- Task status tracking
+
+## Component: StateManager
+Handles distributed state management:
+- State synchronization
+- Conflict resolution
+- State persistence
+- Recovery management
+
+## Component: MonitoringService
+Provides system monitoring and metrics:
+- Performance tracking
+- Resource utilization
+- Error logging
+- Health checks
+"""
+
 # Component organization
 component_style = "PascalCase"
 test_prefix = "test_"
-source_suffix = ".py"
+source_suffix = ".ts"
 
 # Directory structure
 src_dir = "src"
@@ -21,7 +58,7 @@ docs_dir = "docs"
 max_attempts = 3
 test_first = true
 type_hints = true
-docstring_style = "Google"
+docstring_style = "JSDoc"
 
 [testing]
 # Testing requirements
@@ -54,7 +91,9 @@ required_platforms = ["linux"]
 readme_required = true
 api_docs_required = true
 architecture_docs_required = true
-changelog_required = true[specification]
+changelog_required = true
+
+[specification]
 content = """
 Create a detailed specification for a swarm of autonomous agents using Deno.js, including:
 - Agent communication and coordination
@@ -70,16 +109,6 @@ Provide high-level pseudocode for the main agent functionalities:
 - Communication protocols
 - Task execution flows
 - State management
-"""
-
-[architecture]
-content = """
-Describe the system architecture for a Deno.js-based agent swarm system:
-- Core agent components
-- Communication layer
-- Task scheduling
-- State management
-- Monitoring and control
 """
 
 [refinement]
