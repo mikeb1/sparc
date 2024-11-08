@@ -299,6 +299,8 @@ def main():
 
     # Architect mode
     parser_architect = subparsers.add_parser('architect', parents=[parent_parser], help='Run in architect mode')
+    parser_architect.add_argument('project_description', type=str, nargs='+', 
+                                help='Description of the project to architect')
     parser_architect.add_argument('--guidance-file', type=str, default='guidance.toml',
                                 help='Path to guidance TOML file')
 
@@ -317,6 +319,10 @@ def main():
     )
 
     if args.mode == 'architect':
+        # Join the project description words into a single string
+        project_desc = ' '.join(args.project_description)
+        logger.info(f"Architecting project: {project_desc}")
+        
         try:
             import toml
             if os.path.exists(args.guidance_file):
