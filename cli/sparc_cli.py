@@ -315,6 +315,8 @@ def main():
 
     # Architect mode
     parser_architect = subparsers.add_parser('architect', parents=[parent_parser], help='Run in architect mode')
+    parser_architect.add_argument('project_type', nargs='?', type=str, 
+                                help='Type of project to architect (e.g., fastapi, django, cli)')
     parser_architect.add_argument('--guidance-file', type=str, default='guidance.toml',
                                 help='Path to guidance TOML file')
 
@@ -337,13 +339,50 @@ def main():
 
     if args.mode == 'architect':
         try:
+            # Load or create guidance based on project type
+            guidance = {}
+            if args.project_type:
+                if args.project_type.lower() == 'fastapi':
+                    guidance = {
+                        'specification': {
+                            'content': '''Create a FastAPI REST API service with:
+1. User Authentication:
+   - JWT token-based authentication 
+   - User registration and login endpoints
+   - Password hashing with bcrypt
+   - Token refresh mechanism
+
+2. Data Models:
+   - User model with email, hashed password, and profile info
+   - SQLAlchemy ORM integration
+   - SQLite database for storage
+   - Pydantic schemas for request/response validation
+
+3. API Features:
+   - OpenAPI documentation
+   - Input validation using Pydantic
+   - Proper error handling with status codes
+   - Rate limiting for API endpoints
+   - CORS middleware configuration
+
+4. Testing:
+   - Unit tests for all endpoints
+   - Integration tests with test database
+   - Test fixtures and helpers
+   - 100% code coverage target'''
+                        }
+                    }
+                # Add more project types here
+                logger.info(f"Using predefined guidance for {args.project_type} project")
+            
+            # Load custom guidance file if it exists
             if os.path.exists(config.guidance_file):
                 with open(config.guidance_file, 'r') as f:
-                    guidance = toml.load(f)
-                logger.info(f"Loaded guidance from {config.guidance_file}")
-            else:
-                logger.warning(f"Guidance file '{config.guidance_file}' not found. Using default prompts.")
-                guidance = {}
+                    custom_guidance = toml.load(f)
+                    guidance.update(custom_guidance)
+                logger.info(f"Loaded custom guidance from {config.guidance_file}")
+            elif not guidance:
+                logger.warning(f"No guidance file found and no project type specified. Using default prompts.")
         except Exception as e:
             logger.warning(f"Failed to load guidance file: {e}")
             guidance = {}
