@@ -19,6 +19,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Configure LiteLLM to use our logger
+import litellm
+litellm.set_verbose = False  # Disable default logging
+
 @dataclass
 class SPARCConfig:
     """Configuration class for SPARC CLI."""
@@ -336,6 +340,7 @@ Format in Markdown."""
     for filename, prompt in prompts.items():
         logger.info(f"Generating {filename}...")
         try:
+            logger.info(f"Sending request to {model} for {filename}...")
             response = completion(
                 model=model,
                 messages=[{
@@ -348,6 +353,7 @@ Format in Markdown."""
                 }],
                 temperature=0.7
             )
+            logger.info(f"Received response from {model} ({len(response.choices[0].message.content)} chars)")
             files_content[filename] = response.choices[0].message.content
             logger.info(f"Successfully generated {filename}")
         except Exception as e:
