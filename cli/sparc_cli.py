@@ -394,6 +394,65 @@ def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     
     tech_stack = _detect_tech_stack(project_desc)
     
+    # Generate guidance.toml first
+    guidance_content = """# SPARC Framework Project Configuration
+
+[project]
+name = "supabase-devops-cli"
+description = "{project_desc}"
+version = "0.1.0"
+
+[architecture]
+# Component organization
+component_style = "PascalCase"
+test_prefix = "test_"
+source_suffix = ".py"
+
+# Directory structure
+src_dir = "src"
+test_dir = "tests"
+docs_dir = "docs"
+
+[implementation]
+# Code generation settings
+max_attempts = 3
+test_first = true
+type_hints = true
+docstring_style = "Google"
+
+[testing]
+# Testing requirements
+min_coverage = 85
+unit_test_required = true
+integration_test_required = true
+
+[quality]
+# Code quality requirements
+max_complexity = 8
+max_line_length = 88
+require_type_hints = true
+require_docstrings = true
+
+[security]
+# Security requirements
+require_input_validation = true
+require_authentication = true
+require_authorization = true
+
+[deployment]
+# Deployment configuration
+containerize = true
+ci_cd_required = true
+monitoring_required = true
+required_platforms = ["linux"]
+
+[documentation]
+# Documentation requirements
+readme_required = true
+api_docs_required = true
+architecture_docs_required = true
+changelog_required = true"""
+
     # Add tech stack context to system prompt
     system_prompt = f"""You are a software architect. Generate detailed technical documentation.
 Technology Stack:
@@ -605,10 +664,10 @@ Include:
 
     files_content = {}
     
-    # Add guidance.toml to the output
-    files_content["guidance.toml"] = _generate_guidance_toml(tech_stack)
+    # Add guidance.toml to the output first
+    files_content["guidance.toml"] = guidance_content.format(project_desc=project_desc)
     
-    # Generate other files
+    # Generate other files using the guidance
     for filename, prompt in prompts.items():
         logger.info(f"Generating {filename}...")
         try:
