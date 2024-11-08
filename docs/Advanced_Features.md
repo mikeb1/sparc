@@ -10,14 +10,20 @@ Custom project specifications
 """
 ```
 
-## WebSocket Support
+## Architecture Generation
+The CLI supports generating architecture for various project types:
+- Backend services (FastAPI, Express, etc.)
+- Frontend applications (React, Vue, etc.)
+- Specialized systems (swarm agents, websockets, etc.)
+- Cross-platform applications
 
-Enhanced WebSocket features when using "fastapi using websockets":
-- Real-time communication
-- Connection management
-- Message handling
-- Authentication
-- Rate limiting
+Generated files include:
+- Specification.md
+- Architecture.md
+- Pseudocode.md
+- Refinement.md
+- Completion.md
+- guidance.toml
 
 ## Git Integration
 
@@ -36,7 +42,11 @@ Automated testing features:
 ## LiteLLM Integration
 
 Advanced model configuration:
-- Custom models
+Supported models:
+- Claude 3 Opus (claude-3-opus-20240229)
+- Claude 3 Sonnet (claude-3-sonnet-20240229)
+- GPT-4 (gpt-4)
+- GPT-4 Turbo (gpt-4-turbo)
 - Temperature control
 - Token limits
 - API key management
