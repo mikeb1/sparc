@@ -726,8 +726,8 @@ async def async_main():
                                 help='Maximum attempts for implementation')
     parser_implement.add_argument('--guidance-file', type=str, default='guidance.toml',
                                 help='Path to guidance TOML file')
-    parser_implement.add_argument('project_description', type=str, nargs='+',
-                                help='Description of the project to implement')
+    parser_implement.add_argument('project_description', type=str, nargs='*',
+                                help='Optional description of the project to implement')
 
     args = parser.parse_args()
     
