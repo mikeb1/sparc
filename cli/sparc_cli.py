@@ -850,12 +850,40 @@ async def async_main():
 
         content = architecture_content
 
-        # Parse components
+        # Parse components from architecture content
         import re
-        components = re.findall(r'## Component: (\w+)', content)
+        
+        # Look for component patterns in different sections
+        component_patterns = [
+            r'## Component: (\w+)',  # Classic component header
+            r'### (\w+Component)\b',  # Component suffix pattern
+            r'## (\w+Service)\b',     # Service suffix pattern
+            r'## Components\s+[-*]\s*(\w+)',  # Bullet list items
+            r'class (\w+):',          # Class definitions
+            r'interface (\w+)\s*{',    # TypeScript interfaces
+        ]
+        
+        components = set()
+        for pattern in component_patterns:
+            matches = re.findall(pattern, content, re.MULTILINE)
+            components.update(matches)
+            
+        # Filter out common words that might match but aren't components
+        excluded_words = {'Component', 'Service', 'Class', 'Interface', 'Implementation'}
+        components = {c for c in components if c not in excluded_words}
+        
         if not components:
-            logger.error("No components found in Architecture.md")
+            logger.error("No components found in architecture content")
+            logger.info("Please ensure your architecture documentation defines components using one of these patterns:")
+            logger.info("- ## Component: ComponentName")
+            logger.info("- ### ComponentName")
+            logger.info("- ## ComponentNameService")
+            logger.info("- ## Components\\n- ComponentName")
+            logger.info("- class ComponentName:")
+            logger.info("- interface ComponentName {")
             sys.exit(1)
+            
+        logger.info(f"Found components: {', '.join(sorted(components))}")
 
         # Use the previously created directories in impl_dir
         src_dir = impl_dir / "src"
