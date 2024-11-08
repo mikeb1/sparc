@@ -22,11 +22,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configure LiteLLM to use our logger
+# Configure LiteLLM and tqdm
 import litellm
-litellm.set_verbose = False  # Disable default logging
-litellm.success_callback = []  # Disable success callbacks
-litellm.logger = None  # Completely disable LiteLLM's logger
+from tqdm import tqdm
+litellm.set_verbose = False
+litellm.success_callback = []
+litellm.logger = None
 
 @dataclass
 class SPARCConfig:
@@ -671,10 +672,10 @@ Include:
     files_content["guidance.toml"] = guidance_content.format(project_desc=project_desc)
     
     # Generate other files using the guidance
-    for filename, prompt in prompts.items():
-        logger.info(f"Generating {filename}...")
-        try:
-            logger.info(f"Requesting {filename} from {model}...")
+    with tqdm(prompts.items(), desc="Generating files") as pbar:
+        for filename, prompt in pbar:
+            pbar.set_description(f"Generating {filename}")
+            try:
             response = completion(
                 model=model,
                 messages=[{
@@ -687,10 +688,10 @@ Include:
                 }],
                 temperature=0.7
             )
-            content_length = len(response.choices[0].message.content)
-            logger.info(f"Generated {filename} ({content_length:,} characters)")
-            files_content[filename] = response.choices[0].message.content
-            logger.info(f"Successfully generated {filename}")
+            content = response.choices[0].message.content
+            content_length = len(content)
+            files_content[filename] = content
+            pbar.set_postfix(chars=f"{content_length:,}")
         except Exception as e:
             logger.error(f"Failed to generate {filename}: {str(e)}")
             raise
@@ -762,10 +763,15 @@ async def async_main():
             try:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(content)
-                logger.info(f"Saved {filename} to {file_path}")
+                logger.info(f"Saved {filename} ({len(content):,} chars) to {file_path}")
             except Exception as e:
                 logger.error(f"Failed to save {filename}: {str(e)}")
                 raise
+                
+        # Print summary
+        logger.info("\nGenerated files summary:")
+        for filename, content in files_content.items():
+            logger.info(f"- {filename}: {len(content):,} characters")
     elif args.mode == 'implement':
         # Find the most recent architecture directory
         arch_dirs = sorted([d for d in Path().glob("architecture_*") if d.is_dir()], reverse=True)
