@@ -530,6 +530,20 @@ See [guidance.toml](./guidance.toml) for project configuration and requirements.
             file_path = arch_dir / filename
             if not file_path.exists():
                 try:
+                    if filename == "Architecture.md":
+                        prompt = f"""Generate a comprehensive architecture document for {args.project_type} that includes:
+
+1. System Overview
+2. Component Design 
+3. Data Flow
+4. Security Architecture
+5. Testing Strategy
+6. Performance Considerations
+
+Based on this guidance: {prompt_suffix}"""
+                    else:
+                        prompt = f"Generate detailed content for {filename} based on this guidance: {prompt_suffix}"
+
                     response = completion(
                         model=config.model,
                         messages=[{
@@ -542,7 +556,7 @@ Generate comprehensive documentation that is:
 - Following best practices"""
                         }, {
                             "role": "user",
-                            "content": f"Based on these requirements: {args.project_type}\n\n{prompt_suffix}"
+                            "content": prompt
                         }],
                         temperature=0.7,
                         max_tokens=4096
