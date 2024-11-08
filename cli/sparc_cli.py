@@ -514,13 +514,14 @@ architecture_docs_required = true
 changelog_required = true"""
 
     # Add tech stack context to system prompt
-    system_prompt = f"""You are a software architect. Generate detailed technical documentation.
-Technology Stack:
-- Framework/Runtime: {tech_stack['framework']}
-- Language: {tech_stack['language']}
-- Features: {', '.join(tech_stack['features'])}
-
-Focus on best practices and patterns specific to this technology stack."""
+    system_prompt = (
+        f"You are a software architect. Generate detailed technical documentation.\n\n"
+        f"Technology Stack:\n"
+        f"- Framework/Runtime: {tech_stack['framework']}\n"
+        f"- Language: {tech_stack['language']}\n"
+        f"- Features: {', '.join(tech_stack['features'])}\n\n"
+        f"Focus on best practices and patterns specific to this technology stack."
+    )
     
     prompts = {
         "Specification.md": f"Generate a detailed software specification for: {project_desc}\n\n"
