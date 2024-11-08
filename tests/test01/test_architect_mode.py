@@ -75,13 +75,38 @@ Provides standardized error handling.
     shutil.copytree(clean_test_dir, test_output_dir)
     
     print(f"\nArchitect mode output saved to: {test_output_dir}")
-    # After successful generation, copy results to output directory
-    test_output_dir = output_dir / "test01_architect_output"
-    if test_output_dir.exists():
-        shutil.rmtree(test_output_dir)
+    # After successful generation, save to test_outputs with timestamp
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    test_output_dir = output_dir / f"architecture_{timestamp}"
+    
+    # Copy the generated architecture to test_outputs
     shutil.copytree(clean_test_dir, test_output_dir)
     
-    print(f"\nArchitect mode output saved to: {test_output_dir}")
+    # Create a README.md in the output directory
+    readme_content = f"""# Architecture Documents - Generated {timestamp}
+
+This set of architecture documents was automatically generated using the SPARC framework.
+
+## Generated Files
+- Specification.md: Detailed project requirements
+- Architecture.md: System architecture and components
+- Pseudocode.md: High-level implementation details
+- Refinement.md: Design refinements and decisions
+- Completion.md: Project completion criteria
+
+## Components Identified
+- AuthService
+- BlogPostManager
+- ErrorHandler
+
+Generated using guidance from guidance.toml
+"""
+    
+    with open(test_output_dir / "README.md", "w") as f:
+        f.write(readme_content)
+    
+    print(f"\nArchitecture documents saved to: {test_output_dir}")
     print("Test 1 passed: Architect mode generates architecture files successfully.")
 import os
 import shutil

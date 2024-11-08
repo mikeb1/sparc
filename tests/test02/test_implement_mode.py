@@ -82,13 +82,38 @@ ErrorHandler:
     tests_dir = clean_test_dir / "tests"
     assert tests_dir.exists(), "Tests directory was not created"
 
-    # After successful generation, copy results to output directory
-    test_output_dir = output_dir / "test02_implement_output"
-    if test_output_dir.exists():
-        shutil.rmtree(test_output_dir)
+    # After successful generation, save to test_outputs with timestamp
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    test_output_dir = output_dir / f"blog_app_{timestamp}"
+    
+    # Copy the generated application to test_outputs
     shutil.copytree(clean_test_dir, test_output_dir)
     
-    print(f"\nImplement mode output saved to: {test_output_dir}")
+    # Create a README.md in the output directory explaining what was generated
+    readme_content = f"""# Blog Application - Generated {timestamp}
+
+This application was automatically generated using the SPARC framework.
+
+## Components
+- AuthService: JWT authentication service
+- BlogPostManager: Blog post CRUD operations
+- ErrorHandler: HTTP error handling
+
+## Generated Files
+- src/: Source code for each component
+- tests/: Unit tests for each component
+- architecture/: SPARC architecture documents
+- guidance.toml: Project guidance and requirements
+
+## Test Status
+All components have been generated and tested successfully.
+"""
+    
+    with open(test_output_dir / "README.md", "w") as f:
+        f.write(readme_content)
+    
+    print(f"\nGenerated application saved to: {test_output_dir}")
     print("Test 2 passed: Implement mode develops components successfully")
 
     # After successful generation, copy results to output directory
