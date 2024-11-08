@@ -853,34 +853,42 @@ The tests should guide the implementation."""
             logger.info(f"Generating tests for {component} using aider...")
             logger.info(f"{'='*80}\n")
             
-            # Run aider with real-time output
-            process = subprocess.Popen(
-                [
-                    "aider",
-                    "--model", "claude-3-sonnet-20240229",
-                    "--edit-format", "diff",
-                    "--message", test_prompt,
-                    str(test_file)
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                bufsize=1,  # Line buffered
-                universal_newlines=True
-            )
+            # Run aider with timeout
+            try:
+                process = subprocess.run(
+                    [
+                        "aider",
+                        "--yes",  # Auto-confirm prompts
+                        "--model", "claude-3-sonnet-20240229",
+                        "--edit-format", "diff",
+                        "--message", test_prompt,
+                        str(test_file)
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=300,  # 5 minute timeout
+                    check=False  # Don't raise on non-zero exit
+                )
 
-            # Show output in real-time
-            while True:
-                output = process.stdout.readline()
-                if output:
-                    logger.info(f"aider: {output.strip()}")
-                error = process.stderr.readline()
-                if error:
-                    logger.error(f"aider error: {error.strip()}")
-                
-                # Check if process has finished
-                if output == '' and error == '' and process.poll() is not None:
-                    break
+                # Log output regardless of success/failure
+                if process.stdout:
+                    for line in process.stdout.splitlines():
+                        logger.info(f"aider: {line.strip()}")
+                if process.stderr:
+                    for line in process.stderr.splitlines():
+                        logger.error(f"aider error: {line.strip()}")
+                        
+                if process.returncode != 0:
+                    logger.error(f"aider failed with return code {process.returncode}")
+                    return False
+                    
+            except subprocess.TimeoutExpired:
+                logger.error("aider process timed out after 5 minutes")
+                return False
+            except Exception as e:
+                logger.error(f"aider process failed: {str(e)}")
+                return False
 
             test_result = process.poll()
             
@@ -901,34 +909,42 @@ Make the implementation clean, efficient, and well-documented."""
             logger.info(f"Implementing {component} using aider...")
             logger.info(f"{'='*80}\n")
             
-            # Run aider with real-time output
-            process = subprocess.Popen(
-                [
-                    "aider",
-                    "--model", "claude-3-sonnet-20240229",
-                    "--edit-format", "diff",
-                    "--message", impl_prompt,
-                    str(src_file)
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                bufsize=1,  # Line buffered
-                universal_newlines=True
-            )
+            # Run aider with timeout
+            try:
+                process = subprocess.run(
+                    [
+                        "aider",
+                        "--yes",  # Auto-confirm prompts
+                        "--model", "claude-3-sonnet-20240229",
+                        "--edit-format", "diff",
+                        "--message", impl_prompt,
+                        str(src_file)
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=300,  # 5 minute timeout
+                    check=False  # Don't raise on non-zero exit
+                )
 
-            # Show output in real-time
-            while True:
-                output = process.stdout.readline()
-                if output:
-                    logger.info(f"aider: {output.strip()}")
-                error = process.stderr.readline()
-                if error:
-                    logger.error(f"aider error: {error.strip()}")
-                
-                # Check if process has finished
-                if output == '' and error == '' and process.poll() is not None:
-                    break
+                # Log output regardless of success/failure
+                if process.stdout:
+                    for line in process.stdout.splitlines():
+                        logger.info(f"aider: {line.strip()}")
+                if process.stderr:
+                    for line in process.stderr.splitlines():
+                        logger.error(f"aider error: {line.strip()}")
+                        
+                if process.returncode != 0:
+                    logger.error(f"aider failed with return code {process.returncode}")
+                    return False
+                    
+            except subprocess.TimeoutExpired:
+                logger.error("aider process timed out after 5 minutes")
+                return False
+            except Exception as e:
+                logger.error(f"aider process failed: {str(e)}")
+                return False
 
             impl_result = process.poll()
 
@@ -947,15 +963,35 @@ Make the implementation clean, efficient, and well-documented."""
             logger.info(f"\n{'-'*40}\n{src_file.read_text()}\n{'-'*40}")
 
             logger.info("\nExecuting tests...")
-            test_run = subprocess.run([
-                "pytest",
-                "-v",
-                "--capture=no",  # Show test output in real-time
-                str(test_file)
-            ], capture_output=False, text=True)  # Don't capture output to show it in real-time
+            try:
+                test_run = subprocess.run(
+                    [
+                        "pytest",
+                        "-v",
+                        "--capture=no",  # Show test output in real-time
+                        str(test_file)
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=60  # 1 minute timeout for tests
+                )
 
-            if test_run.returncode != 0:
-                logger.error(f"Tests failed for {component}: {test_run.stdout}")
+                # Log test output
+                if test_run.stdout:
+                    logger.info(f"Test output:\n{test_run.stdout}")
+                if test_run.stderr:
+                    logger.error(f"Test errors:\n{test_run.stderr}")
+
+                if test_run.returncode != 0:
+                    logger.error(f"Tests failed for {component}")
+                    continue
+                    
+            except subprocess.TimeoutExpired:
+                logger.error(f"Tests timed out for {component}")
+                continue
+            except Exception as e:
+                logger.error(f"Test execution failed: {str(e)}")
                 continue
                 
             logger.info(f"Tests passed for {component}")
