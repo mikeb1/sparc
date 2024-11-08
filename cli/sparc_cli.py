@@ -890,9 +890,7 @@ The tests should guide the implementation."""
                 logger.error(f"aider process failed: {str(e)}")
                 return False
 
-            test_result = process.poll()
-            
-            if test_result != 0:  # Compare directly with integer
+            if process.returncode != 0:  # Check returncode of CompletedProcess
                 logger.error(f"Failed to generate tests for {component}")
                 continue
             
@@ -946,9 +944,7 @@ Make the implementation clean, efficient, and well-documented."""
                 logger.error(f"aider process failed: {str(e)}")
                 return False
 
-            impl_result = process.poll()
-
-            if impl_result != 0:  # Compare directly with integer since we're using process.poll()
+            if process.returncode != 0:  # Check returncode of CompletedProcess
                 logger.error(f"Failed to implement {component}")
                 continue
                 
