@@ -343,61 +343,106 @@ def main():
             # Load or create guidance based on project type
             guidance = {}
             if args.project_type:
-                if args.project_type.lower() in ['fastapi', 'fastapi using websockets']:
-                    base_guidance = {
-                        'specification': {
-                            'content': '''Create a FastAPI service with:
-1. User Authentication:
-   - JWT token-based authentication 
-   - User registration and login endpoints
-   - Password hashing with bcrypt
-   - Token refresh mechanism
+                # Initial analysis of project requirements
+                analysis_prompt = completion(
+                    model=config.model,
+                    messages=[{
+                        "role": "system",
+                        "content": """You are an expert software architect analyzing project requirements.
+Extract key architectural requirements and technology stack from the provided instructions.
+Focus on:
+- Core functionality and features
+- System architecture patterns
+- Component relationships
+- Technical constraints
+- Integration requirements"""
+                    }, {
+                        "role": "user",
+                        "content": f"Analyze these project requirements: {args.project_type}"
+                    }],
+                    temperature=0.7,
+                    max_tokens=1024
+                )
 
-2. Data Models:
-   - User model with email, hashed password, and profile info
-   - SQLAlchemy ORM integration
-   - SQLite database for storage
-   - Pydantic schemas for request/response validation
+                # Generate comprehensive architectural guidance
+                base_guidance = {
+                    'specification': {
+                        'content': f"""# Project Architecture Specification
 
-3. API Features:
-   - OpenAPI documentation
-   - Input validation using Pydantic
-   - Proper error handling with status codes
-   - Rate limiting for API endpoints
-   - CORS middleware configuration
+## Project Overview
+{analysis_prompt.choices[0].message.content}
 
-4. Testing:
-   - Unit tests for all endpoints
-   - Integration tests with test database
-   - Test fixtures and helpers
-   - 100% code coverage target'''
-                        }
+## Core Requirements
+1. System Architecture
+   - Component design and relationships
+   - Data flow patterns
+   - State management approach
+   - Error handling strategy
+
+2. Technical Design
+   - Technology stack recommendations
+   - Integration patterns
+   - Security considerations
+   - Performance requirements
+
+3. Component Architecture
+   - Core components and responsibilities
+   - Interface definitions
+   - Communication patterns
+   - State management
+
+4. Testing Strategy
+   - Unit testing approach
+   - Integration testing plan
+   - Test coverage requirements
+   - Mock/stub strategies
+
+5. Documentation
+   - Architecture diagrams (Mermaid/PlantUML)
+   - API specifications
+   - Component relationship maps
+   - Data flow diagrams
+
+6. Development Guidelines
+   - Code organization
+   - Error handling patterns
+   - Logging and monitoring
+   - Performance optimization
+
+7. Deployment Considerations
+   - Infrastructure requirements
+   - Scaling strategy
+   - Monitoring approach
+   - Backup/recovery plans"""
+                    },
+                    'architecture': {
+                        'content': f"""# Detailed Architecture Design
+
+## System Components
+```mermaid
+graph TD
+    A[Core Application] --> B[Component 1]
+    A --> C[Component 2]
+    B --> D[Subcomponent 1.1]
+    C --> E[Subcomponent 2.1]
+```
+
+## Component Specifications
+{analysis_prompt.choices[0].message.content}
+
+## Interface Contracts
+- Define component interfaces
+- Specify data formats
+- Document error responses
+- Detail validation rules
+
+## Testing Requirements
+- Unit test structure
+- Integration test approach
+- Performance test criteria
+- Security test cases"""
                     }
-
-                    websocket_guidance = {
-                        'specification': {
-                            'content': '''
-5. WebSocket Features:
-   - Real-time bidirectional communication
-   - Connection management and heartbeat
-   - Message serialization/deserialization
-   - Room/channel support for group messaging
-   - Client connection state tracking
-   - Reconnection handling
-   - Message queuing and delivery guarantees
-   - WebSocket authentication middleware
-   - Rate limiting for WebSocket connections
-   - Error handling and connection recovery'''
-                        }
-                    }
-
-                    guidance = base_guidance
-                    if 'websockets' in args.project_type.lower():
-                        # Merge websocket-specific guidance
-                        for key in guidance:
-                            if key in websocket_guidance:
-                                guidance[key]['content'] += '\n' + websocket_guidance[key]['content']
-                # Add more project types here
+                }
                 logger.info(f"Using predefined guidance for {args.project_type} project")
             
             # Load custom guidance file if it exists
