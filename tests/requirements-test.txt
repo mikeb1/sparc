@@ -4,3 +4,4 @@ toml>=0.10.0
 aider-chat>=0.62.1
 litellm>=1.0.0
 dataclasses>=0.6; python_version < "3.7"
+httpx>=0.18.2  # For async HTTP client
