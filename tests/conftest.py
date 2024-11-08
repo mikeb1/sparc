@@ -9,9 +9,18 @@ def repo_root():
 
 @pytest.fixture(scope="session")
 def output_dir(repo_root):
-    """Create a permanent directory for test outputs."""
+    """Create and manage the permanent test outputs directory."""
     output_dir = repo_root / "test_outputs"
     output_dir.mkdir(exist_ok=True)
+    
+    # Clear existing test outputs except .gitkeep
+    for item in output_dir.iterdir():
+        if item.name != '.gitkeep':
+            if item.is_dir():
+                shutil.rmtree(item)
+            else:
+                item.unlink()
+                
     return output_dir
 
 @pytest.fixture(scope="session")
