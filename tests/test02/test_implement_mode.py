@@ -176,9 +176,16 @@ ErrorHandler:
     assert tests_dir.exists(), "Tests directory was not created"
 
     # Check for expected component files
-    calculator_file = src_dir / "calculator.py"
-    calculator_test = tests_dir / "test_calculator.py"
-    assert calculator_file.exists(), "Calculator component file was not created"
-    assert calculator_test.exists(), "Calculator test file was not created"
+    expected_components = {
+        "authservice": "Authentication service",
+        "blogpostmanager": "Blog post manager",
+        "errorhandler": "Error handler"
+    }
+    
+    for component, description in expected_components.items():
+        src_file = src_dir / f"{component}.py"
+        test_file = tests_dir / f"test_{component}.py"
+        assert src_file.exists(), f"{description} component file was not created"
+        assert test_file.exists(), f"{description} test file was not created"
 
     print("Test 2 passed: Implement mode develops components successfully")
