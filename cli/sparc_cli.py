@@ -343,10 +343,44 @@ def main():
             # Load or create guidance based on project type
             guidance = {}
             if args.project_type:
-                if args.project_type.lower() in ['fastapi', 'fastapi using websockets']:
-                    base_guidance = {
-                        'specification': {
-                            'content': '''Create a FastAPI service with:
+                if args.project_type.lower() in ['fastapi', 'fastapi using websockets', 'vitejs', 'vitejs using websockets']:
+                    if 'vitejs' in args.project_type.lower():
+                        base_guidance = {
+                            'specification': {
+                                'content': '''Create a Vite.js frontend application with:
+1. Application Structure:
+   - Vue 3 with Composition API
+   - TypeScript support
+   - Modular component architecture
+   - State management using Pinia
+   - Vue Router for navigation
+
+2. Core Features:
+   - User authentication UI
+   - Protected routes
+   - Form validation
+   - Error handling
+   - Loading states
+   - Responsive design
+
+3. Build & Development:
+   - Hot module replacement
+   - Environment configuration
+   - Asset optimization
+   - Code splitting
+   - Development server
+
+4. Testing:
+   - Unit tests with Vitest
+   - Component testing
+   - E2E tests with Cypress
+   - Test coverage reporting'''
+                            }
+                        }
+                    else:
+                        base_guidance = {
+                            'specification': {
+                                'content': '''Create a FastAPI service with:
 1. User Authentication:
    - JWT token-based authentication 
    - User registration and login endpoints
@@ -374,9 +408,40 @@ def main():
                         }
                     }
 
-                    websocket_guidance = {
-                        'specification': {
-                            'content': '''
+                    if 'websockets' in args.project_type.lower():
+                        if 'vitejs' in args.project_type.lower():
+                            websocket_guidance = {
+                                'specification': {
+                                    'content': '''
+5. WebSocket Features:
+   - WebSocket client setup and configuration
+   - Real-time message handling
+   - Connection state management
+   - Auto-reconnection logic
+   - Message queuing during disconnection
+   - Binary message support
+   - Heartbeat implementation
+   - Room/channel management
+   - Typed message events
+   - Error handling and recovery
+   
+6. WebSocket UI Components:
+   - Real-time chat interface
+   - Connection status indicator
+   - Message composition
+   - Typing indicators
+   - Message history display
+   - User presence indicators
+   - Notification system
+   - File sharing UI
+   - Emoji support
+   - Message threading'''
+                                }
+                            }
+                        else:
+                            websocket_guidance = {
+                                'specification': {
+                                    'content': '''
 5. WebSocket Features:
    - Real-time bidirectional communication
    - Connection management and heartbeat
@@ -388,8 +453,8 @@ def main():
    - WebSocket authentication middleware
    - Rate limiting for WebSocket connections
    - Error handling and connection recovery'''
-                        }
-                    }
+                                }
+                            }
 
                     guidance = base_guidance
                     if 'websockets' in args.project_type.lower():
@@ -430,13 +495,15 @@ def main():
             logger.info("Generated guidance.toml in architecture directory")
 
         # Create README.md
-        readme_content = f"""# FastAPI Project Architecture Documentation
+        # Generate appropriate README based on project type
+        if args.project_type and 'vitejs' in args.project_type.lower():
+            readme_content = f"""# Vite.js Project Architecture Documentation
 
 ## Overview
-This directory contains the architectural documentation for the FastAPI REST API project following the SPARC framework.
+This directory contains the architectural documentation for the Vite.js frontend project following the SPARC framework.
 
 ## Project Structure
-The project implements a REST API with user authentication, data models, and comprehensive testing using FastAPI.
+The project implements a modern frontend application with Vue 3, TypeScript, and comprehensive testing using Vitest and Cypress.
 
 ## Documentation Files
 - [Specification](./Specification.md) - Detailed project requirements and specifications
