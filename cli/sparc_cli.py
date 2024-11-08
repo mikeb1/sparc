@@ -7,12 +7,41 @@ import argparse
 import logging
 from pathlib import Path
 
+from dataclasses import dataclass
+from typing import Optional
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+@dataclass
+class SPARCConfig:
+    """Configuration class for SPARC CLI."""
+    # Core directories
+    architecture_dir: str = "architecture"
+    test_dir: str = "tests" 
+    source_dir: str = "src"
+    
+    # Development settings
+    max_attempts: int = 3
+    verbose: bool = False
+    guidance_file: str = "guidance.toml"
+    
+    # Git settings
+    use_git: bool = True
+    auto_commits: bool = True
+    dirty_commits: bool = True
+    
+    # Testing settings
+    auto_test: bool = False
+    test_cmd: Optional[str] = None
+    
+    # Output settings
+    pretty: bool = True
+    stream: bool = True
 
 def main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI')
