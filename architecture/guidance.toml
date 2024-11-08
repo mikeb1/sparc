@@ -1,41 +1,75 @@
-[specification]
-content = """
-Create a FastAPI service with:
-1. User Authentication:
-   - JWT token-based authentication 
-   - User registration and login endpoints
-   - Password hashing with bcrypt
-   - Token refresh mechanism
+# SPARC Framework Core Configuration
 
-2. Data Models:
-   - User model with email, hashed password, and profile info
-   - SQLAlchemy ORM integration
-   - SQLite database for storage
-   - Pydantic schemas for request/response validation
+[project]
+name = "sparc-project"
+version = "0.1.0"
+description = "SPARC Framework Project"
 
-3. API Features:
-   - OpenAPI documentation
-   - Input validation using Pydantic
-   - Proper error handling with status codes
-   - Rate limiting for API endpoints
-   - CORS middleware configuration
+[architecture]
+# Component organization
+component_style = "PascalCase"  # PascalCase for class names
+test_prefix = "test_"
+source_suffix = ".py"
 
-4. Testing:
-   - Unit tests for all endpoints
-   - Integration tests with test database
-   - Test fixtures and helpers
-   - 100% code coverage target
+# Directory structure 
+src_dir = "src"
+test_dir = "tests"
+docs_dir = "docs"
+architecture_dir = "architecture"
 
-5. WebSocket Features:
-   - Real-time bidirectional communication
-   - Connection management and heartbeat
-   - Message serialization/deserialization
-   - Room/channel support for group messaging
-   - Client connection state tracking
-   - Reconnection handling
-   - Message queuing and delivery guarantees
-   - WebSocket authentication middleware
-   - Rate limiting for WebSocket connections
-   - Error handling and connection recovery
-"""
+[implementation]
+# Code generation settings
+max_attempts = 3
+test_first = true
+type_hints = true
+docstring_style = "Google"
 
+[testing]
+# Testing requirements
+min_coverage = 85
+unit_test_required = true
+integration_test_required = true
+performance_test_required = false
+
+[quality]
+# Code quality requirements
+max_complexity = 8
+max_line_length = 88  # Black formatter default
+require_type_hints = true
+require_docstrings = true
+linting_tools = ["flake8", "mypy", "black"]
+
+[security]
+# Security requirements
+require_input_validation = true
+require_authentication = true
+require_authorization = true
+security_scan_required = true
+
+[performance]
+# Performance targets
+max_response_time_ms = 200
+max_memory_usage_mb = 256
+enable_caching = true
+performance_monitoring = true
+
+[deployment]
+# Deployment configuration
+containerize = true
+ci_cd_required = true
+monitoring_required = true
+required_platforms = ["linux"]
+
+[documentation]
+# Documentation requirements
+readme_required = true
+api_docs_required = true
+architecture_docs_required = true
+changelog_required = true
+doc_format = "markdown"
+
+[development]
+# Development workflow
+branch_naming = "feature/{feature-name}"
+commit_style = "conventional"
+code_review_required = true
