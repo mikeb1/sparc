@@ -1,25 +1,45 @@
 # Developer Guide
 
-## Introduction
-
-Provide an introduction to the development environment and tools used.
-
-## Setup
-
-Explain how to set up the development environment, including dependencies and configurations.
-
 ## Code Structure
 
-Describe the code structure and organization of the project.
+- `cli/sparc_cli.py` - Main CLI implementation
+- `architecture/` - Generated architecture files
+- `src/` - Generated source code
+- `tests/` - Generated test files
+
+## Components
+
+### SPARCConfig Class
+Configuration dataclass with settings for:
+- Core directories
+- Development settings
+- LiteLLM settings
+- Git integration
+- Testing configuration
+
+### Main Functions
+- `architect` mode - Generates architecture documentation
+- `implement` mode - Generates implementation code
+- Component generators for source and test code
 
 ## Development Workflow
 
-Outline the development workflow, including branching strategies and code review processes.
+1. Fork the repository
+2. Create a feature branch
+3. Make changes
+4. Run tests
+5. Submit pull request
 
 ## Testing
 
-Provide instructions on how to run tests and add new test cases.
+Run tests:
+```bash
+pytest tests/
+```
 
-## Deployment
+## Git Integration
 
-Explain the deployment process and any specific requirements.
+The CLI supports automatic Git integration:
+- Repository initialization
+- Automatic commits
+- Dirty state handling
