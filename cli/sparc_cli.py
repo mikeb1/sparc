@@ -789,19 +789,22 @@ async def async_main():
             logger.error(f"Directory containing guidance file '{guidance_path}' not found.")
             sys.exit(1)
             
-        # Look for Architecture.md in the same directory as guidance.toml
-        arch_file = guidance_dir / "Architecture.md"
-        if not arch_file.exists():
-            # Also check the current directory
-            arch_file = Path("Architecture.md")
-        if not arch_file.exists():
-            logger.error(f"Architecture.md not found in {guidance_dir}.")
+        # Parse architecture content directly from guidance.toml
+        try:
+            with open(guidance_path, 'r') as f:
+                guidance_data = toml.load(f)
+                architecture_content = guidance_data.get('architecture', {}).get('content', '')
+                if not architecture_content:
+                    logger.error("No architecture content found in guidance.toml")
+                    sys.exit(1)
+                logger.info("Successfully loaded architecture content from guidance.toml")
+        except Exception as e:
+            logger.error(f"Failed to read architecture content from guidance.toml: {str(e)}")
             sys.exit(1)
         
         logger.info(f"Using architecture from: {guidance_dir}")
 
-        with open(arch_file, 'r') as f:
-            content = f.read()
+        content = architecture_content
 
         # Parse components
         import re
