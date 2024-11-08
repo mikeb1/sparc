@@ -343,10 +343,10 @@ def main():
             # Load or create guidance based on project type
             guidance = {}
             if args.project_type:
-                if args.project_type.lower() == 'fastapi':
-                    guidance = {
+                if args.project_type.lower() in ['fastapi', 'fastapi using websockets']:
+                    base_guidance = {
                         'specification': {
-                            'content': '''Create a FastAPI REST API service with:
+                            'content': '''Create a FastAPI service with:
 1. User Authentication:
    - JWT token-based authentication 
    - User registration and login endpoints
@@ -371,6 +371,32 @@ def main():
    - Integration tests with test database
    - Test fixtures and helpers
    - 100% code coverage target'''
+                        }
+                    }
+
+                    websocket_guidance = {
+                        'specification': {
+                            'content': '''
+5. WebSocket Features:
+   - Real-time bidirectional communication
+   - Connection management and heartbeat
+   - Message serialization/deserialization
+   - Room/channel support for group messaging
+   - Client connection state tracking
+   - Reconnection handling
+   - Message queuing and delivery guarantees
+   - WebSocket authentication middleware
+   - Rate limiting for WebSocket connections
+   - Error handling and connection recovery'''
+                        }
+                    }
+
+                    guidance = base_guidance
+                    if 'websockets' in args.project_type.lower():
+                        # Merge websocket-specific guidance
+                        for key in guidance:
+                            if key in websocket_guidance:
+                                guidance[key]['content'] += '\n' + websocket_guidance[key]['content']
                         }
                     }
                 # Add more project types here
