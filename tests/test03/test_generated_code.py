@@ -115,25 +115,11 @@ litellm>=1.0.0
                 text=True
             )
             
-<<<<<<< HEAD
-            if install_result.returncode != 0:
-                logger.error(f"Dependency installation failed:\n{install_result.stderr}")
-                logger.info("Attempting to fix dependencies...")
-                # Try to fix dependencies by running implement mode with --fix-deps
-                subprocess.run(
-                    ["python", "sparc_cli.py", "implement", "--fix-deps"],
-                    cwd=app_dir,
-                    capture_output=True,
-                    text=True
-                )
-            else:
-                logger.info("Dependencies installed successfully")
-            
             # Run tests with proper Python path
-            logger.info("Running tests...")
             env["PYTHONPATH"] = str(app_dir)
             result = subprocess.run(
                 [str(python_path), "-m", "pytest", "-v", "--import-mode=importlib"],
+>>>>>>> parent of 65b2ba7 (fix: Update test configuration with verbose output and expanded Python path)
 =======
             # Run tests with proper Python path
             env["PYTHONPATH"] = str(app_dir)
