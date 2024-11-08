@@ -234,28 +234,40 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
                 cwd=app_dir,
                 env=env,
                 capture_output=True,
-                text=True
+                text=True,
+                timeout=300  # 5 minute timeout for installations
             )
             
             if install_result.returncode != 0:
                 logger.error(f"Dependency installation failed:\n{install_result.stderr}")
+                logger.info("Attempting to fix dependencies...")
                 _fix_dependencies(app_dir)
                 attempt += 1
+                time.sleep(5)  # Wait longer after dependency fixes
                 continue
 
-            # Run tests with proper Python path
-            logger.info("Running tests...")
+            # Run tests with proper Python path and coverage
+            logger.info("Running tests with coverage...")
             env["PYTHONPATH"] = str(app_dir)
             result = subprocess.run(
-                [str(python_path), "-m", "pytest", "-v", "--import-mode=importlib"],
+                [
+                    str(python_path), "-m", "pytest", "-v",
+                    "--import-mode=importlib",
+                    "--cov=src",
+                    "--cov-report=xml:coverage_report.xml",
+                    "--cov-report=term-missing"
+                ],
                 cwd=app_dir,
                 env=env,
                 capture_output=True,
-                text=True
+                text=True,
+                timeout=180  # 3 minute timeout for tests
             )
             
             if result.returncode == 0:
                 logger.info("All tests passed successfully!")
+                logger.info("Generating test report...")
+                _create_test_report(app_dir, True, result.stdout)
                 return True
             
             logger.error(f"Test failures:\n{result.stdout}\n{result.stderr}")
@@ -265,19 +277,27 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
                 logger.info("Applied fixes, retrying verification...")
             else:
                 logger.error("Could not automatically fix errors")
+                logger.error("Full error trace:")
+                logger.error(traceback.format_exc())
+            
+            _create_test_report(app_dir, False, result.stdout + result.stderr)
             
             attempt += 1
             if attempt < max_attempts:
                 logger.info(f"Waiting before retry {attempt + 1}/{max_attempts}...")
-                time.sleep(3)
+                time.sleep(5)  # Increased wait time between attempts
                 
+        except subprocess.TimeoutExpired as e:
+            logger.error(f"Timeout during {e.cmd} after {e.timeout} seconds")
+            attempt += 1
         except Exception as e:
             logger.error(f"Verification attempt {attempt + 1} failed with error: {str(e)}")
             logger.error(f"Stack trace:\n{traceback.format_exc()}")
             attempt += 1
             if attempt < max_attempts:
-                time.sleep(3)
+                time.sleep(5)
     
+    logger.error(f"Application verification failed after {max_attempts} attempts")
     return False
 
 def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):
