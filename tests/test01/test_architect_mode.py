@@ -68,6 +68,13 @@ Provides standardized error handling.
         # Check that the files are not empty
         assert file_path.stat().st_size > 0, f"File {filename} is empty."
 
+    # After successful generation, copy results to output directory
+    test_output_dir = output_dir / "test01_architect_output"
+    if test_output_dir.exists():
+        shutil.rmtree(test_output_dir)
+    shutil.copytree(clean_test_dir, test_output_dir)
+    
+    print(f"\nArchitect mode output saved to: {test_output_dir}")
     print("Test 1 passed: Architect mode generates architecture files successfully.")
 import os
 import shutil
@@ -75,8 +82,8 @@ import subprocess
 import pytest
 from pathlib import Path
 
-def test_architect_mode_generates_files(clean_test_dir, cli_script):
-    """Test that architect mode generates all expected architecture files."""
+def test_architect_mode_generates_files(clean_test_dir, cli_script, output_dir):
+    """Test that architect mode generates files and saves them to output directory."""
     
     # Copy the sparc_cli.py script to the test directory
     shutil.copy(cli_script, clean_test_dir)

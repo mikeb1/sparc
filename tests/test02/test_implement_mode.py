@@ -80,6 +80,13 @@ ErrorHandler:
     assert calculator_file.exists(), "Calculator component file was not created"
     assert calculator_test.exists(), "Calculator test file was not created"
 
+    # After successful generation, copy results to output directory
+    test_output_dir = output_dir / "test02_implement_output"
+    if test_output_dir.exists():
+        shutil.rmtree(test_output_dir)
+    shutil.copytree(clean_test_dir, test_output_dir)
+    
+    print(f"\nImplement mode output saved to: {test_output_dir}")
     print("Test 2 passed: Implement mode develops components successfully")
 import os
 import shutil
@@ -87,8 +94,8 @@ import subprocess
 import pytest
 from pathlib import Path
 
-def test_implement_mode_develops_components(clean_test_dir, cli_script):
-    """Test that implement mode develops components successfully."""
+def test_implement_mode_develops_components(clean_test_dir, cli_script, output_dir):
+    """Test that implement mode develops components and saves them to output directory."""
     
     # Copy the sparc_cli.py script to the test directory
     shutil.copy(cli_script, clean_test_dir)

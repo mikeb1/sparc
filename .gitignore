@@ -188,3 +188,6 @@ coverage/
 # Temporary files
 tmp/
 temp/
+# Test outputs
+test_outputs/*
+!test_outputs/.gitkeep
