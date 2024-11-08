@@ -4,8 +4,8 @@ import subprocess
 import pytest
 from pathlib import Path
 
-def test_implement_mode_develops_components(clean_test_dir, cli_script):
-    """Test that implement mode develops components successfully using aider."""
+def test_implement_mode_develops_components(clean_test_dir, cli_script, output_dir):
+    """Test that implement mode develops components and saves them to output directory."""
     
     # Copy the sparc_cli.py script to the test directory
     shutil.copy(cli_script, clean_test_dir)

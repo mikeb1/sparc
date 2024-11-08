@@ -4,8 +4,8 @@ import subprocess
 import pytest
 from pathlib import Path
 
-def test_architect_mode_generates_files(clean_test_dir, cli_script):
-    """Test that architect mode generates all expected architecture files using aider."""
+def test_architect_mode_generates_files(clean_test_dir, cli_script, output_dir):
+    """Test that architect mode generates files and saves them to output directory."""
     
     # Copy the sparc_cli.py script to the test directory
     shutil.copy(cli_script, clean_test_dir)
