@@ -523,203 +523,48 @@ Technology Stack:
 Focus on best practices and patterns specific to this technology stack."""
     
     prompts = {
-        "Specification.md": f"""Generate a detailed software specification for: {project_desc}
-Include:
-- Project Overview
-- Core Requirements
-- Technical Requirements
-- Constraints and Assumptions
-- This specification should be detailed and comprehensive and used to guide development and testing.
-- Be verbose and complete. 
+        "Specification.md": f"Generate a detailed software specification for: {project_desc}\n\n"
+                          "Include:\n"
+                          "- Project Overview\n"
+                          "- Core Requirements\n"
+                          "- Technical Requirements\n"
+                          "- Constraints and Assumptions\n"
+                          "- Detailed implementation guidelines\n"
+                          "- Testing requirements\n\n"
+                          "Format the output in Markdown with comprehensive sections.",
 
+        "Architecture.md": f"Generate a detailed software architecture for: {project_desc}\n\n"
+                         "Include:\n"
+                         "- System Components\n"
+                         "- Component Interactions\n"
+                         "- Data Flow\n"
+                         "- Key Design Decisions\n"
+                         "- Detailed Diagrams\n"
+                         "- Implementation Guidelines\n\n"
+                         "Format the output in Markdown with comprehensive sections.",
 
-# Specification
+        "Pseudocode.md": f"Generate pseudocode for key components of: {project_desc}\n\n"
+                        "Include:\n"
+                        "- Core Classes/Functions\n"
+                        "- Important Algorithms\n"
+                        "- Data Structures\n\n"
+                        "Format the output in Markdown with code blocks.",
 
-## Objective
-Develop a comprehensive specification document for the project.
+        "Refinement.md": f"Generate implementation details and refinements for: {project_desc}\n\n"
+                        "Include:\n"
+                        "- Implementation Steps\n"
+                        "- Error Handling\n"
+                        "- Testing Strategy\n"
+                        "- Performance Considerations\n\n"
+                        "Format the output in Markdown with detailed sections.",
 
-## Research and Analysis
-- Use tools like Perplexity to gather information on various approaches, architectures, and relevant technical papers.
-- Document findings in markdown files, including pros and cons of different approaches.
-
-## Project Overview
-- Elaborate on the project goal, providing context and background.
-- Describe the target audience and their needs, including demographics and user personas.
-
-## Functional Requirements
-- List and describe each functional requirement.
-- Break down complex features into smaller, manageable components.
-
-## Non-Functional Requirements
-- Detail each non-functional requirement, explaining its importance.
-- Include performance metrics, security standards, and scalability considerations.
-
-## User Scenarios and User Flows
-- Describe typical user scenarios and provide user flow diagrams.
-- Include step-by-step interactions and decision points.
-
-## UI/UX Considerations
-- Discuss UI/UX guidelines and include design sketches if applicable.
-- Reference design principles and accessibility standards.
-
-## File Structure Proposal
-- Suggest an organized file and directory structure.
-- Use markdown files to outline and guide the process.
-
-## Assumptions
-- List assumptions made during the specification process.
-- Justify each assumption and its impact on the project.
-
-## Reflection
-- Justify the inclusion of each requirement.
-- Consider potential challenges and propose mitigation strategies.
-- Reflect on how each element contributes to the overall project goals.
-
-Format in Markdown.""",
-
-        "Architecture.md": f'''Generate a detailed software architecture for: {project_desc}
-Include:
-- System Components
-- Component Interactions
-- Data Flow
-- Key Design Decisions
-- Detailed Diagrams (if applicable) 
-- File and folder structure with a brief description of each component.
-- Be verbose and complete.
-
-
-# Architecture
-
-## System Components
-- Core services
-- Data layer
-- External integrations
-
-## Component Interactions
-- Service communication
-- Data flow
-- API contracts
-
-## Data Flow
-- Input processing
-- Data transformation
-- Storage patterns
-
-## Key Design Decisions
-- Technology choices
-- Architectural patterns
-- Security measures
-''',
-
-        "Pseudocode.md": f'''Generate pseudocode for key components of: {project_desc}
-Include:
-- Core Classes/Functions
-- Important Algorithms
-- Data Structures
-
-# Pseudocode
-
-## Core Classes/Functions
-```pseudo
-class MainComponent:
-    def initialize():
-        // Setup core dependencies
-    
-    def process():
-        // Main processing logic
-```
-
-## Important Algorithms
-```pseudo
-function processData(input):
-    // Data processing steps
-    return result
-```
-
-## Data Structures
-```pseudo
-struct DataModel:
-    id: string
-    data: map<string, any>
-    metadata: object
-```
-''',
-
-        "Refinement.md": f'''Generate implementation details and refinements for: {project_desc}
-Include:
-- Implementation Steps
-- Error Handling
-- Testing Strategy
-- Performance Considerations
-
-# Refinement
-
-## Implementation Steps
-1. Environment setup
-2. Core services
-3. Data layer
-4. API endpoints
-5. Testing
-
-## Error Handling
-- Validation
-- Authentication
-- Database errors
-- Global handlers
-
-## Testing Strategy
-- Unit tests
-- Integration tests
-- Performance tests
-- Security tests
-
-## Performance
-- Query optimization
-- Caching strategy
-- Resource management
-- Monitoring
-''',
-
-        "Completion.md": f'''Generate completion criteria and project structure for: {project_desc}
-Include:
-- Project Structure
-- Development Steps
-- Testing Requirements
-- Deployment Considerations
-
-# Completion Criteria
-
-## Project Structure
-- Source code organization
-- Configuration files
-- Documentation
-- Test suite
-
-## Development Steps
-1. Environment setup
-2. Core implementation
-3. Testing
-4. Documentation
-5. Deployment preparation
-
-## Testing Requirements
-- Unit tests
-- Integration tests
-- Performance tests
-- Security tests
-
-## Deployment Considerations
-- Environment configuration
-- Dependencies
-- Monitoring
-- Maintenance
-
-## Final Checklist
-- All tests passing
-- Documentation complete
-- Security review done
-- Performance benchmarks met
-'''
+        "Completion.md": f"Generate completion criteria and project structure for: {project_desc}\n\n"
+                        "Include:\n"
+                        "- Project Structure\n"
+                        "- Development Steps\n"
+                        "- Testing Requirements\n"
+                        "- Deployment Considerations\n\n"
+                        "Format the output in Markdown with clear sections."
     }
 
     files_content = {}
