@@ -296,6 +296,7 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
             attempt += 1
             if attempt < max_attempts:
                 time.sleep(5)
+                continue
     
     logger.error(f"Application verification failed after {max_attempts} attempts")
     return False
