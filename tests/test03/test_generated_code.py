@@ -7,10 +7,56 @@ import sys
 import time
 import logging
 import traceback
+import json
 from pathlib import Path
 from datetime import datetime
+from litellm import completion
 
 logger = logging.getLogger(__name__)
+
+async def generate_architecture_files(arch_dir: Path, guidance: dict) -> bool:
+    """Generate architecture files using AI assistance."""
+    try:
+        response = await completion(
+            model="claude-3-sonnet-20240229",
+            messages=[{
+                "role": "user", 
+                "content": f"""Given this project guidance, generate detailed architecture files:
+
+Guidance:
+{json.dumps(guidance, indent=2)}
+
+Please generate content for:
+1. Specification.md - Detailed requirements and constraints
+2. Architecture.md - Component design and interactions
+3. Pseudocode.md - Implementation approach
+4. Refinement.md - Optimization and improvements
+5. Completion.md - Verification criteria
+
+Focus on creating a robust FastAPI application with proper error handling, testing, and security."""
+            }],
+            temperature=0.2,
+            max_tokens=4000
+        )
+        
+        content = response.choices[0].message.content
+        files = {
+            "Specification.md": content.split("# Architecture.md")[0],
+            "Architecture.md": content.split("# Architecture.md")[1].split("# Pseudocode.md")[0],
+            "Pseudocode.md": content.split("# Pseudocode.md")[1].split("# Refinement.md")[0],
+            "Refinement.md": content.split("# Refinement.md")[1].split("# Completion.md")[0],
+            "Completion.md": content.split("# Completion.md")[1]
+        }
+        
+        for filename, content in files.items():
+            file_path = arch_dir / filename
+            file_path.write_text(content.strip())
+            logger.info(f"Generated {filename}")
+        
+        return True
+    except Exception as e:
+        logger.error(f"Failed to generate architecture files: {str(e)}")
+        return False
 
 def create_and_activate_venv(venv_path: Path) -> tuple[dict, Path]:
     """Create a virtual environment and return the environment variables needed to use it."""
