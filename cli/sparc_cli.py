@@ -397,8 +397,6 @@ def main():
                         for key in guidance:
                             if key in websocket_guidance:
                                 guidance[key]['content'] += '\n' + websocket_guidance[key]['content']
-                        }
-                    }
                 # Add more project types here
                 logger.info(f"Using predefined guidance for {args.project_type} project")
             
