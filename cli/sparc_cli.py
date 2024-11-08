@@ -210,32 +210,65 @@ def _detect_tech_stack(guidance_file: Path) -> Dict[str, str]:
         logger.error(f"Failed to read tech stack from guidance.toml: {e}")
         return {}
 
+def _detect_tech_stack_from_description(project_desc: str, model: str) -> Dict[str, str]:
+    """Use LLM to detect tech stack from project description."""
+    try:
+        response = completion(
+            model=model,
+            messages=[{
+                "role": "system",
+                "content": """You are a technical analyst. Extract the technology stack from the project description.
+Return only a JSON object with these fields:
+{
+    "framework": "name of the framework",
+    "language": "primary programming language",
+    "features": ["list", "of", "features"]
+}"""
+            },
+            {
+                "role": "user",
+                "content": f"Extract tech stack from: {project_desc}"
+            }],
+            temperature=0.1
+        )
+        
+        # Parse JSON response
+        import json
+        tech_stack = json.loads(response.choices[0].message.content)
+        logger.info(f"Detected tech stack: {tech_stack}")
+        return tech_stack
+        
+    except Exception as e:
+        logger.error(f"Failed to detect tech stack: {e}")
+        # Fallback to defaults
+        return {
+            'framework': 'Flask' if 'flask' in project_desc.lower() else 'Next.js',
+            'language': 'python' if 'python' in project_desc.lower() else 'javascript',
+            'features': ['sticky-nav', 'sidebar', 'mobile-view', 'agent-management']
+        }
+
 def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
     
-    # Parse project description to determine tech stack
-    tech_stack = {
-        'framework': 'Next.js',  # Default to Next.js for Node.js web apps
-        'language': 'javascript',
-        'features': ['sticky-nav', 'sidebar', 'mobile-view', 'agent-management']
-    }
+    # Detect tech stack from project description
+    tech_stack = _detect_tech_stack_from_description(project_desc, model)
     
-    # Generate guidance.toml first
+    # Generate guidance.toml with detected tech stack
     guidance_content = f"""# SPARC Framework Project Configuration
 
 [project]
-name = "nextjs-agent-management"
+name = "{tech_stack['framework'].lower()}-agent-management"
 description = "{project_desc}"
 version = "0.1.0"
-framework = "Next.js"
-language = "javascript"
-features = ["sticky-nav", "sidebar", "mobile-view", "agent-management"]
+framework = "{tech_stack['framework']}"
+language = "{tech_stack['language']}"
+features = {tech_stack['features']}
 
 [architecture]
 # Component organization
 component_style = "PascalCase"
 test_prefix = "test_"
-source_suffix = ".py"
+source_suffix = ".{tech_stack['language'].lower()}"
 
 # Directory structure
 src_dir = "src"
