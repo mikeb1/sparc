@@ -75,6 +75,13 @@ Provides standardized error handling.
     shutil.copytree(clean_test_dir, test_output_dir)
     
     print(f"\nArchitect mode output saved to: {test_output_dir}")
+    # After successful generation, copy results to output directory
+    test_output_dir = output_dir / "test01_architect_output"
+    if test_output_dir.exists():
+        shutil.rmtree(test_output_dir)
+    shutil.copytree(clean_test_dir, test_output_dir)
+    
+    print(f"\nArchitect mode output saved to: {test_output_dir}")
     print("Test 1 passed: Architect mode generates architecture files successfully.")
 import os
 import shutil
@@ -90,8 +97,33 @@ def test_architect_mode_generates_files(clean_test_dir, cli_script, output_dir):
     
     os.chdir(clean_test_dir)
 
-    # Run the architect mode
-    cmd = ["python", "sparc_cli.py", "architect"]
+    # Create a basic guidance.toml with real project requirements
+    guidance_content = """
+[specification]
+content = '''
+Create a simple REST API service with:
+- User authentication
+- CRUD operations for a resource
+- Basic error handling
+'''
+
+[architecture]
+content = '''
+## Component: AuthService
+Handles user authentication and authorization.
+
+## Component: ResourceManager 
+Manages CRUD operations for resources.
+
+## Component: ErrorHandler
+Provides standardized error handling.
+'''
+"""
+    with open(clean_test_dir / "guidance.toml", "w") as f:
+        f.write(guidance_content)
+
+    # Run the architect mode with aider integration using Claude 3.5 Sonnet
+    cmd = ["python", "sparc_cli.py", "architect", "--guidance-file", "guidance.toml", "--model", "claude-3-sonnet-20240229"]
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     # Check that the command executed successfully
