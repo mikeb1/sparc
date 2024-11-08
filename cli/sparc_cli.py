@@ -38,6 +38,12 @@ class SPARCConfig:
     verbose: bool = False
     guidance_file: str = "guidance.toml"
     
+    # Model settings
+    model: str = "claude-3-sonnet-20240229"  # Default to Claude 3 Sonnet
+    temperature: float = 0.7
+    max_tokens: int = 4000
+    litellm_api_key: Optional[str] = None
+    
     # Git settings
     use_git: bool = True
     auto_commits: bool = True

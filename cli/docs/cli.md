@@ -48,6 +48,54 @@ class DevelopmentCycle:
             logger.warning(f"Guidance file '{guidance_file}' not found.")
         return {}
 
+    def _generate_guidance_toml(self, project_desc: str) -> str:
+        """Generate guidance.toml content based on project description."""
+        try:
+            # Get guidance content from LLM
+            response = completion(
+                model=self.config.model,
+                messages=[{
+                    "role": "system",
+                    "content": """You are an expert software architect. Generate a detailed guidance.toml file 
+                    that will be used to guide the development of a software project. Include comprehensive 
+                    sections for specification, architecture, pseudocode, refinement, and completion."""
+                }, {
+                    "role": "user",
+                    "content": f"""Generate a detailed guidance.toml file for the following project:
+                    {project_desc}
+                    
+                    Include:
+                    1. Specification section with detailed requirements
+                    2. Architecture section with component definitions
+                    3. Pseudocode section with implementation details
+                    4. Refinement section with optimization strategies
+                    5. Completion section with deployment guidelines
+                    
+                    Format the output as a valid TOML file."""
+                }],
+                temperature=0.7
+            )
+            
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"Failed to generate guidance.toml content: {str(e)}")
+            # Return a basic template if generation fails
+            return """[specification]
+content = "Create detailed specifications for the project."
+
+[architecture]
+content = "Define system architecture and components."
+
+[pseudocode]
+content = "Provide implementation pseudocode."
+
+[refinement]
+content = "Define optimization and improvement strategies."
+
+[completion]
+content = "Specify completion criteria and deployment steps."
+"""
+
     def _generate_detailed_content(self, file_type: str, guidance: str) -> str:
         """Generate detailed content using LiteLLM based on file type and guidance."""
         base_prompt = {
@@ -228,6 +276,29 @@ Based on this guidance:"""
         arch_dir = Path(self.config.architecture_dir)
         arch_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Created architecture directory at {arch_dir.resolve()}")
+
+        # Generate guidance.toml if it doesn't exist
+        guidance_path = arch_dir / "guidance.toml"
+        if not guidance_path.exists():
+            logger.info("Generating guidance.toml...")
+            # Extract project description from guidance if available
+            project_desc = self.guidance.get('project', {}).get('description', "")
+            if not project_desc:
+                # Use a default description if none is provided
+                project_desc = "A software project following SPARC framework principles."
+            
+            guidance_content = self._generate_guidance_toml(project_desc)
+            try:
+                with open(guidance_path, 'w') as f:
+                    f.write(guidance_content)
+                logger.info(f"Generated guidance.toml at {guidance_path}")
+                
+                # Reload guidance with new content
+                self.guidance = self._load_guidance(str(guidance_path))
+            except Exception as e:
+                logger.error(f"Failed to write guidance.toml: {str(e)}")
+        else:
+            logger.info("guidance.toml already exists, using existing file")
 
         # Generate architecture files
         files_to_generate = {
