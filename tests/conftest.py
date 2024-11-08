@@ -10,7 +10,7 @@ def repo_root():
 @pytest.fixture(scope="session")
 def cli_script(repo_root):
     """Return path to the CLI script."""
-    return repo_root / "sparc_cli.py"
+    return repo_root / "cli" / "sparc_cli.py"
 
 @pytest.fixture
 def clean_test_dir(tmp_path):
