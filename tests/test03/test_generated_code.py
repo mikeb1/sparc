@@ -342,21 +342,21 @@ async def _fix_test_errors(app_dir: Path, error_output: str) -> bool:
     """Parse test errors and apply fixes using AI assistance."""
     fixed = False
     
-    # Collect relevant files for analysis
-    files = {}
-    for file_pattern in ["src/*.py", "tests/test_*.py"]:
-        for file_path in app_dir.glob(file_pattern):
-            try:
-                files[str(file_path)] = file_path.read_text()
-            except Exception as e:
-                logger.error(f"Failed to read {file_path}: {str(e)}")
-    
-    # Get AI analysis
-    analysis = await analyze_error_with_ai(error_output, files)
-    if not analysis:
-        return fixed
-    
     try:
+        # Collect relevant files for analysis
+        files = {}
+        for file_pattern in ["src/*.py", "tests/test_*.py"]:
+            for file_path in app_dir.glob(file_pattern):
+                try:
+                    files[str(file_path)] = file_path.read_text()
+                except Exception as e:
+                    logger.error(f"Failed to read {file_path}: {str(e)}")
+        
+        # Get AI analysis
+        analysis = await analyze_error_with_ai(error_output, files)
+        if not analysis:
+            return fixed
+        
         fixes = json.loads(analysis)
         logger.info(f"AI Analysis: {fixes['root_cause']}")
         
@@ -407,9 +407,9 @@ class DatabaseService:
 def get_db() -> Generator[Session, None, None]:
     return DatabaseService.get_db()
 """
-                db_service_path.write_text(new_content)
-                fixed = True
-                logger.info("Fixed DatabaseService class definition")
+                    db_service_path.write_text(new_content)
+                    fixed = True
+                    logger.info("Fixed DatabaseService class definition")
 
         # Fix relative imports
         if "ImportError" in error_output and "cannot import name" in error_output:
@@ -428,6 +428,11 @@ def get_db() -> Generator[Session, None, None]:
                 init_file.touch()
                 fixed = True
                 logger.info(f"Created {init_file}")
+
+    except Exception as e:
+        logger.error(f"Error while fixing tests: {str(e)}")
+        logger.error(f"Stack trace:\n{traceback.format_exc()}")
+        return fixed
 
     return fixed
 
