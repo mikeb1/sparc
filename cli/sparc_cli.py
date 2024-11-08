@@ -412,6 +412,98 @@ def main():
                     
                     # Generate content using LiteLLM
                     try:
+                        # Construct detailed prompts based on file type
+                        if filename == "Architecture.md":
+                            prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
+
+1. System Overview
+   - High-level architecture diagram
+   - Key design patterns and principles
+   - System boundaries and constraints
+
+2. Component Specifications (for each component, provide detailed specifications):
+
+## Component: AuthService
+- Purpose: Handle JWT authentication and user authorization
+- Key Methods:
+  - generate_jwt_token(user_data: dict) -> str
+  - verify_jwt_token(token: str) -> dict
+  - hash_password(password: str) -> str
+  - verify_password(plain_password: str, hashed_password: str) -> bool
+- Dependencies: PyJWT, passlib, bcrypt
+- Test Requirements:
+  - Unit tests for token generation/verification
+  - Password hashing tests
+  - Integration tests with UserService
+
+## Component: UserService
+- Purpose: Manage user operations and data
+- Key Methods:
+  - create_user(user_data: UserCreate) -> User
+  - get_user_by_email(email: str) -> User
+  - update_user(user_id: int, user_data: UserUpdate) -> User
+  - delete_user(user_id: int) -> bool
+- Dependencies: SQLAlchemy, Pydantic
+- Test Requirements:
+  - CRUD operation tests
+  - Input validation tests
+  - Error handling tests
+
+## Component: DatabaseService
+- Purpose: Handle database operations and connections
+- Key Methods:
+  - get_db() -> Generator[Session, None, None]
+  - init_db() -> None
+  - create_tables() -> None
+- Dependencies: SQLAlchemy, SQLite
+- Test Requirements:
+  - Connection pool tests
+  - Transaction tests
+  - Migration tests
+
+## Component: ErrorHandler
+- Purpose: Centralized error handling and responses
+- Key Methods:
+  - handle_validation_error(exc: ValidationError) -> JSONResponse
+  - handle_credentials_error() -> JSONResponse
+  - handle_not_found_error() -> JSONResponse
+- Dependencies: FastAPI, Pydantic
+- Test Requirements:
+  - Error response format tests
+  - Status code tests
+  - Custom error handling tests
+
+3. Integration Patterns
+   - Component interaction diagrams
+   - API endpoint mappings
+   - Authentication flow
+   - Database access patterns
+
+4. Security Architecture
+   - JWT token handling
+   - Password hashing strategy
+   - Rate limiting implementation
+   - CORS configuration
+
+5. Testing Strategy
+   - Unit testing approach using pytest
+   - Integration testing setup
+   - Test database configuration
+   - Mock usage guidelines
+   - Coverage requirements
+
+6. Performance Considerations
+   - Database query optimization
+   - Caching strategy
+   - Connection pooling
+   - Async operation handling
+
+Based on the following requirements:
+{file_guidance}"""
+                        else:
+                            # Default prompt for other files
+                            prompt = f"Generate detailed content for {filename} based on this guidance:\n\n{file_guidance}"
+
                         response = completion(
                             model=config.model,
                             messages=[{
@@ -419,7 +511,7 @@ def main():
                                 "content": "You are an expert software architect following the SPARC framework. Generate detailed, comprehensive documentation that follows best practices and industry standards."
                             }, {
                                 "role": "user",
-                                "content": f"Generate detailed content for {filename} based on this guidance:\n\n{file_guidance}"
+                                "content": prompt
                             }],
                             temperature=config.temperature,
                             max_tokens=config.max_tokens
