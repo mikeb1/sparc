@@ -692,9 +692,9 @@ Include:
                 content_length = len(content)
                 files_content[filename] = content
                 pbar.set_postfix(chars=f"{content_length:,}")
-        except Exception as e:
-            logger.error(f"Failed to generate {filename}: {str(e)}")
-            raise
+            except Exception as e:
+                logger.error(f"Failed to generate {filename}: {str(e)}")
+                raise
 
     return files_content
 
