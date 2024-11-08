@@ -5,8 +5,6 @@ import sys
 import subprocess
 import argparse
 import logging
-import asyncio
-import aiohttp
 from pathlib import Path
 import json
 
@@ -369,68 +367,6 @@ api_docs_required = true
 architecture_docs_required = true
 '''
 
-async def generate_file_content(filename: str, prompt: str, model: str, system_prompt: str) -> str:
-    """Generate content for a single file asynchronously."""
-    try:
-        response = await completion(
-            model=model,
-            messages=[{
-                "role": "system", 
-                "content": system_prompt
-            },
-            {
-                "role": "user",
-                "content": prompt
-            }],
-            temperature=0.7
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        logger.error(f"Failed to generate {filename}: {str(e)}")
-        raise
-
-async def generate_sparc_content_async(project_desc: str, model: str) -> Dict[str, str]:
-    """Asynchronously generate all SPARC architecture content."""
-    tech_stack = _detect_tech_stack(project_desc)
-    
-    # Generate guidance.toml first since other files depend on it
-    guidance_content = _generate_guidance_toml(tech_stack)
-    
-    # Define tasks for concurrent file generation
-    tasks = []
-    system_prompt = f"""You are a software architect. Generate detailed technical documentation.
-Technology Stack:
-- Framework/Runtime: {tech_stack['framework']}
-- Language: {tech_stack['language']}
-- Features: {', '.join(tech_stack['features'])}
-
-Focus on best practices and patterns specific to this technology stack."""
-
-    prompts = {
-        "Specification.md": f"Generate a detailed software specification for: {project_desc}...",
-        "Architecture.md": f"Generate a detailed software architecture for: {project_desc}...", 
-        "Pseudocode.md": f"Generate pseudocode for key components of: {project_desc}...",
-        "Refinement.md": f"Generate implementation details and refinements for: {project_desc}...",
-        "Completion.md": f"Generate completion criteria and project structure for: {project_desc}..."
-    }
-
-    # Create tasks for concurrent generation
-    for filename, prompt in prompts.items():
-        tasks.append(generate_file_content(filename, prompt, model, system_prompt))
-
-    # Wait for all files to be generated
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    
-    # Combine results with filenames
-    files_content = {"guidance.toml": guidance_content}
-    for filename, content in zip(prompts.keys(), results):
-        if isinstance(content, Exception):
-            logger.error(f"Failed to generate {filename}: {str(content)}")
-            raise content
-        files_content[filename] = content
-
-    return files_content
-
 def _detect_tech_stack(project_desc: str) -> Dict[str, str]:
     """Detect technology stack from project description."""
     tech_stack = {
@@ -454,8 +390,12 @@ def _detect_tech_stack(project_desc: str) -> Dict[str, str]:
     return tech_stack
 
 def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
-    """Synchronous wrapper for async content generation."""
-    return asyncio.run(generate_sparc_content_async(project_desc, model))
+    """Generate SPARC architecture content using LiteLLM."""
+    
+    tech_stack = _detect_tech_stack(project_desc)
+    
+    # Generate guidance.toml first
+    guidance_content = """# SPARC Framework Project Configuration
 
 [project]
 name = "supabase-devops-cli"
@@ -511,62 +451,215 @@ required_platforms = ["linux"]
 readme_required = true
 api_docs_required = true
 architecture_docs_required = true
-changelog_required = true
-"""
+changelog_required = true"""
 
     # Add tech stack context to system prompt
-    system_prompt = (
-        f"You are a software architect. Generate detailed technical documentation.\n\n"
-        f"Technology Stack:\n"
-        f"- Framework/Runtime: {tech_stack['framework']}\n"
-        f"- Language: {tech_stack['language']}\n"
-        f"- Features: {', '.join(tech_stack['features'])}\n\n"
-        f"Focus on best practices and patterns specific to this technology stack."
-    )
+    system_prompt = f"""You are a software architect. Generate detailed technical documentation.
+Technology Stack:
+- Framework/Runtime: {tech_stack['framework']}
+- Language: {tech_stack['language']}
+- Features: {', '.join(tech_stack['features'])}
+
+Focus on best practices and patterns specific to this technology stack."""
     
     prompts = {
-        "Specification.md": f"Generate a detailed software specification for: {project_desc}\n\n"
-                          "Include:\n"
-                          "- Project Overview\n"
-                          "- Core Requirements\n"
-                          "- Technical Requirements\n"
-                          "- Constraints and Assumptions\n"
-                          "- Detailed implementation guidelines\n"
-                          "- Testing requirements\n\n"
-                          "Format the output in Markdown with comprehensive sections.",
+        "Specification.md": f"""Generate a detailed software specification for: {project_desc}
+Include:
+- Project Overview
+- Core Requirements
+- Technical Requirements
+- Constraints and Assumptions
+- This specification should be detailed and comprehensive and used to guide development and testing.
+- Be verbose and complete. 
 
-        "Architecture.md": f"Generate a detailed software architecture for: {project_desc}\n\n"
-                         "Include:\n"
-                         "- System Components\n"
-                         "- Component Interactions\n"
-                         "- Data Flow\n"
-                         "- Key Design Decisions\n"
-                         "- Detailed Diagrams\n"
-                         "- Implementation Guidelines\n\n"
-                         "Format the output in Markdown with comprehensive sections.",
 
-        "Pseudocode.md": f"Generate pseudocode for key components of: {project_desc}\n\n"
-                        "Include:\n"
-                        "- Core Classes/Functions\n"
-                        "- Important Algorithms\n"
-                        "- Data Structures\n\n"
-                        "Format the output in Markdown with code blocks.",
+# Specification
 
-        "Refinement.md": f"Generate implementation details and refinements for: {project_desc}\n\n"
-                        "Include:\n"
-                        "- Implementation Steps\n"
-                        "- Error Handling\n"
-                        "- Testing Strategy\n"
-                        "- Performance Considerations\n\n"
-                        "Format the output in Markdown with detailed sections.",
+## Objective
+Develop a comprehensive specification document for the project.
 
-        "Completion.md": f"Generate completion criteria and project structure for: {project_desc}\n\n"
-                        "Include:\n"
-                        "- Project Structure\n"
-                        "- Development Steps\n"
-                        "- Testing Requirements\n"
-                        "- Deployment Considerations\n\n"
-                        "Format the output in Markdown with clear sections."
+## Research and Analysis
+- Use tools like Perplexity to gather information on various approaches, architectures, and relevant technical papers.
+- Document findings in markdown files, including pros and cons of different approaches.
+
+## Project Overview
+- Elaborate on the project goal, providing context and background.
+- Describe the target audience and their needs, including demographics and user personas.
+
+## Functional Requirements
+- List and describe each functional requirement.
+- Break down complex features into smaller, manageable components.
+
+## Non-Functional Requirements
+- Detail each non-functional requirement, explaining its importance.
+- Include performance metrics, security standards, and scalability considerations.
+
+## User Scenarios and User Flows
+- Describe typical user scenarios and provide user flow diagrams.
+- Include step-by-step interactions and decision points.
+
+## UI/UX Considerations
+- Discuss UI/UX guidelines and include design sketches if applicable.
+- Reference design principles and accessibility standards.
+
+## File Structure Proposal
+- Suggest an organized file and directory structure.
+- Use markdown files to outline and guide the process.
+
+## Assumptions
+- List assumptions made during the specification process.
+- Justify each assumption and its impact on the project.
+
+## Reflection
+- Justify the inclusion of each requirement.
+- Consider potential challenges and propose mitigation strategies.
+- Reflect on how each element contributes to the overall project goals.
+
+Format in Markdown.""",
+
+        "Architecture.md": f'''Generate a detailed software architecture for: {project_desc}
+Include:
+- System Components
+- Component Interactions
+- Data Flow
+- Key Design Decisions
+- Detailed Diagrams (if applicable) 
+- File and folder structure with a brief description of each component.
+- Be verbose and complete.
+
+
+# Architecture
+
+## System Components
+- Core services
+- Data layer
+- External integrations
+
+## Component Interactions
+- Service communication
+- Data flow
+- API contracts
+
+## Data Flow
+- Input processing
+- Data transformation
+- Storage patterns
+
+## Key Design Decisions
+- Technology choices
+- Architectural patterns
+- Security measures
+''',
+
+        "Pseudocode.md": f'''Generate pseudocode for key components of: {project_desc}
+Include:
+- Core Classes/Functions
+- Important Algorithms
+- Data Structures
+
+# Pseudocode
+
+## Core Classes/Functions
+```pseudo
+class MainComponent:
+    def initialize():
+        // Setup core dependencies
+    
+    def process():
+        // Main processing logic
+```
+
+## Important Algorithms
+```pseudo
+function processData(input):
+    // Data processing steps
+    return result
+```
+
+## Data Structures
+```pseudo
+struct DataModel:
+    id: string
+    data: map<string, any>
+    metadata: object
+```
+''',
+
+        "Refinement.md": f'''Generate implementation details and refinements for: {project_desc}
+Include:
+- Implementation Steps
+- Error Handling
+- Testing Strategy
+- Performance Considerations
+
+# Refinement
+
+## Implementation Steps
+1. Environment setup
+2. Core services
+3. Data layer
+4. API endpoints
+5. Testing
+
+## Error Handling
+- Validation
+- Authentication
+- Database errors
+- Global handlers
+
+## Testing Strategy
+- Unit tests
+- Integration tests
+- Performance tests
+- Security tests
+
+## Performance
+- Query optimization
+- Caching strategy
+- Resource management
+- Monitoring
+''',
+
+        "Completion.md": f'''Generate completion criteria and project structure for: {project_desc}
+Include:
+- Project Structure
+- Development Steps
+- Testing Requirements
+- Deployment Considerations
+
+# Completion Criteria
+
+## Project Structure
+- Source code organization
+- Configuration files
+- Documentation
+- Test suite
+
+## Development Steps
+1. Environment setup
+2. Core implementation
+3. Testing
+4. Documentation
+5. Deployment preparation
+
+## Testing Requirements
+- Unit tests
+- Integration tests
+- Performance tests
+- Security tests
+
+## Deployment Considerations
+- Environment configuration
+- Dependencies
+- Monitoring
+- Maintenance
+
+## Final Checklist
+- All tests passing
+- Documentation complete
+- Security review done
+- Performance benchmarks met
+'''
     }
 
     files_content = {}
@@ -634,36 +727,42 @@ def main():
     )
 
     if args.mode == 'architect':
+        # Join the project description words into a single string
+        project_desc = ' '.join(args.project_description)
+        logger.info(f"Architecting project: {project_desc}")
+        
         try:
-            # Join the project description words into a single string
-            project_desc = ' '.join(args.project_description)
-            logger.info(f"Architecting project: {project_desc}")
-            
-            # Generate content concurrently
-            files_content = generate_sparc_content(project_desc, config.aider_model)
-            
-            # Create architecture directory with timestamp
-            from datetime import datetime
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            base_name = '-'.join(project_desc.split())[:30]
-            arch_dir_name = f"architecture_{timestamp}_{base_name}"
-            arch_dir = Path(arch_dir_name)
-            arch_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Save generated files
-            for filename, content in files_content.items():
-                file_path = arch_dir / filename
-                try:
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(content)
-                    logger.info(f"Saved {filename} to {file_path}")
-                except Exception as e:
-                    logger.error(f"Failed to save {filename}: {str(e)}")
-                    raise
-                    
+            import toml
+            if os.path.exists(args.guidance_file):
+                with open(args.guidance_file, 'r') as f:
+                    guidance = toml.load(f)
+            else:
+                guidance = {}
         except Exception as e:
-            logger.error(f"Architecture generation failed: {str(e)}")
-            sys.exit(1)
+            logger.warning(f"Failed to load guidance file: {e}")
+            guidance = {}
+        # Create uniquely identified architecture directory
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base_name = '-'.join(project_desc.split())[:30]  # First 30 chars, normalize spaces
+        arch_dir_name = f"architecture_{timestamp}_{base_name}"
+        arch_dir = Path(arch_dir_name)
+        arch_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Created architecture directory: {arch_dir_name}")
+
+        # Generate architecture files using LiteLLM
+        files_content = generate_sparc_content(project_desc, config.aider_model)
+        
+        # Save the generated content
+        for filename, content in files_content.items():
+            file_path = arch_dir / filename
+            try:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                logger.info(f"Saved {filename} to {file_path}")
+            except Exception as e:
+                logger.error(f"Failed to save {filename}: {str(e)}")
+                raise
     elif args.mode == 'implement':
         # Find the most recent architecture directory
         arch_dirs = sorted([d for d in Path().glob("architecture_*") if d.is_dir()], reverse=True)
