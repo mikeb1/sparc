@@ -886,13 +886,21 @@ Make the implementation clean, efficient, and well-documented."""
                 
             logger.info(f"Generated implementation at {src_file}")
 
-            # Run tests to verify implementation
-            logger.info(f"Running tests for {component}...")
+            # 4. Run tests with visual feedback
+            logger.info(f"\n{'='*80}")
+            logger.info(f"Running tests for {component}")
+            logger.info(f"{'='*80}")
+
+            logger.info("\nFinal implementation:")
+            logger.info(f"\n{'-'*40}\n{src_file.read_text()}\n{'-'*40}")
+
+            logger.info("\nExecuting tests...")
             test_run = subprocess.run([
                 "pytest",
                 "-v",
+                "--capture=no",  # Show test output in real-time
                 str(test_file)
-            ], capture_output=True, text=True)
+            ], capture_output=False, text=True)  # Don't capture output to show it in real-time
 
             if test_run.returncode != 0:
                 logger.error(f"Tests failed for {component}: {test_run.stdout}")

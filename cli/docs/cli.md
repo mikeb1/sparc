@@ -413,7 +413,41 @@ Based on this guidance:"""
         while attempts < self.config.max_attempts:
             logger.info(f"\nAttempt {attempts + 1}/{self.config.max_attempts} for component {component_name}")
 
-            # Generate tests first using aider.chat
+            # 1. Create initial structure with placeholders
+            logger.info(f"\n{'='*80}")
+            logger.info(f"Setting up structure for component: {component}")
+            logger.info(f"{'='*80}")
+            
+            # Create placeholder test file
+            test_content = f"""import pytest
+
+def test_{component_lower}_placeholder():
+    \"\"\"Placeholder test for {component}\"\"\"
+    assert True  # TODO: Implement real tests
+"""
+            test_file.write_text(test_content)
+            logger.info(f"\nCreated placeholder test file: {test_file}")
+            logger.info(f"Initial content:\n{'-'*40}\n{test_content}\n{'-'*40}")
+
+            # Create placeholder implementation file
+            impl_content = f"""class {component}:
+    \"\"\"Placeholder implementation for {component}\"\"\"
+    def __init__(self):
+        pass  # TODO: Implement
+"""
+            src_file.write_text(impl_content)
+            logger.info(f"\nCreated placeholder implementation file: {src_file}")
+            logger.info(f"Initial content:\n{'-'*40}\n{impl_content}\n{'-'*40}")
+
+            # 2. Generate comprehensive tests
+            logger.info(f"\n{'='*80}")
+            logger.info(f"Generating tests for {component} using architecture documents")
+            logger.info(f"{'='*80}")
+            
+            logger.info("\nArchitecture context being used:")
+            for doc_name, content in arch_files.items():
+                logger.info(f"\n{doc_name.upper()}:\n{'-'*40}\n{content[:200]}...")
+
             test_generated = self._generate_tests_with_aider(component, specification, pseudocode, architecture_desc)
 
             if not test_generated:
