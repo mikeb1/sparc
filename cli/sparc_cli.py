@@ -316,8 +316,7 @@ def main():
 
     # Architect mode
     parser_architect = subparsers.add_parser('architect', parents=[parent_parser], help='Run in architect mode')
-    parser_architect.add_argument('project_type', nargs='?', type=str, 
-                                help='Type of project to architect (e.g., fastapi, django, cli)')
+    parser_architect.add_argument('project_type', type=str, help='Type of project to architect')
     parser_architect.add_argument('--guidance-file', type=str, default='guidance.toml',
                                 help='Path to guidance TOML file')
 
@@ -445,14 +444,36 @@ graph TD
                 }
                 logger.info(f"Using predefined guidance for {args.project_type} project")
             
+            # Create guidance.toml in architecture directory
+            guidance_arch_path = arch_dir / "guidance.toml"
+            if not guidance_arch_path.exists():
+                with open(guidance_arch_path, 'w') as f:
+                    f.write(f"""[project]
+type = "{args.project_type}"
+
+[specification]
+content = "Generate detailed specifications based on project requirements"
+
+[architecture]
+content = "Generate comprehensive architecture documentation"
+
+[components]
+content = "Define component relationships and interfaces"
+
+[testing]
+content = "Specify testing strategy and requirements"
+
+[implementation]
+content = "Provide implementation guidelines"
+""")
+                logger.info("Generated guidance.toml in architecture directory")
+
             # Load custom guidance file if it exists
             if os.path.exists(config.guidance_file):
                 with open(config.guidance_file, 'r') as f:
                     custom_guidance = toml.load(f)
                     guidance.update(custom_guidance)
                 logger.info(f"Loaded custom guidance from {config.guidance_file}")
-            elif not guidance:
-                logger.warning(f"No guidance file found and no project type specified. Using default prompts.")
         except Exception as e:
             logger.warning(f"Failed to load guidance file: {e}")
             guidance = {}
@@ -475,35 +496,20 @@ graph TD
             logger.info("Generated guidance.toml in architecture directory")
 
         # Create README.md
-        readme_content = f"""# FastAPI Project Architecture Documentation
+        readme_content = f"""# Project Architecture Documentation
 
-## Overview
-This directory contains the architectural documentation for the FastAPI REST API project following the SPARC framework.
+## Project Type
+{args.project_type}
 
-## Project Structure
-The project implements a REST API with user authentication, data models, and comprehensive testing using FastAPI.
-
-## Documentation Files
-- [Specification](./Specification.md) - Detailed project requirements and specifications
-- [Pseudocode](./Pseudocode.md) - High-level implementation logic and flow
-- [Architecture](./Architecture.md) - System architecture and component design
-- [Refinement](./Refinement.md) - Design improvements and optimizations
-- [Completion](./Completion.md) - Project completion criteria and final state
-
-## Key Components
-- AuthService: JWT authentication and user authorization
-- UserService: User management and CRUD operations
-- DatabaseService: Database operations and connections
-- ErrorHandler: Centralized error handling
-
-## Testing Approach
-- Unit tests using pytest
-- Integration tests with test database
-- Mock-based testing following London TDD
-- 100% code coverage target
+## Documentation Structure
+- Specification.md - Detailed requirements and specifications  
+- Architecture.md - System architecture and design
+- Components.md - Component relationships and interfaces
+- Testing.md - Testing strategy and requirements
+- Implementation.md - Implementation guidelines
 
 ## Configuration
-See [guidance.toml](./guidance.toml) for detailed configuration and requirements.
+See [guidance.toml](./guidance.toml) for project configuration and requirements.
 """
         readme_path = arch_dir / "README.md"
         if not readme_path.exists():
@@ -520,36 +526,34 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
             ("Implementation.md", "Provide implementation guidelines")
         ]
 
-        # Initialize LiteLLM configuration
-        try:
-            for filename, prompt_suffix in files_to_generate:
-                file_path = arch_dir / filename
-                if not file_path.exists():
-                    try:
-                        response = completion(
-                            model=config.model,
-                            messages=[{
-                                "role": "system",
-                                "content": """You are an expert software architect creating detailed documentation.
+        for filename, prompt_suffix in files_to_generate:
+            file_path = arch_dir / filename
+            if not file_path.exists():
+                try:
+                    response = completion(
+                        model=config.model,
+                        messages=[{
+                            "role": "system",
+                            "content": """You are an expert software architect creating detailed documentation.
 Generate comprehensive documentation that is:
 - Language/platform agnostic 
 - Focused on architecture and design
 - Clear and maintainable
 - Following best practices"""
-                            }, {
-                                "role": "user", 
-                                "content": f"Based on these requirements: {args.project_type}\n\n{prompt_suffix}"
-                            }],
-                            temperature=0.7,
-                            max_tokens=4096
-                        )
-                        
-                        content = response.choices[0].message.content
-                        with open(file_path, 'w') as f:
-                            f.write(content)
-                        logger.info(f"Generated {filename} with LiteLLM")
-                    except Exception as e:
-                        logger.error(f"Error generating {filename}: {e}")
+                        }, {
+                            "role": "user",
+                            "content": f"Based on these requirements: {args.project_type}\n\n{prompt_suffix}"
+                        }],
+                        temperature=0.7,
+                        max_tokens=4096
+                    )
+                    
+                    content = response.choices[0].message.content
+                    with open(file_path, 'w') as f:
+                        f.write(content)
+                    logger.info(f"Generated {filename} with LiteLLM")
+                except Exception as e:
+                    logger.error(f"Error generating {filename}: {e}")
 
 1. System Overview
    - High-level architecture diagram
