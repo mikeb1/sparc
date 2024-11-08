@@ -77,7 +77,7 @@ def create_and_activate_venv(venv_path: Path) -> tuple[dict, Path]:
     
     return env, python_path
 
-def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts: int = 5) -> bool:
+def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts: int = 3) -> bool:
     """Verify the application works by installing dependencies and running tests."""
     # Create requirements.txt if it doesn't exist
     if not (app_dir / "requirements.txt").exists():
@@ -140,14 +140,10 @@ litellm>=1.0.0
             )
             
             if result.returncode == 0:
-                logger.info("All tests passed successfully!")
                 return True
-            
-            logger.error(f"Test failures:\n{result.stdout}\n{result.stderr}")
-            
+                
             # If tests failed, try to fix issues
-            logger.info("Attempting to fix test failures...")
-            fix_cmd = ["python", "sparc_cli.py", "implement", "--fix-issues", "--model", "claude-3-sonnet-20240229"]
+            fix_cmd = ["python", "sparc_cli.py", "implement", "--fix-issues"]
             fix_result = subprocess.run(
                 fix_cmd,
                 cwd=app_dir,
