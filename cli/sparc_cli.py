@@ -849,14 +849,40 @@ Include edge cases and error conditions.
 Use proper test isolation and mocking where appropriate.
 The tests should guide the implementation."""
 
+            logger.info(f"\n{'='*80}")
             logger.info(f"Generating tests for {component} using aider...")
-            test_result = subprocess.run([
-                "aider",
-                "--model", "claude-3-sonnet-20240229",
-                "--edit-format", "diff",
-                "--message", test_prompt,
-                str(test_file)
-            ], capture_output=True, text=True)
+            logger.info(f"{'='*80}\n")
+            
+            # Run aider with real-time output
+            process = subprocess.Popen(
+                [
+                    "aider",
+                    "--model", "claude-3-sonnet-20240229",
+                    "--edit-format", "diff",
+                    "--message", test_prompt,
+                    str(test_file)
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,  # Line buffered
+                universal_newlines=True
+            )
+
+            # Show output in real-time
+            while True:
+                output = process.stdout.readline()
+                if output:
+                    logger.info(f"aider: {output.strip()}")
+                error = process.stderr.readline()
+                if error:
+                    logger.error(f"aider error: {error.strip()}")
+                
+                # Check if process has finished
+                if output == '' and error == '' and process.poll() is not None:
+                    break
+
+            test_result = process.poll()
             
             if test_result.returncode != 0:
                 logger.error(f"Failed to generate tests for {component}: {test_result.stderr}")
@@ -871,14 +897,40 @@ Ensure proper error handling and type safety.
 The component is part of a swarm agent system using LangChain.js.
 Make the implementation clean, efficient, and well-documented."""
 
+            logger.info(f"\n{'='*80}")
             logger.info(f"Implementing {component} using aider...")
-            impl_result = subprocess.run([
-                "aider",
-                "--model", "claude-3-sonnet-20240229",
-                "--edit-format", "diff",
-                "--message", impl_prompt,
-                str(src_file)
-            ], capture_output=True, text=True)
+            logger.info(f"{'='*80}\n")
+            
+            # Run aider with real-time output
+            process = subprocess.Popen(
+                [
+                    "aider",
+                    "--model", "claude-3-sonnet-20240229",
+                    "--edit-format", "diff",
+                    "--message", impl_prompt,
+                    str(src_file)
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,  # Line buffered
+                universal_newlines=True
+            )
+
+            # Show output in real-time
+            while True:
+                output = process.stdout.readline()
+                if output:
+                    logger.info(f"aider: {output.strip()}")
+                error = process.stderr.readline()
+                if error:
+                    logger.error(f"aider error: {error.strip()}")
+                
+                # Check if process has finished
+                if output == '' and error == '' and process.poll() is not None:
+                    break
+
+            impl_result = process.poll()
 
             if impl_result.returncode != 0:
                 logger.error(f"Failed to implement {component}: {impl_result.stderr}")
