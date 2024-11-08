@@ -65,10 +65,10 @@ python-dotenv>=1.0.0
                 text=True
             )
             
-            # Run tests with correct Python path
-            env["PYTHONPATH"] = str(app_dir)
+            # Run tests with correct Python path and verbose output
+            env["PYTHONPATH"] = f"{str(app_dir)}/src:{str(app_dir)}/tests"
             result = subprocess.run(
-                [str(python_path), "-m", "pytest", "--import-mode=importlib", "--no-cov"],
+                [str(python_path), "-m", "pytest", "-v", "--import-mode=importlib", "--tb=short"],
                 cwd=app_dir,
                 env=env,
                 capture_output=True,
