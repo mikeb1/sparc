@@ -225,6 +225,7 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
     attempt = 0
     while attempt < max_attempts:
         try:
+        try:
             logger.info(f"\nVerification attempt {attempt + 1}/{max_attempts}")
             
             # Install requirements
@@ -300,7 +301,7 @@ def verify_application(app_dir: Path, python_path: Path, env: dict, max_attempts
     logger.error(f"Application verification failed after {max_attempts} attempts")
     return False
 
-def test_generated_code_passes_tests(clean_test_dir, cli_script, output_dir):
+def test_generated_code_passes_tests(test_dir):
     """Test that generated code works in a fresh virtual environment."""
     
     # Copy the sparc_cli.py script to the test directory
