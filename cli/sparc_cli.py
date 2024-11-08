@@ -884,7 +884,7 @@ The tests should guide the implementation."""
 
             test_result = process.poll()
             
-            if test_result.returncode != 0:
+            if test_result != 0:  # Compare directly with integer
                 logger.error(f"Failed to generate tests for {component}: {test_result.stderr}")
                 continue
             

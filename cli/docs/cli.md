@@ -531,43 +531,38 @@ Write the implementation code in '{impl_file_path}'.
         """Run aider.chat with the given files and message."""
         try:
             logger.info("Running aider.chat...")
+            # Add --yes flag to auto-confirm prompts
             cmd = ["aider", "--yes", "--message", message] + files
             if self.config.verbose:
                 cmd.extend(["--verbose", "--no-pretty"])
             logger.debug(f"Executing command: {' '.join(cmd)}")
 
-            # Run aider with real-time output
-            process = subprocess.Popen(
+            # Add timeout and capture output
+            process = subprocess.run(
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
-                bufsize=1,
-                env=os.environ.copy(),
-                cwd=os.getcwd()
+                timeout=300,  # 5 minute timeout
+                check=False,  # Don't raise on non-zero exit
+                env=os.environ.copy()
             )
 
-            # Display output in real-time
-            while True:
-                output = process.stdout.readline()
-                if output:
-                    logger.info(output.strip())
-                error = process.stderr.readline()
-                if error:
-                    logger.error(error.strip())
+            # Log output regardless of success/failure
+            if process.stdout:
+                logger.info(f"aider output:\n{process.stdout}")
+            if process.stderr:
+                logger.error(f"aider error:\n{process.stderr}")
 
-                if output == '' and error == '' and process.poll() is not None:
-                    break
-
-            result = process.wait()
-
-            if result == 0:
+            if process.returncode == 0:
                 logger.info("aider.chat completed successfully.")
                 return True
             else:
-                logger.error(f"aider.chat failed with return code {result}.")
+                logger.error(f"aider.chat failed with return code {process.returncode}")
                 return False
 
+        except subprocess.TimeoutExpired:
+            logger.error("aider.chat timed out after 5 minutes")
+            return False
         except Exception as e:
             logger.error(f"Unexpected error during aider.chat execution: {str(e)}")
             return False
