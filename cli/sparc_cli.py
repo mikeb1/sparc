@@ -550,7 +550,6 @@ Generate comprehensive documentation that is:
                         logger.info(f"Generated {filename} with LiteLLM")
                     except Exception as e:
                         logger.error(f"Error generating {filename}: {e}")
-                        prompt = f"""Generate a detailed FastAPI REST API architecture document that includes:
 
 1. System Overview
    - High-level architecture diagram
