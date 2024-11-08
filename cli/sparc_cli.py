@@ -8,8 +8,9 @@ import logging
 import json
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, tuple
 from litellm import completion
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import toml
 from litellm import completion
