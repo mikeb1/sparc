@@ -622,7 +622,7 @@ See [guidance.toml](./guidance.toml) for detailed configuration and requirements
    - Async operation handling
 
 Based on the following requirements:
-{file_guidance}"""
+{guidance.get('architecture', {}).get('content', 'No specific guidance provided.')}"""
 
                     response = completion(
                         model=config.model,
