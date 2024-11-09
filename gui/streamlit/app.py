@@ -360,7 +360,7 @@ def main():
                     
                     if st.button("Load Project", key=f"load_project_{project['id']}"):
                         st.session_state.project = project
-                        st.experimental_rerun()
+                        st.rerun()
                     
                     st.markdown("---")
             
