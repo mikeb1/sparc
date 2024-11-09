@@ -433,32 +433,34 @@ def main():
                 else:
                     with st.spinner("Generating..."):
                         try:
-                            # Construct command
-                            cmd = ["python", "sparc_cli.py"]
-                            cmd.extend([mode.split()[1].lower()])
-                            cmd.extend(["--model", model])
-                            cmd.extend(["--guidance-file", guidance_file])
+                            from utils.generator import generate_sparc_content, save_generated_content
                             
-                            if mode == "🏗️ Architect":
-                                cmd.append(project_desc)
-                            else:
-                                cmd.extend(["--max-attempts", str(max_attempts)])
-                                if optional_desc:
-                                    cmd.append(optional_desc)
+                            # Generate content
+                            content = generate_sparc_content(project_desc, model)
+                            
+                            # Save to architecture directory
+                            output_dir = Path("architecture")
+                            arch_dir = save_generated_content(content, output_dir)
+                            
+                            st.success(f"Generated architecture files in: {arch_dir}")
+                            
+                            # Show preview tabs
+                            tabs = st.tabs(["📋 TOML", "📑 Specification", "🏗️ Architecture", 
+                                          "💻 Pseudocode", "🔄 Refinement", "✅ Completion"])
+                            
+                            for tab, (filename, content) in zip(tabs, content.items()):
+                                with tab:
+                                    st.markdown(content)
+                                    st.download_button(
+                                        f"💾 Download {filename}",
+                                        content,
+                                        filename,
+                                        mime="text/plain",
+                                        use_container_width=True
+                                    )
                                     
-                            # Execute command
-                            result = subprocess.run(cmd, capture_output=True, text=True)
-                            
-                            if result.returncode == 0:
-                                st.success("Generation completed successfully!")
-                                with st.expander("View Details"):
-                                    st.code(result.stdout)
-                            else:
-                                st.error("Generation failed")
-                                with st.expander("View Error"):
-                                    st.code(result.stderr)
                         except Exception as e:
-                            st.error(f"An error occurred: {str(e)}")
+                            st.error(f"Generation failed: {str(e)}")
         
         with tab2:
             st.header("Implementation Options")
