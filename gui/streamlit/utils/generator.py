@@ -13,10 +13,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def detect_tech_stack_from_description(project_desc: str, model: str) -> Dict[str, str]:
+async def detect_tech_stack_from_description(project_desc: str, model: str) -> Dict[str, str]:
     """Use LLM to detect tech stack from project description."""
     try:
-        response = completion(
+        response = await completion(
             model=model,
             messages=[{
                 "role": "system",
