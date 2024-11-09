@@ -49,69 +49,77 @@ Return only a JSON object with these fields:
             'features': ['api', 'database', 'authentication']
         }
 
-def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
+async def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
-    
-    # Detect tech stack from project description
-    tech_stack = detect_tech_stack_from_description(project_desc, model)
-    
-    # System prompt with tech stack context
-    system_prompt = f"""You are a software architect. Generate detailed technical documentation.
-Technology Stack:
-- Framework/Runtime: {tech_stack['framework']}
+    try:
+        # Detect tech stack from project description
+        tech_stack = await detect_tech_stack_from_description(project_desc, model)
+        
+        # Start with just Specification.md
+        prompts = {
+        "Specification.md": """Generate a detailed software specification document that includes:
+1. Project Overview
+2. Core Requirements
+3. Technical Requirements
+4. User Interface Requirements
+5. Performance Requirements
+6. Security Requirements
+7. Testing Requirements
+8. Deployment Requirements
+
+Be specific and detailed. Format in Markdown."""
+    }
+
+        # System prompt focused on specification
+        system_prompt = f"""You are a senior software architect specializing in detailed specifications.
+Your task is to create a comprehensive software specification document.
+Focus on clarity, completeness, and actionable requirements.
+
+Project Context:
+- Framework: {tech_stack['framework']}
 - Language: {tech_stack['language']}
-- Features: {', '.join(tech_stack['features'])}
+- Features: {', '.join(tech_stack['features'])}"""
 
-Focus on best practices and patterns specific to this technology stack."""
-
-    # Define prompts for each file
-    prompts = {
-        "Specification.md": "Generate a detailed software specification...",
-        "Architecture.md": "Generate a detailed software architecture...",
-        "Pseudocode.md": "Generate pseudocode for key components...",
-        "Refinement.md": "Generate implementation details and refinements...",
-        "Completion.md": "Generate completion criteria and project structure..."
-    }
-
-    files_content = {}
-    architecture_content = ""
-    
-    # Generate each file
-    for filename, prompt in prompts.items():
-        try:
-            response = completion(
-                model=model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"{prompt}\n\nProject: {project_desc}"}
-                ],
-                temperature=0.7
-            )
-            content = response.choices[0].message.content
-            files_content[filename] = content
-            
-            if filename in ['Architecture.md', 'Specification.md']:
-                architecture_content += f"\n\n# {filename}\n{content}"
+        files_content = {}
+        
+        # Generate specification file first
+        for filename, prompt in prompts.items():
+            try:
+                response = await completion(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": f"{prompt}\n\nProject Description: {project_desc}"}
+                    ],
+                    temperature=0.7
+                )
+                content = response.choices[0].message.content
+                files_content[filename] = content
+                logger.info(f"Generated {filename} successfully")
                 
-        except Exception as e:
-            logger.error(f"Failed to generate {filename}: {str(e)}")
-            raise
+            except Exception as e:
+                logger.error(f"Failed to generate {filename}: {str(e)}")
+                raise
 
-    # Generate guidance.toml
-    guidance_content = {
-        "project": {
-            "framework": tech_stack['framework'],
-            "language": tech_stack['language'],
-            "features": tech_stack['features']
-        },
-        "architecture": {
-            "content": architecture_content
+        # Create minimal guidance.toml
+        guidance_content = {
+            "project": {
+                "framework": tech_stack['framework'],
+                "language": tech_stack['language'],
+                "features": tech_stack['features']
+            },
+            "specification": {
+                "content": files_content["Specification.md"]
+            }
         }
-    }
-    
-    files_content["guidance.toml"] = toml.dumps(guidance_content)
-    
-    return files_content
+        
+        files_content["guidance.toml"] = toml.dumps(guidance_content)
+        
+        return files_content
+        
+    except Exception as e:
+        logger.error(f"Architecture generation failed: {str(e)}")
+        raise
 
 def save_generated_content(content: Dict[str, str], output_dir: Path) -> Path:
     """Save generated content to files in the output directory."""
