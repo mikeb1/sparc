@@ -178,12 +178,44 @@ def main():
             
         with tab2:
             st.header("Create New Project")
+
+            # Get recent projects and architecture folders for dropdowns
+            recent_projects = get_projects()
+            arch_folders = scan_architecture_folders(base_path)
             
             # Project details form
             with st.form("new_project"):
-                name = st.text_input("Project Name")
+                # Dropdowns for importing
+                col1, col2 = st.columns(2)
+                with col1:
+                    selected_project = st.selectbox(
+                        "Import from Recent Project",
+                        ["None"] + [p['name'] for p in recent_projects],
+                        key="import_recent"
+                    )
+                with col2:
+                    selected_arch = st.selectbox(
+                        "Import from Architecture",
+                        ["None"] + [f['name'] for f in arch_folders],
+                        key="import_arch"
+                    )
+
+                # Update name and path based on selection
+                if selected_project != "None":
+                    project = next(p for p in recent_projects if p['name'] == selected_project)
+                    default_name = f"{project['name']}_new"
+                    default_path = str(Path(project['path']).parent / f"{project['name']}_new")
+                elif selected_arch != "None":
+                    arch = next(f for f in arch_folders if f['name'] == selected_arch)
+                    default_name = arch['name'].replace('architecture_', '')
+                    default_path = str(Path(arch['path']).parent / default_name)
+                else:
+                    default_name = ""
+                    default_path = ""
+
+                name = st.text_input("Project Name", value=default_name)
                 description = st.text_area("Project Description")
-                path = st.text_input("Project Path")
+                path = st.text_input("Project Path", value=default_path)
                 
                 col1, col2 = st.columns(2)
                 with col1:
