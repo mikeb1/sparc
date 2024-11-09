@@ -247,7 +247,7 @@ Return only a JSON object with these fields:
             'features': ['sticky-nav', 'sidebar', 'mobile-view', 'agent-management']
         }
 
-def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
+async def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
     
     # Detect tech stack from project description
@@ -624,7 +624,7 @@ async def async_main():
         logger.info(f"Created architecture directory: {arch_dir_name}")
 
         # Generate architecture files using LiteLLM
-        files_content = generate_sparc_content(project_desc, config.aider_model)
+        files_content = await generate_sparc_content(project_desc, config.aider_model)
         
         # Save the generated content
         for filename, content in files_content.items():
