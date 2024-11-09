@@ -18,10 +18,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import the functions to be tested
-from gui.streamlit.utils.generator import (
-    generate_sparc_content,
-    detect_tech_stack_from_description
-)
 
 # Mock responses for different completion calls
 MOCK_TECH_STACK_RESPONSE = MagicMock(
