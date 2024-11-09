@@ -471,9 +471,10 @@ def main():
                 require_type_hints = st.checkbox("Require Type Hints", value=True)
                 require_docstrings = st.checkbox("Require Docstrings", value=True)
             
-            # Generate TOML
-            if st.button("📝 Generate TOML", type="primary"):
+            # Generate Files
+            if st.button("📝 Generate Files", type="primary"):
                 try:
+                    # Generate guidance content
                     guidance_content = {
                         "project": {
                             "framework": framework,
@@ -499,20 +500,55 @@ def main():
                         }
                     }
                     
+                    # Convert to TOML string
                     toml_str = toml.dumps(guidance_content)
-                    st.code(toml_str, language="toml")
+
+                    # Generate markdown files
+                    files_content = {
+                        "Specification.md": """# Specification
+...
+""",
+                        "Architecture.md": """# Architecture
+...
+""",
+                        "Pseudocode.md": """# Pseudocode
+...
+""",
+                        "Refinement.md": """# Refinement
+...
+""",
+                        "Completion.md": """# Completion
+...
+"""
+                    }
+
+                    # Display previews in tabs
+                    tabs = st.tabs(["📋 TOML", "📑 Specification", "🏗️ Architecture", 
+                                  "💻 Pseudocode", "🔄 Refinement", "✅ Completion"])
                     
-                    # Add download button
-                    st.download_button(
-                        "💾 Download guidance.toml",
-                        toml_str,
-                        "guidance.toml",
-                        "text/toml",
-                        use_container_width=True
-                    )
+                    with tabs[0]:
+                        st.code(toml_str, language="toml")
+                        st.download_button(
+                            "💾 Download guidance.toml",
+                            toml_str,
+                            "guidance.toml",
+                            "text/toml",
+                            use_container_width=True
+                        )
+
+                    for i, (filename, content) in enumerate(files_content.items(), 1):
+                        with tabs[i]:
+                            st.markdown(content)
+                            st.download_button(
+                                f"💾 Download {filename}",
+                                content,
+                                filename,
+                                "text/markdown",
+                                use_container_width=True
+                            )
                     
                 except Exception as e:
-                    st.error(f"Failed to generate TOML: {str(e)}")
+                    st.error(f"Failed to generate files: {str(e)}")
 
     elif page == "Tests":
         st.title("Test Runner")
