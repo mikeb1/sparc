@@ -44,7 +44,7 @@ def show_project_card(project: Dict):
             st.text(f"Created: {project['created_at']}")
             st.text(f"Status: {project['status']}")
             
-        if st.button("Load Project", key=f"load_{project['id']}"):
+        if st.button("Load Project", key=f"load_recent_{project['id']}"):
             return project['id']
     return None
 
@@ -59,9 +59,9 @@ def show_architecture_folder_card(folder: Dict):
             
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("Import as Project", key=f"import_{folder['path']}"):
+            if st.button("Import as Project", key=f"import_arch_{folder['path']}"):
                 return folder
         with col2:
-            if st.button("View Files", key=f"view_{folder['path']}"):
+            if st.button("View Files", key=f"view_arch_{folder['path']}"):
                 st.session_state.selected_folder = folder['path']
     return None
