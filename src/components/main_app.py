@@ -1,77 +1,65 @@
-import streamlit as st
-from dataclasses import dataclass
-from typing import Optional, Dict
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import Dict, Any, Optional
+import uvicorn
 
-@dataclass
 class MainApp:
     """Main application class for SPARC GUI."""
     
     def __init__(self):
         """Initialize the main application."""
-        self.session_state = {}  # Initialize empty first
-        self.initialize_session_state()  # Then populate with defaults
-        self.session_state = st.session_state  # Finally use streamlit session
-        self.setup_theme()
-        self.create_sidebar()
-        self.current_page = "Project"  # Set default page
+        self.app = FastAPI(title="SPARC GUI API")
+        self.session_state = {}
+        self.initialize_session_state()
+        self.setup_routes()
         
     def initialize_session_state(self) -> None:
-        """Initialize Streamlit session state."""
-        defaults = {
+        """Initialize application state."""
+        self.session_state.update({
             'project': None,
             'dark_mode': True,
             'selected_file': None,
-            'test_results': None
-        }
+            'test_results': None,
+            'git_status': None
+        })
         
-        # Update session state with defaults
-        for key, value in defaults.items():
-            st.session_state[key] = value
-        
-    def setup_theme(self) -> None:
-        """Configure application theme and layout."""
-        st.set_page_config(
-            page_title="SPARC GUI",
-            layout="wide",
-            initial_sidebar_state="expanded"
-        )
-        
-    def create_sidebar(self) -> None:
-        """Create and configure the sidebar navigation."""
-        with st.sidebar:
-            st.title("SPARC GUI")
-            self.current_page = st.radio(
-                "Navigation",
-                ["Project", "Code", "Tests", "Settings"],
-                index=0  # Default to first option
-            )
+    def setup_routes(self):
+        """Set up API routes."""
+        @self.app.get("/api/state")
+        async def get_state():
+            return self.session_state
             
-    def _apply_custom_css(self):
-        """Apply custom CSS styling."""
-        st.markdown("""
-            <style>
-            .stApp {
-                background-color: #0e1117;
-                color: #fafafa;
+        @self.app.post("/api/state/{key}")
+        async def update_state(key: str, value: Any):
+            self.session_state[key] = value
+            return {"status": "success"}
+            
+        @self.app.get("/api/project")
+        async def get_project():
+            return {
+                "project": self.session_state.get('project'),
+                "files": self._get_project_files()
             }
-            </style>
-            """, unsafe_allow_html=True)
             
-    def display(self):
-        """Display the main application interface."""
-        st.title(f"SPARC GUI - {self.current_page}")
+        @self.app.post("/api/project/create")
+        async def create_project(name: str):
+            self.session_state['project'] = name
+            return {"status": "success"}
+            
+        @self.app.get("/api/git/status")
+        async def get_git_status():
+            return self.session_state.get('git_status')
+            
+    def _get_project_files(self) -> list:
+        """Get list of project files."""
+        if not self.session_state.get('project'):
+            return []
+        # Implementation would list actual project files
+        return ['src/main.py', 'tests/test_main.py']
         
-        # Map pages to their display methods
-        pages = {
-            "Project": self._display_project,
-            "Code": self._display_code,
-            "Tests": self._display_tests,
-            "Settings": self._display_settings
-        }
-        
-        # Display the current page
-        if self.current_page in pages:
-            pages[self.current_page]()
+    def run(self, host: str = "0.0.0.0", port: int = 8000):
+        """Run the application server."""
+        uvicorn.run(self.app, host=host, port=port)
             
     def _display_project(self):
         """Display project management interface."""
