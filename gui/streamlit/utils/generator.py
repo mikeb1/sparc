@@ -1,4 +1,94 @@
 # gui/tests/test_generator.py
+import asyncio
+import logging
+from pathlib import Path
+from typing import Dict, Optional
+import toml
+from litellm import completion
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+async def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
+    """Generate SPARC architecture content using LiteLLM."""
+    try:
+        # Detect tech stack
+        tech_stack = await detect_tech_stack_from_description(project_desc, model)
+        
+        # System prompt with tech stack context
+        system_prompt = f"""You are a software architect. Generate detailed technical documentation.
+Technology Stack:
+- Framework/Runtime: {tech_stack['framework']}
+- Language: {tech_stack['language']}
+- Features: {', '.join(tech_stack['features'])}
+
+Focus on best practices and patterns specific to this technology stack."""
+
+        files_content = {}
+        
+        # Generate each file
+        for filename in ["Specification.md", "Architecture.md", "Pseudocode.md", "Refinement.md", "Completion.md"]:
+            response = await completion(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Generate detailed content for {filename}"}
+                ],
+                temperature=0.7
+            )
+            files_content[filename] = response.choices[0].message.content
+
+        # Generate guidance.toml
+        guidance_content = {
+            "project": tech_stack,
+            "specification": {
+                "content": files_content["Specification.md"]
+            }
+        }
+        files_content["guidance.toml"] = toml.dumps(guidance_content)
+        
+        return files_content
+        
+    except Exception as e:
+        logger.error(f"Content generation failed: {str(e)}")
+        raise
+
+async def detect_tech_stack_from_description(project_desc: str, model: str) -> Dict[str, str]:
+    """Detect technology stack from project description."""
+    try:
+        response = await completion(
+            model=model,
+            messages=[{
+                "role": "system",
+                "content": """You are a technical analyst. Extract the technology stack from the project description.
+Return only a JSON object with these fields:
+{
+    "framework": "name of the framework",
+    "language": "primary programming language",
+    "features": ["list", "of", "features"]
+}"""
+            },
+            {
+                "role": "user",
+                "content": f"Extract tech stack from: {project_desc}"
+            }],
+            temperature=0.1
+        )
+        
+        import json
+        return json.loads(response.choices[0].message.content)
+        
+    except Exception as e:
+        logger.error(f"Tech stack detection failed: {str(e)}")
+        return {
+            'framework': 'Flask',
+            'language': 'python',
+            'features': ['api', 'database', 'authentication']
+        }
 
 import pytest
 import pytest_asyncio
@@ -9,20 +99,16 @@ import logging
 import json
 import toml
 
-# Configure logging for better debugging output
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Import the functions to be tested
 from gui.streamlit.utils.generator import (
     generate_sparc_content,
     detect_tech_stack_from_description
 )
 
-# Mock responses for different completion calls
+# Mock responses
 MOCK_TECH_STACK_RESPONSE = MagicMock(
     choices=[
         MagicMock(
@@ -47,33 +133,70 @@ MOCK_SPECIFICATION_RESPONSE = MagicMock(
     ]
 )
 
-# Define additional mock responses if more files are to be generated in the future
-# For now, based on the provided code, only Specification.md and guidance.toml are generated
+MOCK_ARCHITECTURE_RESPONSE = MagicMock(
+    choices=[
+        MagicMock(
+            message=MagicMock(
+                content="# Architecture Content\n\nThis is mock generated architecture content."
+            )
+        )
+    ]
+)
+
+MOCK_PSEUDOCODE_RESPONSE = MagicMock(
+    choices=[
+        MagicMock(
+            message=MagicMock(
+                content="# Pseudocode Content\n\nThis is mock generated pseudocode content."
+            )
+        )
+    ]
+)
+
+MOCK_REFINEMENT_RESPONSE = MagicMock(
+    choices=[
+        MagicMock(
+            message=MagicMock(
+                content="# Refinement Content\n\nThis is mock generated refinement content."
+            )
+        )
+    ]
+)
+
+MOCK_COMPLETION_RESPONSE = MagicMock(
+    choices=[
+        MagicMock(
+            message=MagicMock(
+                content="# Completion Content\n\nThis is mock generated completion content."
+            )
+        )
+    ]
+)
 
 @pytest.fixture
 def mock_completion():
-    """
-    Fixture to mock the 'completion' function used in content generation.
-    It returns different mock responses based on the content of the messages.
-    """
+    """Mock the completion function to return predefined responses."""
     with patch('litellm.completion') as mock:
         async def async_mock(*args, **kwargs):
             messages = kwargs.get('messages', [])
-            logger.debug(f"Mock received messages: {[msg.get('content', '') for msg in messages]}")
-            # Check the messages to determine which response to return
-            for msg in messages:
-                content = msg.get('content', '')
-                if 'Extract tech stack from:' in content:
-                    logger.debug("Returning MOCK_TECH_STACK_RESPONSE")
-                    return MOCK_TECH_STACK_RESPONSE
-                elif 'Generate a detailed software specification document' in content:
-                    logger.debug("Returning MOCK_SPECIFICATION_RESPONSE")
-                    return MOCK_SPECIFICATION_RESPONSE
-                # Add more conditions here if more files are generated in the future
-            # Default response if no condition matches
-            logger.debug("Returning default MOCK_SPECIFICATION_RESPONSE")
-            return MOCK_SPECIFICATION_RESPONSE
-
+            content = messages[1]['content'] if len(messages) > 1 else ''
+            
+            if 'Extract tech stack from' in content:
+                return MOCK_TECH_STACK_RESPONSE
+            elif 'Specification.md' in content:
+                return MOCK_SPECIFICATION_RESPONSE
+            elif 'Architecture.md' in content:
+                return MOCK_ARCHITECTURE_RESPONSE
+            elif 'Pseudocode.md' in content:
+                return MOCK_PSEUDOCODE_RESPONSE
+            elif 'Refinement.md' in content:
+                return MOCK_REFINEMENT_RESPONSE
+            elif 'Completion.md' in content:
+                return MOCK_COMPLETION_RESPONSE
+            
+            # Default mock response
+            return MOCK_COMPLETION_RESPONSE
+            
         mock.side_effect = async_mock
         yield mock
 
