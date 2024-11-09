@@ -8,35 +8,36 @@ class MainApp:
     
     def __init__(self):
         """Initialize the main application."""
-        self.session_state = self.initialize_session_state()
-        self.theme = self.setup_theme()
-        self.sidebar = self.create_sidebar()
+        self.session_state = {}
+        self.initialize_session_state()
+        self.setup_theme()
+        self.create_sidebar()
         
-    def initialize_session_state(self) -> Dict:
+    def initialize_session_state(self) -> None:
         """Initialize Streamlit session state."""
-        state = st.session_state
-        if not hasattr(state, 'project'):
-            state['project'] = None
-        if not hasattr(state, 'dark_mode'):
-            state['dark_mode'] = True
-        return state
+        if 'project' not in st.session_state:
+            st.session_state['project'] = None
+        if 'dark_mode' not in st.session_state:
+            st.session_state['dark_mode'] = True
         
-    def setup_theme(self):
+    def setup_theme(self) -> None:
         """Configure application theme and layout."""
         st.set_page_config(
+            page_title="SPARC GUI",
             layout="wide",
             initial_sidebar_state="expanded"
         )
-        return self._apply_custom_css()
+        self._apply_custom_css()
         
-    def create_sidebar(self):
+    def create_sidebar(self) -> None:
         """Create and configure the sidebar navigation."""
-        st.sidebar.image("logo.png")
-        st.sidebar.title("SPARC GUI")
-        return st.sidebar.radio(
-            "Navigation",
-            ["Project", "Code", "Tests", "Settings"]
-        )
+        with st.sidebar:
+            st.image("logo.png")
+            st.title("SPARC GUI")
+            self.current_page = st.radio(
+                "Navigation",
+                ["Project", "Code", "Tests", "Settings"]
+            )
             
     def _apply_custom_css(self):
         """Apply custom CSS styling."""
@@ -51,15 +52,15 @@ class MainApp:
             
     def display(self):
         """Display the main application interface."""
-        st.title(f"SPARC GUI - {self.sidebar}")
+        st.title(f"SPARC GUI - {self.current_page}")
         
-        if self.sidebar == "Project":
+        if self.current_page == "Project":
             self._display_project()
-        elif self.sidebar == "Code":
+        elif self.current_page == "Code":
             self._display_code()
-        elif self.sidebar == "Tests":
+        elif self.current_page == "Tests":
             self._display_tests()
-        elif self.sidebar == "Settings":
+        elif self.current_page == "Settings":
             self._display_settings()
             
     def _display_project(self):
