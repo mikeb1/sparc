@@ -344,9 +344,11 @@ def main():
         st.title("🚀 SPARC Code Generator")
         
         tab1, tab2 = st.tabs(["🏗️ Architect", "💻 Implement"])
+        mode = st.session_state.get('mode', "🏗️ Architect")  # Default to Architect mode
         
         with tab1:
             st.header("Guidance Configuration")
+            st.session_state.mode = "🏗️ Architect"
             
             # Project Settings
             st.subheader("🎯 Project Settings")
@@ -408,8 +410,15 @@ def main():
                 require_type_hints = st.checkbox("Require Type Hints", value=True)
                 require_docstrings = st.checkbox("Require Docstrings", value=True)
             
+            # Get model and guidance file settings
+            model = st.session_state.get('model', 'claude-3-sonnet-20240229')
+            guidance_file = st.session_state.get('guidance_file', 'guidance.toml')
+            project_desc = st.session_state.get('project_desc', '')
+            optional_desc = st.session_state.get('optional_desc', '')
+            
             # Generate Button
             if st.button("🚀 Generate", type="primary"):
+                mode = st.session_state.mode  # Get current mode
                 if mode == "🏗️ Architect" and not project_desc:
                     st.error("Please provide a project description")
                 else:
@@ -444,6 +453,7 @@ def main():
         
         with tab2:
             st.header("Implementation Options")
+            st.session_state.mode = "💻 Implement"
             
             # Model Selection
             model = st.selectbox(
