@@ -202,27 +202,41 @@ def main():
                     )
 
                 # Update name and path based on selection
+                default_name = ""
+                default_path = ""
+                
                 if selected_project != "None":
-                    project = next(p for p in recent_projects if p['name'] == selected_project)
-                    default_name = f"{project['name']}_new"
-                    default_path = str(Path(project['path']).parent / f"{project['name']}_new")
+                    try:
+                        project = next(p for p in recent_projects if p['name'] == selected_project)
+                        default_name = f"{project['name']}_new"
+                        default_path = str(Path(project['path']).parent / default_name)
+                    except StopIteration:
+                        st.error(f"Could not find project: {selected_project}")
                 elif selected_arch != "None":
-                    arch = next(f for f in arch_folders if f['name'] == selected_arch)
-                    # Extract timestamp and title from architecture folder name
-                    parts = arch['name'].split('_', 2)  # Split into ['architecture', 'timestamp', 'title']
-                    if len(parts) >= 3:
-                        default_name = parts[2]  # Use the title part
-                        default_path = str(Path(arch['path']).parent / default_name)
-                    else:
-                        default_name = arch['name'].replace('architecture_', '')
-                        default_path = str(Path(arch['path']).parent / default_name)
-                else:
-                    default_name = ""
-                    default_path = ""
+                    try:
+                        arch = next(f for f in arch_folders if f['name'] == selected_arch)
+                        # Extract timestamp and title from architecture folder name
+                        parts = arch['name'].split('_', 2)  # Split into ['architecture', 'timestamp', 'title']
+                        if len(parts) >= 3:
+                            default_name = parts[2]  # Use the title part
+                            default_path = str(Path(arch['path']).parent / default_name)
+                        else:
+                            default_name = arch['name'].replace('architecture_', '')
+                            default_path = str(Path(arch['path']).parent / default_name)
+                        
+                        # Update form values immediately when architecture is selected
+                        st.session_state['project_name'] = default_name
+                        st.session_state['project_path'] = default_path
+                    except StopIteration:
+                        st.error(f"Could not find architecture: {selected_arch}")
 
-                name = st.text_input("Project Name", value=default_name)
+                name = st.text_input("Project Name", 
+                                   value=default_name,
+                                   key="project_name")
                 description = st.text_area("Project Description")
-                path = st.text_input("Project Path", value=default_path)
+                path = st.text_input("Project Path", 
+                                   value=default_path,
+                                   key="project_path")
                 
                 col1, col2 = st.columns(2)
                 with col1:
