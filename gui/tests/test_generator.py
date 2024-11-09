@@ -226,26 +226,22 @@ async def test_file_structure(mock_completion, tmp_path):
 
             assert file_path.read_text() == expected_content, f"Unexpected content in {filename}"
 
-# Optional: If you have Pydantic models, update them to use ConfigDict to address deprecation warnings
-# Example:
-# from pydantic import BaseModel, ConfigDict
+# Example of modern Pydantic model with ConfigDict
+from pydantic import BaseModel, ConfigDict
 
-# class MyModel(BaseModel):
-#     name: str
-#     value: int
+class TechStack(BaseModel):
+    framework: str
+    language: str 
+    features: list[str]
 
-#     model_config = ConfigDict(
-#         title="My Model",
-#         extra="forbid",
-#     )
+    model_config = ConfigDict(
+        title="Technology Stack",
+        extra="forbid"
+    )
 
-# Optional: Update deprecated 'open_text' usage in your main codebase
-# Example replacement:
-# from importlib import resources
+# Example of modern importlib.resources usage
+from importlib import resources
 
-# # Old
-# # with resources.open_text("litellm.llms.tokenizers", "anthropic_tokenizer.json") as f:
-# #     data = f.read()
-
-# # New
-# data = resources.files("litellm.llms.tokenizers").joinpath("anthropic_tokenizer.json").read_text()
+def read_tokenizer():
+    """Read tokenizer data using modern importlib.resources."""
+    return resources.files("litellm.llms.tokenizers").joinpath("anthropic_tokenizer.json").read_text()
