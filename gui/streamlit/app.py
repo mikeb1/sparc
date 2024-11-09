@@ -270,8 +270,10 @@ def main():
                     st.text(f"Created: {folder['created'].strftime('%Y-%m-%d %H:%M:%S')}")
                     
                     if folder['guidance']:
-                        st.text("Guidance file found:")
-                        st.json(folder['guidance'])
+                        st.text("Guidance file found")
+                        if st.button("View Guidance", key=f"guidance_{folder['path']}"):
+                            with st.expander("Guidance Details"):
+                                st.json(folder['guidance'])
                     
                     col1, col2 = st.columns(2)
                     with col1:
