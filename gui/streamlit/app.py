@@ -1,4 +1,13 @@
 import streamlit as st
+
+# Configure Streamlit page - must be first Streamlit command
+    page_title="SPARC GUI",
+    page_icon="🔧",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Import remaining modules after st.set_page_config()
 import streamlit.components.v1 as components
 import sys
 from pathlib import Path
@@ -10,14 +19,6 @@ from datetime import datetime
 
 # Add parent directory to Python path to find utils module
 sys.path.append(str(Path(__file__).parent.parent))
-
-# Configure Streamlit page - must be first Streamlit command
-st.set_page_config(
-    page_title="SPARC GUI",
-    page_icon="🔧",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # Dark mode CSS
 dark_mode_css = """
@@ -246,27 +247,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-# Configure Streamlit page - must be first Streamlit command
-st.set_page_config(
-    page_title="SPARC GUI",
-    page_icon="🔧",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-import sys
-from pathlib import Path
-# Add parent directory to Python path to find utils module
-sys.path.append(str(Path(__file__).parent.parent))
-
-import streamlit.components.v1 as components
-import base64
-import os
-import git
-import toml
-from datetime import datetime
-
-# Dark mode CSS
 dark_mode_css = """
 <style>
     /* Dark mode styles */
