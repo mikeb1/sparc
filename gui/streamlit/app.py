@@ -703,7 +703,7 @@ def main():
                                 st.session_state.loaded_arch_dir = arch['directory']
                                 st.session_state.architecture_files = arch['files']
                                 st.session_state.current_tab = "💻 Implement"
-                                st.experimental_rerun()
+                                st.rerun()
                         
                         with col2:
                             if st.button("👀 View Files", key=f"view_{arch['id']}"):
