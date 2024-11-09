@@ -596,7 +596,8 @@ def main():
                     "🔄 Max Attempts",
                     min_value=1,
                     value=3,
-                    help="Maximum implementation attempts per component"
+                    help="Maximum implementation attempts per component",
+                    key="history_max_attempts"
                 )
             with col2:
                 guidance_file = st.text_input(
