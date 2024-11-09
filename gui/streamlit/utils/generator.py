@@ -14,33 +14,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def detect_tech_stack_from_description(project_desc: str, model: str) -> Dict[str, str]:
+async def detect_tech_stack_from_description(project_desc: str, model: str) -> Dict[str, str]:
     """Use LLM to detect tech stack from project description."""
     try:
-        # Define an inner async function
-        async def _detect():
-            response = await completion(
-                model=model,
-                messages=[{
-                    "role": "system",
-                    "content": """You are a technical analyst. Extract the technology stack from the project description.
+        response = await completion(
+            model=model,
+            messages=[{
+                "role": "system",
+                "content": """You are a technical analyst. Extract the technology stack from the project description.
 Return only a JSON object with these fields:
 {
     "framework": "name of the framework",
     "language": "primary programming language",
     "features": ["list", "of", "features"]
 }"""
-                },
-                {
-                    "role": "user",
-                    "content": f"Extract tech stack from: {project_desc}"
-                }],
-                temperature=0.1
-            )
-            return response
-
-        # Run the async function and get the result
-        response = asyncio.run(_detect())
+            },
+            {
+                "role": "user",
+                "content": f"Extract tech stack from: {project_desc}"
+            }],
+            temperature=0.1
+        )
 
         # Parse JSON response
         import json
@@ -56,11 +50,11 @@ Return only a JSON object with these fields:
             'features': ['api', 'database', 'authentication']
         }
 
-def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
+async def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
     try:
         # Detect tech stack from project description
-        tech_stack = detect_tech_stack_from_description(project_desc, model)
+        tech_stack = await detect_tech_stack_from_description(project_desc, model)
 
         # Start with just Specification.md
         prompts = {
