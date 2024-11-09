@@ -31,13 +31,12 @@ class MainApp:
         
     def create_sidebar(self):
         """Create and configure the sidebar navigation."""
-        with st.sidebar:
-            st.image("logo.png")
-            st.title("SPARC GUI")
-            return st.radio(
-                "Navigation",
-                ["Project", "Code", "Tests", "Settings"]
-            )
+        st.sidebar.image("logo.png")
+        st.sidebar.title("SPARC GUI")
+        return st.sidebar.radio(
+            "Navigation",
+            ["Project", "Code", "Tests", "Settings"]
+        )
             
     def _apply_custom_css(self):
         """Apply custom CSS styling."""

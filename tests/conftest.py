@@ -63,25 +63,27 @@ import streamlit as st
 @pytest.fixture
 def mock_streamlit():
     """Mock streamlit functionality for testing."""
-    # Store original streamlit functions
-    original_sidebar = getattr(st, 'sidebar', None)
-    original_title = getattr(st, 'title', None)
-    original_image = getattr(st, 'image', None)
-    original_radio = getattr(st, 'radio', None)
+    # Create a mock for streamlit
+    mock_st = MagicMock()
     
-    # Create mock functions
-    st.sidebar = MagicMock()
-    st.title = MagicMock()
-    st.image = MagicMock()
-    st.radio = MagicMock()
+    # Setup specific mocks
+    mock_st.set_page_config = MagicMock()
+    mock_st.sidebar = MagicMock()
+    mock_st.title = MagicMock()
+    mock_st.image = MagicMock()
+    mock_st.radio = MagicMock()
     
-    yield st
+    # Store original streamlit module
+    original_st = st
     
-    # Restore original functions
-    st.sidebar = original_sidebar
-    st.title = original_title
-    st.image = original_image
-    st.radio = original_radio
+    # Replace streamlit module with our mock
+    import sys
+    sys.modules['streamlit'] = mock_st
+    
+    yield mock_st
+    
+    # Restore original streamlit module
+    sys.modules['streamlit'] = original_st
 
 @pytest.fixture
 def mock_session_state():
