@@ -1,0 +1,1 @@
+"""SPARC GUI components package."""
