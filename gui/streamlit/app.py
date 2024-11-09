@@ -203,11 +203,16 @@ def main():
     with st.sidebar:
         st.title("SPARC GUI")
         st.markdown("---")
-        page = st.radio(
-            "Navigation",
-            ["Project", "Code", "Tests", "Settings"],
-            key="nav_radio"
-        )
+        st.markdown("### 🧭 Navigation")
+        
+        if st.button("🏠 Project", use_container_width=True, key="nav_project"):
+            page = "Project"
+        if st.button("💻 Code", use_container_width=True, key="nav_code"):
+            page = "Code"
+        if st.button("🧪 Tests", use_container_width=True, key="nav_tests"):
+            page = "Tests"
+        if st.button("⚙️ Settings", use_container_width=True, key="nav_settings"):
+            page = "Settings"
 
     # Main content
     if page == "Project":
