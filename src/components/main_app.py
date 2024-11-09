@@ -14,11 +14,12 @@ class MainApp:
         
     def initialize_session_state(self) -> Dict:
         """Initialize Streamlit session state."""
-        if 'project' not in st.session_state:
-            st.session_state.project = None
-        if 'dark_mode' not in st.session_state:
-            st.session_state.dark_mode = True
-        return st.session_state
+        state = st.session_state
+        if not hasattr(state, 'project'):
+            state['project'] = None
+        if not hasattr(state, 'dark_mode'):
+            state['dark_mode'] = True
+        return state
         
     def setup_theme(self):
         """Configure application theme and layout."""
@@ -48,3 +49,32 @@ class MainApp:
             }
             </style>
             """, unsafe_allow_html=True)
+            
+    def display(self):
+        """Display the main application interface."""
+        st.title(f"SPARC GUI - {self.sidebar}")
+        
+        if self.sidebar == "Project":
+            self._display_project()
+        elif self.sidebar == "Code":
+            self._display_code()
+        elif self.sidebar == "Tests":
+            self._display_tests()
+        elif self.sidebar == "Settings":
+            self._display_settings()
+            
+    def _display_project(self):
+        """Display project management interface."""
+        st.header("Project Management")
+        
+    def _display_code(self):
+        """Display code editing interface."""
+        st.header("Code Editor")
+        
+    def _display_tests(self):
+        """Display test runner interface."""
+        st.header("Test Runner")
+        
+    def _display_settings(self):
+        """Display settings interface."""
+        st.header("Settings")
