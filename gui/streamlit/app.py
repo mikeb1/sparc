@@ -208,8 +208,14 @@ def main():
                     default_path = str(Path(project['path']).parent / f"{project['name']}_new")
                 elif selected_arch != "None":
                     arch = next(f for f in arch_folders if f['name'] == selected_arch)
-                    default_name = arch['name'].replace('architecture_', '')
-                    default_path = str(Path(arch['path']).parent / default_name)
+                    # Extract timestamp and title from architecture folder name
+                    parts = arch['name'].split('_', 2)  # Split into ['architecture', 'timestamp', 'title']
+                    if len(parts) >= 3:
+                        default_name = parts[2]  # Use the title part
+                        default_path = str(Path(arch['path']).parent / default_name)
+                    else:
+                        default_name = arch['name'].replace('architecture_', '')
+                        default_path = str(Path(arch['path']).parent / default_name)
                 else:
                     default_name = ""
                     default_path = ""
