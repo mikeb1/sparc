@@ -40,7 +40,9 @@ MOCK_CONTENT_RESPONSE = MagicMock(
 @pytest.fixture
 def mock_completion():
     with patch('gui.streamlit.utils.generator.completion') as mock:
-        mock.return_value = MOCK_CONTENT_RESPONSE
+        async def async_mock(*args, **kwargs):
+            return MOCK_CONTENT_RESPONSE
+        mock.side_effect = async_mock
         yield mock
 
 @pytest.mark.asyncio
