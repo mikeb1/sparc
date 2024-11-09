@@ -1,3 +1,6 @@
+import os
+from git import Repo
+
 class ProjectManager:
     def __init__(self):
         self.current_project = None

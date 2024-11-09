@@ -1,4 +1,6 @@
 import pytest
+from main_app import MainApp
+import streamlit as st
 
 def test_main_app_initialization():
     """Test the initialization of the MainApp component."""

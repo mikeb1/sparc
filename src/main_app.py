@@ -1,3 +1,5 @@
+import streamlit as st
+
 class MainApp:
     def __init__(self):
         self.session_state = self.initialize_session_state()
@@ -13,7 +15,11 @@ class MainApp:
     def setup_theme(self):
         st.set_page_config(layout="wide", initial_sidebar_state="expanded")
         if st.session_state.get('dark_mode', True):
-            apply_dark_mode_css()  # You need to define this function to apply your CSS
+            self.apply_dark_mode_css()  # You need to define this function to apply your CSS
+
+    def apply_dark_mode_css(self):
+        # Define your CSS application logic here
+        pass
 
     def create_sidebar(self):
         with st.sidebar:
