@@ -1,7 +1,7 @@
 """Unit tests for the SettingsManager component using London-style TDD."""
 
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, mock_open
 import streamlit as st
 
 def test_settings_manager_initialization(mock_streamlit):

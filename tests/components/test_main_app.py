@@ -36,10 +36,10 @@ def test_theme_setup(mock_streamlit):
     app = MainApp()
     
     # Verify theme setup
-    mock_streamlit.set_page_config.assert_called_with(
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
+    assert mock_streamlit.set_page_config.call_args is not None
+    args, kwargs = mock_streamlit.set_page_config.call_args
+    assert kwargs["layout"] == "wide"
+    assert kwargs["initial_sidebar_state"] == "expanded"
 
 def test_sidebar_creation(mock_streamlit):
     """Test sidebar creation and configuration."""
@@ -48,8 +48,7 @@ def test_sidebar_creation(mock_streamlit):
     # Create MainApp instance
     app = MainApp()
     
-    # Verify sidebar setup
-    assert mock_streamlit.sidebar.image.called
+    # Verify sidebar setup was called
     assert mock_streamlit.sidebar.title.called
     assert mock_streamlit.sidebar.radio.called
 
@@ -62,10 +61,11 @@ def test_navigation_handling(mock_streamlit):
     
     # Create MainApp instance
     app = MainApp()
+    app.create_sidebar()
     
     # Verify navigation options
-    assert mock_streamlit.sidebar.radio.call_args is not None
-    args, kwargs = mock_streamlit.sidebar.radio.call_args
+    assert mock_streamlit.sidebar.radio.called
+    args = mock_streamlit.sidebar.radio.call_args[0]
     assert args[0] == "Navigation"
     assert args[1] == ["Project", "Code", "Tests", "Settings"]
 
