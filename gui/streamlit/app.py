@@ -358,7 +358,7 @@ def main():
                                     except Exception as e:
                                         st.error(f"Failed to save {md_file.name}: {str(e)}")
                     
-                    if st.button("Load Project", key=f"load_{project['id']}"):
+                    if st.button("Load Project", key=f"load_project_{project['id']}"):
                         st.session_state.project = project
                         st.experimental_rerun()
                     
@@ -380,11 +380,11 @@ def main():
                     
                     col1, col2 = st.columns(2)
                     with col1:
-                        if st.button("Import as Project", key=f"import_{folder['path']}"):
+                        if st.button("Import as Project", key=f"import_folder_{folder['path']}"):
                             # Handle import
                             pass
                     with col2:
-                        if st.button("View Files", key=f"view_{folder['path']}"):
+                        if st.button("View Files", key=f"view_folder_{folder['path']}"):
                             st.session_state.selected_folder = folder['path']
                     
                     st.markdown("---")
