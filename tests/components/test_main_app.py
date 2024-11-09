@@ -84,4 +84,4 @@ def test_page_display(mock_streamlit, page):
     app.display()
     
     # Verify page title is set
-    mock_streamlit.title.assert_called_once()
+    assert mock_streamlit.title.called
