@@ -1,4 +1,5 @@
 import streamlit as st
+import subprocess
 
 # Configure Streamlit page - must be first Streamlit command
 st.set_page_config(
