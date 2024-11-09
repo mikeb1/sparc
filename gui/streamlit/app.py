@@ -588,6 +588,37 @@ def main():
             st.header("Implementation Options")
             st.session_state.mode = "💻 Implement"
             
+        with tab3:
+            st.subheader("📐 Saved Architectures")
+            
+            architectures = get_architectures()
+            if not architectures:
+                st.info("No saved architectures found")
+            else:
+                for arch in architectures:
+                    with st.expander(f"🏗️ Architecture {arch['created_at']}", expanded=False):
+                        st.text(f"Description: {arch['description']}")
+                        st.text(f"Model: {arch['model']}")
+                        st.text(f"Directory: {arch['directory']}")
+                        
+                        # Add buttons to load architecture
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button("📝 Load in Editor", key=f"load_{arch['id']}"):
+                                st.session_state.loaded_arch_dir = arch['directory']
+                                st.session_state.architecture_files = arch['files']
+                                st.session_state.current_tab = "💻 Implement"
+                                st.experimental_rerun()
+                        
+                        with col2:
+                            if st.button("👀 View Files", key=f"view_{arch['id']}"):
+                                for filename, content in arch['files'].items():
+                                    with st.expander(f"📄 {filename}"):
+                                        if filename == "guidance.toml":
+                                            st.json(content)
+                                        else:
+                                            st.markdown(content)
+            
             # Model Selection
             model = st.selectbox(
                 "🤖 AI Model",

@@ -168,12 +168,29 @@ async def run_sparc_architect(project_desc: str, model: str, guidance_file: str)
         for filename, file_content in content.items():
             file_path = arch_dir / filename
             with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(file_content)
+                if isinstance(file_content, dict):
+                    toml.dump(file_content, f)
+                else:
+                    f.write(file_content)
             logger.info(f"Generated {filename}")
+            
+        # Save to database
+        from .database import save_architecture
+        arch_id = save_architecture(
+            project_id=None,  # Can be linked to project later
+            directory=str(arch_dir),
+            description=project_desc,
+            model=model,
+            files=content
+        )
+        
+        if not arch_id:
+            logger.warning("Failed to save architecture to database")
             
         return {
             "arch_dir": str(arch_dir),
-            "files": content
+            "files": content,
+            "arch_id": arch_id
         }
         
     except Exception as e:
