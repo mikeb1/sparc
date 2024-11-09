@@ -413,7 +413,41 @@ Based on this guidance:"""
         while attempts < self.config.max_attempts:
             logger.info(f"\nAttempt {attempts + 1}/{self.config.max_attempts} for component {component_name}")
 
-            # Generate tests first using aider.chat
+            # 1. Create initial structure with placeholders
+            logger.info(f"\n{'='*80}")
+            logger.info(f"Setting up structure for component: {component}")
+            logger.info(f"{'='*80}")
+            
+            # Create placeholder test file
+            test_content = f"""import pytest
+
+def test_{component_lower}_placeholder():
+    \"\"\"Placeholder test for {component}\"\"\"
+    assert True  # TODO: Implement real tests
+"""
+            test_file.write_text(test_content)
+            logger.info(f"\nCreated placeholder test file: {test_file}")
+            logger.info(f"Initial content:\n{'-'*40}\n{test_content}\n{'-'*40}")
+
+            # Create placeholder implementation file
+            impl_content = f"""class {component}:
+    \"\"\"Placeholder implementation for {component}\"\"\"
+    def __init__(self):
+        pass  # TODO: Implement
+"""
+            src_file.write_text(impl_content)
+            logger.info(f"\nCreated placeholder implementation file: {src_file}")
+            logger.info(f"Initial content:\n{'-'*40}\n{impl_content}\n{'-'*40}")
+
+            # 2. Generate comprehensive tests
+            logger.info(f"\n{'='*80}")
+            logger.info(f"Generating tests for {component} using architecture documents")
+            logger.info(f"{'='*80}")
+            
+            logger.info("\nArchitecture context being used:")
+            for doc_name, content in arch_files.items():
+                logger.info(f"\n{doc_name.upper()}:\n{'-'*40}\n{content[:200]}...")
+
             test_generated = self._generate_tests_with_aider(component, specification, pseudocode, architecture_desc)
 
             if not test_generated:
@@ -497,43 +531,38 @@ Write the implementation code in '{impl_file_path}'.
         """Run aider.chat with the given files and message."""
         try:
             logger.info("Running aider.chat...")
+            # Add --yes flag to auto-confirm prompts
             cmd = ["aider", "--yes", "--message", message] + files
             if self.config.verbose:
                 cmd.extend(["--verbose", "--no-pretty"])
             logger.debug(f"Executing command: {' '.join(cmd)}")
 
-            # Run aider with real-time output
-            process = subprocess.Popen(
+            # Add timeout and capture output
+            process = subprocess.run(
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
-                bufsize=1,
-                env=os.environ.copy(),
-                cwd=os.getcwd()
+                timeout=300,  # 5 minute timeout
+                check=False,  # Don't raise on non-zero exit
+                env=os.environ.copy()
             )
 
-            # Display output in real-time
-            while True:
-                output = process.stdout.readline()
-                if output:
-                    logger.info(output.strip())
-                error = process.stderr.readline()
-                if error:
-                    logger.error(error.strip())
+            # Log output regardless of success/failure
+            if process.stdout:
+                logger.info(f"aider output:\n{process.stdout}")
+            if process.stderr:
+                logger.error(f"aider error:\n{process.stderr}")
 
-                if output == '' and error == '' and process.poll() is not None:
-                    break
-
-            result = process.wait()
-
-            if result == 0:
+            if process.returncode == 0:
                 logger.info("aider.chat completed successfully.")
                 return True
             else:
-                logger.error(f"aider.chat failed with return code {result}.")
+                logger.error(f"aider.chat failed with return code {process.returncode}")
                 return False
 
+        except subprocess.TimeoutExpired:
+            logger.error("aider.chat timed out after 5 minutes")
+            return False
         except Exception as e:
             logger.error(f"Unexpected error during aider.chat execution: {str(e)}")
             return False

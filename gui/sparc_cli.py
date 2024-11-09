@@ -69,244 +69,62 @@ class SPARCConfig:
     aider_stream: bool = True
     aider_auto_commits: bool = True
 
-def _generate_component_code(component: str) -> str:
-    """Generate actual implementation code for a component."""
-    if component == "AuthService":
-        return '''from datetime import datetime, timedelta
-from typing import Optional
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from fastapi import HTTPException, status
+import re
 
-class AuthService:
-    SECRET_KEY = "your-secret-key"
-    ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 30
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-    @staticmethod
-    def verify_password(plain_password: str, hashed_password: str) -> bool:
-        return AuthService.pwd_context.verify(plain_password, hashed_password)
-
-    @staticmethod
-    def get_password_hash(password: str) -> str:
-        return AuthService.pwd_context.hash(password)
-
-    @staticmethod
-    def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-        to_encode = data.copy()
-        expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
-        to_encode.update({"exp": expire})
-        return jwt.encode(to_encode, AuthService.SECRET_KEY, algorithm=AuthService.ALGORITHM)
-
-    @staticmethod
-    def verify_token(token: str) -> dict:
-        try:
-            payload = jwt.decode(token, AuthService.SECRET_KEY, algorithms=[AuthService.ALGORITHM])
-            return payload
-        except JWTError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-'''
-    elif component == "UserService":
-        return '''from typing import List, Optional
-from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from .databaseservice import DatabaseService, get_db
-from .models import User, UserCreate, UserUpdate
-
-class UserService:
-    def __init__(self, db: Session = Depends(get_db)):
-        self.db = db
-
-    def create_user(self, user: UserCreate) -> User:
-        db_user = User(**user.dict())
-        self.db.add(db_user)
-        self.db.commit()
-        self.db.refresh(db_user)
-        return db_user
-
-    def get_user_by_email(self, email: str) -> Optional[User]:
-        return self.db.query(User).filter(User.email == email).first()
-
-    def get_user_by_id(self, user_id: int) -> Optional[User]:
-        return self.db.query(User).filter(User.id == user_id).first()
-
-    def get_users(self, skip: int = 0, limit: int = 100) -> List[User]:
-        return self.db.query(User).offset(skip).limit(limit).all()
-
-    def update_user(self, user_id: int, user_update: UserUpdate) -> User:
-        db_user = self.get_user_by_id(user_id)
-        if not db_user:
-            raise HTTPException(status_code=404, detail="User not found")
+def _generate_component_code(config, component: str) -> str:
+    """Generate implementation code for a component based on architecture specs."""
+    # Read the architecture files to determine the implementation details
+    arch_dir = Path(config.architecture_dir)
+    arch_file = arch_dir / "Architecture.md"
+    
+    if not arch_file.exists():
+        logger.error("Architecture.md not found")
+        return ""
         
-        for field, value in user_update.dict(exclude_unset=True).items():
-            setattr(db_user, field, value)
-        
-        self.db.commit()
-        self.db.refresh(db_user)
-        return db_user
+    # Parse the architecture file to find the component specification
+    arch_content = arch_file.read_text()
+    component_spec = ""
+    
+    # Find the component's specification section
+    import re
+    pattern = rf"## Component: {component}\s+(.*?)(?=\n## |$)"
+    match = re.search(pattern, arch_content, re.DOTALL)
+    
+    if match:
+        component_spec = match.group(1).strip()
+    else:
+        logger.error(f"No specification found for component {component}")
+        return ""
 
-    def delete_user(self, user_id: int) -> bool:
-        db_user = self.get_user_by_id(user_id)
-        if not db_user:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        self.db.delete(db_user)
-        self.db.commit()
-        return True
-'''
-    elif component == "DatabaseService":
-        return '''from typing import Generator
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+    # Generate code based on the architecture specification
+    return component_spec
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+def _generate_test_code(config, component: str) -> str:
+    """Generate test code based on architecture specs."""
+    # Read the architecture files to determine the implementation details
+    arch_dir = Path(config.architecture_dir)
+    arch_file = arch_dir / "Architecture.md"
+    
+    if not arch_file.exists():
+        logger.error("Architecture.md not found")
+        return ""
 
-def get_db() -> Generator[Session, None, None]:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    # Parse test requirements from architecture
+    arch_content = arch_file.read_text()
+    test_spec = ""
+    
+    pattern = rf"### Testing: {component}\s+(.*?)(?=\n### |$)"
+    match = re.search(pattern, arch_content, re.DOTALL)
+    
+    if match:
+        test_spec = match.group(1).strip()
+    else:
+        logger.warning(f"No test specification found for component {component}")
+        return ""
 
-def init_db() -> None:
-    Base.metadata.create_all(bind=engine)
-'''
-    elif component == "ErrorHandler":
-        return '''from fastapi import HTTPException
-from fastapi.responses import JSONResponse
-from sqlalchemy.exc import SQLAlchemyError
-from pydantic import ValidationError
+    return test_spec
 
-class ErrorHandler:
-    @staticmethod
-    def handle_validation_error(exc: ValidationError) -> JSONResponse:
-        return JSONResponse(
-            status_code=422,
-            content={"detail": exc.errors()}
-        )
-
-    @staticmethod
-    def handle_credentials_error() -> JSONResponse:
-        return JSONResponse(
-            status_code=401,
-            content={"detail": "Invalid credentials"},
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-
-    @staticmethod
-    def handle_not_found_error() -> JSONResponse:
-        return JSONResponse(
-            status_code=404,
-            content={"detail": "Resource not found"}
-        )
-
-    @staticmethod
-    def handle_database_error(exc: SQLAlchemyError) -> JSONResponse:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Database error occurred"}
-        )
-'''
-    return f"class {component}:\n    pass\n"
-
-def _generate_test_code(component: str) -> str:
-    """Generate test code for a component."""
-    if component == "AuthService":
-        return '''import pytest
-from datetime import timedelta
-from jose import jwt
-from src.authservice import AuthService
-
-def test_password_hashing():
-    password = "testpassword123"
-    hashed = AuthService.get_password_hash(password)
-    assert AuthService.verify_password(password, hashed)
-    assert not AuthService.verify_password("wrongpassword", hashed)
-
-def test_create_access_token():
-    data = {"sub": "test@example.com"}
-    token = AuthService.create_access_token(data)
-    payload = jwt.decode(token, AuthService.SECRET_KEY, algorithms=[AuthService.ALGORITHM])
-    assert payload["sub"] == data["sub"]
-
-def test_verify_token():
-    data = {"sub": "test@example.com"}
-    token = AuthService.create_access_token(data)
-    payload = AuthService.verify_token(token)
-    assert payload["sub"] == data["sub"]
-'''
-    elif component == "UserService":
-        return '''import pytest
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
-from src.userservice import UserService
-from .models import UserCreate, UserUpdate
-
-def test_create_user(db: Session):
-    service = UserService(db)
-    user_data = UserCreate(email="test@example.com", password="testpass123")
-    user = service.create_user(user_data)
-    assert user.email == user_data.email
-
-def test_get_user_by_email(db: Session):
-    service = UserService(db)
-    user = service.get_user_by_email("test@example.com")
-    assert user is not None
-    assert user.email == "test@example.com"
-
-def test_update_user(db: Session):
-    service = UserService(db)
-    update_data = UserUpdate(email="updated@example.com")
-    updated_user = service.update_user(1, update_data)
-    assert updated_user.email == update_data.email
-'''
-    elif component == "DatabaseService":
-        return '''import pytest
-from sqlalchemy.orm import Session
-from src.databaseservice import get_db, init_db
-
-def test_get_db():
-    db = next(get_db())
-    assert isinstance(db, Session)
-    db.close()
-
-def test_init_db():
-    init_db()
-    db = next(get_db())
-    assert db is not None
-    db.close()
-'''
-    elif component == "ErrorHandler":
-        return '''import pytest
-from fastapi.responses import JSONResponse
-from pydantic import ValidationError
-from sqlalchemy.exc import SQLAlchemyError
-from .errorhandler import ErrorHandler
-
-def test_handle_validation_error():
-    error = ValidationError.from_exception_data("test", [])
-    response = ErrorHandler.handle_validation_error(error)
-    assert isinstance(response, JSONResponse)
-    assert response.status_code == 422
-
-def test_handle_credentials_error():
-    response = ErrorHandler.handle_credentials_error()
-    assert isinstance(response, JSONResponse)
-    assert response.status_code == 401
-    assert response.headers["WWW-Authenticate"] == "Bearer"
-'''
-    return f"def test_{component.lower()}():\n    pass\n"
-
-def _generate_guidance_toml(tech_stack: Dict[str, str]) -> str:
+def _generate_guidance_toml(tech_stack: Dict[str, str], architecture_content: str = "") -> str:
     """Generate guidance.toml content based on tech stack."""
     return f'''# SPARC Framework Guidance Configuration
 
@@ -320,6 +138,9 @@ features = {tech_stack['features']}
 component_style = "PascalCase"
 test_prefix = "test_"
 source_suffix = ".{tech_stack['language']}"
+content = """
+{architecture_content}
+"""
 
 # Directory structure
 src_dir = "src"
@@ -373,46 +194,81 @@ api_docs_required = true
 architecture_docs_required = true
 '''
 
-def _detect_tech_stack(project_desc: str) -> Dict[str, str]:
-    """Detect technology stack from project description."""
-    tech_stack = {
-        'framework': None,
-        'language': None,
-        'features': []
-    }
-    
-    # Detect framework/runtime
-    if 'flask' in project_desc.lower():
-        tech_stack['framework'] = 'flask'
-        tech_stack['language'] = 'python'
-    elif 'deno' in project_desc.lower():
-        tech_stack['framework'] = 'deno'
-        tech_stack['language'] = 'typescript'
-    
-    # Detect features
-    if 'websocket' in project_desc.lower():
-        tech_stack['features'].append('websockets')
+def _detect_tech_stack(guidance_file: Path) -> Dict[str, str]:
+    """Read the tech stack from guidance.toml."""
+    try:
+        with open(guidance_file, 'r') as f:
+            guidance = toml.load(f)
+            
+        project = guidance.get('project', {})
+        return {
+            'framework': project.get('framework', ''),
+            'language': project.get('language', ''),
+            'features': project.get('features', [])
+        }
+    except Exception as e:
+        logger.error(f"Failed to read tech stack from guidance.toml: {e}")
+        return {}
+
+def _detect_tech_stack_from_description(project_desc: str, model: str) -> Dict[str, str]:
+    """Use LLM to detect tech stack from project description."""
+    try:
+        response = completion(
+            model=model,
+            messages=[{
+                "role": "system",
+                "content": """You are a technical analyst. Extract the technology stack from the project description.
+Return only a JSON object with these fields:
+{
+    "framework": "name of the framework",
+    "language": "primary programming language",
+    "features": ["list", "of", "features"]
+}"""
+            },
+            {
+                "role": "user",
+                "content": f"Extract tech stack from: {project_desc}"
+            }],
+            temperature=0.1
+        )
         
-    return tech_stack
+        # Parse JSON response
+        import json
+        tech_stack = json.loads(response.choices[0].message.content)
+        logger.info(f"Detected tech stack: {tech_stack}")
+        return tech_stack
+        
+    except Exception as e:
+        logger.error(f"Failed to detect tech stack: {e}")
+        # Fallback to defaults
+        return {
+            'framework': 'Flask' if 'flask' in project_desc.lower() else 'Next.js',
+            'language': 'python' if 'python' in project_desc.lower() else 'javascript',
+            'features': ['sticky-nav', 'sidebar', 'mobile-view', 'agent-management']
+        }
 
 def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
     
-    tech_stack = _detect_tech_stack(project_desc)
+    # Detect tech stack from project description
+    tech_stack = _detect_tech_stack_from_description(project_desc, model)
     
-    # Generate guidance.toml first
-    guidance_content = """# SPARC Framework Project Configuration
+    # Generate guidance.toml with detected tech stack
+    guidance_content = f"""# SPARC Framework Project Configuration
 
 [project]
-name = "supabase-devops-cli"
+name = "{tech_stack['framework'].lower()}-agent-management"
 description = "{project_desc}"
 version = "0.1.0"
+framework = "{tech_stack['framework']}"
+language = "{tech_stack['language']}"
+features = {tech_stack['features']}
 
 [architecture]
 # Component organization
 component_style = "PascalCase"
 test_prefix = "test_"
-source_suffix = ".py"
+source_suffix = ".{tech_stack['language'].lower()}"
 
 # Directory structure
 src_dir = "src"
@@ -674,10 +530,10 @@ Include:
 
     files_content = {}
     
-    # Add guidance.toml to the output first
-    files_content["guidance.toml"] = guidance_content.format(project_desc=project_desc)
+    # Generate architecture content first
+    architecture_content = ""
     
-    # Generate other files using the guidance
+    # Generate files using the guidance
     with tqdm(prompts.items(), desc="Generating files") as pbar:
         for filename, prompt in pbar:
             pbar.set_description(f"Generating {filename}")
@@ -697,11 +553,16 @@ Include:
                 content = response.choices[0].message.content
                 content_length = len(content)
                 files_content[filename] = content
+                if filename in ['Architecture.md', 'Specification.md']:
+                    architecture_content += f"\n\n# {filename}\n{content}"
                 pbar.set_postfix(chars=f"{content_length:,}")
             except Exception as e:
                 logger.error(f"Failed to generate {filename}: {str(e)}")
                 raise
 
+    # Generate guidance.toml with architecture content
+    files_content["guidance.toml"] = _generate_guidance_toml(tech_stack, architecture_content)
+    
     return files_content
 
 async def async_main():
@@ -804,23 +665,75 @@ async def async_main():
         except Exception as e:
             logger.error(f"Failed to read architecture content from guidance.toml: {str(e)}")
             sys.exit(1)
+
+        # Create uniquely identified implementation directory
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base_name = guidance_dir.name
+        impl_dir_name = f"implementation_{timestamp}_{base_name}"
+        impl_dir = Path(impl_dir_name)
+        impl_dir.mkdir(parents=True, exist_ok=True)
         
+        # Create src and tests directories inside implementation directory
+        src_dir = impl_dir / "src"
+        test_dir = impl_dir / "tests"
+        src_dir.mkdir(exist_ok=True)
+        test_dir.mkdir(exist_ok=True)
+        
+        logger.info(f"Created implementation directory: {impl_dir_name}")
         logger.info(f"Using architecture from: {guidance_dir}")
 
         content = architecture_content
 
-        # Parse components
+        # Parse components from architecture content
         import re
-        components = re.findall(r'## Component: (\w+)', content)
+        
+        # Look for component patterns in different sections
+        component_patterns = [
+            r'## Component: (\w+)',            # Classic component header
+            r'### (\w+Component)\b',           # Component suffix pattern
+            r'### (\w+Service)\b',             # Service suffix pattern
+            r'### (\w+)\b',                    # Any ### header
+            r'## (\w+Service)\b',              # Service in ## header
+            r'## (\w+Component)\b',            # Component in ## header
+            r'## Components\s+[-*]\s*(\w+)',   # Bullet list items
+            r'[-*]\s*(\w+(?:Component|Service))\b',  # Bullet points with suffix
+            r'[-*]\s*(\w+)\b(?:\s*-[^\n]+)?',  # Any bullet point with optional description
+            r'class (\w+)[\s:{]',              # Class definitions (more flexible)
+            r'interface (\w+)\s*[:{]',         # TypeScript interfaces (more flexible)
+            r'\b((?:[A-Z][a-z0-9]+){2,})\b',   # PascalCase words (2+ parts)
+        ]
+        
+        components = set()
+        for pattern in component_patterns:
+            matches = re.findall(pattern, content, re.MULTILINE)
+            components.update(matches)
+            
+        # Filter out common words that might match but aren't components
+        excluded_words = {
+            'Component', 'Service', 'Class', 'Interface', 'Implementation',
+            'React', 'Next', 'JavaScript', 'TypeScript', 'Node', 'Express',
+            'Frontend', 'Backend', 'Database', 'System', 'Module', 'Function',
+            'Architecture', 'Design', 'Pattern', 'Testing', 'Documentation'
+        }
+        components = {c for c in components if c not in excluded_words}
+        
         if not components:
-            logger.error("No components found in Architecture.md")
+            logger.error("No components found in architecture content")
+            logger.info("Please ensure your architecture documentation defines components using one of these patterns:")
+            logger.info("- ## Component: ComponentName")
+            logger.info("- ### ComponentName")
+            logger.info("- ## ComponentNameService")
+            logger.info("- ## Components\\n- ComponentName")
+            logger.info("- class ComponentName:")
+            logger.info("- interface ComponentName {")
             sys.exit(1)
+            
+        logger.info(f"Found components: {', '.join(sorted(components))}")
 
-        # Create source and test directories
-        src_dir = Path("src")
-        test_dir = Path("tests")
-        src_dir.mkdir(exist_ok=True)
-        test_dir.mkdir(exist_ok=True)
+        # Use the previously created directories in impl_dir
+        src_dir = impl_dir / "src"
+        test_dir = impl_dir / "tests"
 
         # Generate files for each component
         for component in components:
@@ -828,19 +741,186 @@ async def async_main():
             src_file = src_dir / f"{component_lower}.py"
             test_file = test_dir / f"test_{component_lower}.py"
 
-            # Generate source file with actual implementation
-            if not src_file.exists():
-                src_content = _generate_component_code(component)
-                with open(src_file, 'w') as f:
-                    f.write(src_content)
-                logger.info(f"Generated {src_file}")
+            # Get tech stack from guidance file
+            tech_stack = _detect_tech_stack(Path(args.guidance_file))
+            
+            if not tech_stack:
+                logger.error("Could not determine project technology stack")
+                sys.exit(1)
+                
+            logger.info(f"Implementing component using: {tech_stack['framework']} with {tech_stack['language']}")
+            
+            # Set file extensions based on language
+            file_ext = {
+                'typescript': '.ts',
+                'javascript': '.js', 
+                'rust': '.rs'
+            }.get(tech_stack['language'].lower(), '.js')
+            
+            test_ext = {
+                'typescript': '.test.ts',
+                'javascript': '.test.js',
+                'rust': '_test.rs'
+            }.get(tech_stack['language'].lower(), '.test.js')
+            
+            # Update file paths with correct extensions
+            component_lower = component.lower()
+            src_file = src_dir / f"{component_lower}{file_ext}"
+            test_file = test_dir / f"{component_lower}{test_ext}"
 
-            # Generate corresponding test file
-            if not test_file.exists():
-                test_content = _generate_test_code(component)
-                with open(test_file, 'w') as f:
-                    f.write(test_content)
-                logger.info(f"Generated {test_file}")
+            # Generate test file using appropriate testing framework
+            test_prompt = f"""Create tests for the {component} component using appropriate testing frameworks for {tech_stack['framework']}.
+For example:
+- JavaScript/TypeScript: Jest
+- Rust: built-in testing framework
+Follow testing best practices for {tech_stack['language']}.
+Write thorough unit tests that verify all expected functionality.
+Include edge cases and error conditions.
+Use proper test isolation and mocking where appropriate."""
+
+            logger.info(f"\n{'='*80}")
+            logger.info(f"Generating tests for {component} using aider...")
+            logger.info(f"{'='*80}\n")
+            
+            # Run aider with timeout
+            try:
+                process = subprocess.run(
+                    [
+                        "aider",
+                        "--yes",  # Auto-confirm prompts
+                        "--model", "claude-3-sonnet-20240229",
+                        "--edit-format", "diff",
+                        "--message", test_prompt,
+                        str(test_file)
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=300,  # 5 minute timeout
+                    check=False  # Don't raise on non-zero exit
+                )
+
+                # Log output regardless of success/failure
+                if process.stdout:
+                    for line in process.stdout.splitlines():
+                        logger.info(f"aider: {line.strip()}")
+                if process.stderr:
+                    for line in process.stderr.splitlines():
+                        logger.error(f"aider error: {line.strip()}")
+                        
+                if process.returncode != 0:
+                    logger.error(f"aider failed with return code {process.returncode}")
+                    return False
+                    
+            except subprocess.TimeoutExpired:
+                logger.error("aider process timed out after 5 minutes")
+                return False
+            except Exception as e:
+                logger.error(f"aider process failed: {str(e)}")
+                return False
+
+            if process.returncode != 0:  # Check returncode of CompletedProcess
+                logger.error(f"Failed to generate tests for {component}")
+                continue
+            
+            logger.info(f"Generated tests at {test_file}")
+
+            # Generate implementation using correct language/framework
+            impl_prompt = f"""Implement the {component} component using {tech_stack['framework']} and {tech_stack['language']}.
+Follow best practices for {tech_stack['language']} development.
+Ensure proper error handling and type safety.
+The component should pass the tests in {test_file}.
+Make the implementation clean, efficient, and well-documented.
+Use appropriate patterns and practices for {tech_stack['framework']}."""
+
+            logger.info(f"\n{'='*80}")
+            logger.info(f"Implementing {component} using aider...")
+            logger.info(f"{'='*80}\n")
+            
+            # Run aider with timeout
+            try:
+                process = subprocess.run(
+                    [
+                        "aider",
+                        "--yes",  # Auto-confirm prompts
+                        "--model", "claude-3-sonnet-20240229",
+                        "--edit-format", "diff",
+                        "--message", impl_prompt,
+                        str(src_file)
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=300,  # 5 minute timeout
+                    check=False  # Don't raise on non-zero exit
+                )
+
+                # Log output regardless of success/failure
+                if process.stdout:
+                    for line in process.stdout.splitlines():
+                        logger.info(f"aider: {line.strip()}")
+                if process.stderr:
+                    for line in process.stderr.splitlines():
+                        logger.error(f"aider error: {line.strip()}")
+                        
+                if process.returncode != 0:
+                    logger.error(f"aider failed with return code {process.returncode}")
+                    return False
+                    
+            except subprocess.TimeoutExpired:
+                logger.error("aider process timed out after 5 minutes")
+                return False
+            except Exception as e:
+                logger.error(f"aider process failed: {str(e)}")
+                return False
+
+            if process.returncode != 0:  # Check returncode of CompletedProcess
+                logger.error(f"Failed to implement {component}")
+                continue
+                
+            logger.info(f"Generated implementation at {src_file}")
+
+            # 4. Run tests with visual feedback
+            logger.info(f"\n{'='*80}")
+            logger.info(f"Running tests for {component}")
+            logger.info(f"{'='*80}")
+
+            logger.info("\nFinal implementation:")
+            logger.info(f"\n{'-'*40}\n{src_file.read_text()}\n{'-'*40}")
+
+            logger.info("\nExecuting tests...")
+            try:
+                test_run = subprocess.run(
+                    [
+                        "pytest",
+                        "-v",
+                        "--capture=no",  # Show test output in real-time
+                        str(test_file)
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=60  # 1 minute timeout for tests
+                )
+
+                # Log test output
+                if test_run.stdout:
+                    logger.info(f"Test output:\n{test_run.stdout}")
+                if test_run.stderr:
+                    logger.error(f"Test errors:\n{test_run.stderr}")
+
+                if test_run.returncode != 0:
+                    logger.error(f"Tests failed for {component}")
+                    continue
+                    
+            except subprocess.TimeoutExpired:
+                logger.error(f"Tests timed out for {component}")
+                continue
+            except Exception as e:
+                logger.error(f"Test execution failed: {str(e)}")
+                continue
+                
+            logger.info(f"Tests passed for {component}")
 
 
 
