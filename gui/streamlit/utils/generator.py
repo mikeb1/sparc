@@ -1,25 +1,17 @@
 # gui/tests/test_generator.py
-
-import pytest
-import pytest_asyncio
 import asyncio
-from unittest.mock import patch, MagicMock
-from pathlib import Path
 import logging
-import json
+from pathlib import Path
+from typing import Dict, Optional
 import toml
-from datetime import datetime
+from litellm import completion
 
-# Configure logging for better debugging output
+# Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-# Import the functions to be tested
-
-# Mock responses for different completion calls
 MOCK_TECH_STACK_RESPONSE = MagicMock(
     choices=[
         MagicMock(
