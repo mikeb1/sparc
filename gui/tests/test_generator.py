@@ -1,5 +1,9 @@
 import pytest
 import pytest_asyncio
+
+# Configure pytest-asyncio
+pytest.register_assert_rewrite('pytest_asyncio')
+pytestmark = pytest.mark.asyncio
 import asyncio
 from unittest.mock import patch, MagicMock
 from pathlib import Path
@@ -39,6 +43,7 @@ def mock_completion():
         mock.return_value = MOCK_CONTENT_RESPONSE
         yield mock
 
+@pytest.mark.asyncio
 async def test_detect_tech_stack_from_description(mock_completion):
     """Test tech stack detection from project description."""
     project_desc = "Build a Next.js web application with TypeScript"
@@ -53,6 +58,7 @@ async def test_detect_tech_stack_from_description(mock_completion):
     assert "database" in tech_stack["features"]
     assert "api" in tech_stack["features"]
 
+@pytest.mark.asyncio
 async def test_generate_sparc_content(mock_completion):
     """Test SPARC content generation."""
     project_desc = "Build a Next.js web application with TypeScript"
@@ -80,6 +86,7 @@ async def test_generate_sparc_content(mock_completion):
     assert "Next.js" in files_content["guidance.toml"]
     assert "typescript" in files_content["guidance.toml"]
 
+@pytest.mark.asyncio
 async def test_generate_sparc_content_error_handling():
     """Test error handling in SPARC content generation."""
     with patch('gui.streamlit.utils.generator.completion', side_effect=Exception("API Error")):
@@ -91,6 +98,7 @@ async def test_generate_sparc_content_error_handling():
         
         assert "API Error" in str(exc_info.value)
 
+@pytest.mark.asyncio
 async def test_file_structure(mock_completion, tmp_path):
     """Test that generated files follow expected structure."""
     project_desc = "Build a Next.js web application with TypeScript"
