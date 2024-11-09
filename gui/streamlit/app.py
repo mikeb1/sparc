@@ -1,6 +1,10 @@
+import sys
+from pathlib import Path
+# Add parent directory to Python path to find utils module
+sys.path.append(str(Path(__file__).parent.parent))
+
 import streamlit as st
 import streamlit.components.v1 as components
-from pathlib import Path
 import base64
 import os
 import git
@@ -154,10 +158,6 @@ def main():
 
     # Main content
     if page == "Project":
-        import sys
-        from pathlib import Path
-        # Add parent directory to Python path to find utils module
-        sys.path.append(str(Path(__file__).parent.parent))
         from utils.database import init_db, save_project, get_projects
         from utils.project import scan_architecture_folders, load_project_files, init_git_repo
         from utils.ui import (show_project_setup_instructions, show_project_card, 
@@ -246,22 +246,25 @@ def main():
 
 if __name__ == "__main__":
     main()
-import streamlit as st
-import streamlit.components.v1 as components
-from pathlib import Path
-import base64
-import os
-import git
-import toml
-from datetime import datetime
-
-# Configure Streamlit page
+# Configure Streamlit page - must be first Streamlit command
 st.set_page_config(
     page_title="SPARC GUI",
     page_icon="🔧",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+import sys
+from pathlib import Path
+# Add parent directory to Python path to find utils module
+sys.path.append(str(Path(__file__).parent.parent))
+
+import streamlit.components.v1 as components
+import base64
+import os
+import git
+import toml
+from datetime import datetime
 
 # Dark mode CSS
 dark_mode_css = """
