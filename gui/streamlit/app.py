@@ -211,7 +211,7 @@ def main():
 
     # Main content
     if page == "Project":
-        from utils.database import init_db, save_project, get_projects, get_architectures
+        from utils.database import init_db, save_project, get_projects
         from utils.project import scan_architecture_folders, load_project_files, init_git_repo
         from utils.ui import (show_project_setup_instructions, show_project_card, 
                             show_architecture_folder_card)
@@ -592,7 +592,8 @@ def main():
         with tab3:
             st.subheader("📐 Saved Architectures")
             
-            architectures = get_architectures()
+            from utils.database import get_architectures
+            architectures = get_architectures() 
             if not architectures:
                 st.info("No saved architectures found")
             else:
