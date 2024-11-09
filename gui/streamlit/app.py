@@ -707,12 +707,14 @@ def main():
                         
                         with col2:
                             if st.button("👀 View Files", key=f"view_{arch['id']}"):
+                                st.write("### Files:")
                                 for filename, content in arch['files'].items():
-                                    with st.expander(f"📄 {filename}"):
-                                        if filename == "guidance.toml":
-                                            st.json(content)
-                                        else:
-                                            st.markdown(content)
+                                    st.markdown(f"**📄 {filename}**")
+                                    if filename == "guidance.toml":
+                                        st.json(content)
+                                    else:
+                                        st.markdown(content)
+                                    st.markdown("---")
             
             # Model Selection
             model = st.selectbox(
