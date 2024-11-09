@@ -247,7 +247,7 @@ Return only a JSON object with these fields:
             'features': ['sticky-nav', 'sidebar', 'mobile-view', 'agent-management']
         }
 
-async def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
+def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
     
     # Detect tech stack from project description

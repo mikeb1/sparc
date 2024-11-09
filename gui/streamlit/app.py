@@ -458,17 +458,44 @@ def main():
                                 
                                 # Display files as they are generated
                                 st.subheader("Generated Files:")
-                                files = result["files"]
                                 
-                                # Create expandable sections for each file
-                                for filename in ["guidance.toml", "Specification.md", "Architecture.md", 
-                                               "Pseudocode.md", "Refinement.md", "Completion.md"]:
-                                    with st.expander(f"📄 {filename}", expanded=True):
-                                        content = files.get(filename, "File not found")
+                                # Initialize progress tracking
+                                progress = st.progress(0)
+                                status = st.empty()
+                                
+                                files = {}
+                                file_order = ["guidance.toml", "Specification.md", "Architecture.md", 
+                                            "Pseudocode.md", "Refinement.md", "Completion.md"]
+                                
+                                # Create placeholder expanders
+                                expanders = {}
+                                for filename in file_order:
+                                    expanders[filename] = st.expander(f"📄 {filename}", expanded=True)
+                                    with expanders[filename]:
+                                        st.info(f"Generating {filename}...")
+                                
+                                # Process each file sequentially
+                                for i, filename in enumerate(file_order):
+                                    status.text(f"Generating {filename}...")
+                                    progress.progress((i) / len(file_order))
+                                    
+                                    content = result["files"].get(filename, "File not found")
+                                    files[filename] = content
+                                    
+                                    with expanders[filename]:
+                                        st.empty()  # Clear "Generating..." message
                                         if isinstance(content, dict):  # For guidance.toml
                                             st.json(content)
                                         else:
                                             st.markdown(content)
+                                        st.success(f"Generated {filename}")
+                                    
+                                    # Small delay to show progress
+                                    import time
+                                    time.sleep(0.5)
+                                
+                                progress.progress(1.0)
+                                status.success("All files generated!")
                                         st.download_button(
                                             f"💾 Download {filename}",
                                             str(content),
