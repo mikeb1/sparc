@@ -81,38 +81,26 @@ MOCK_COMPLETION_RESPONSE = MagicMock(
 
 @pytest.fixture
 def mock_completion():
-    """
-    Fixture to mock the 'completion' function used in content generation.
-    It returns different mock responses based on the content of the messages.
-    """
+    """Mock the completion function to return predefined responses."""
     with patch('gui.streamlit.utils.generator.completion') as mock:
         async def async_mock(*args, **kwargs):
             messages = kwargs.get('messages', [])
             for msg in messages:
                 content = msg.get('content', '')
-                logger.debug(f"Mock received message content: {content}")
                 if 'Extract tech stack from' in content:
-                    logger.debug("Returning MOCK_TECH_STACK_RESPONSE")
                     return MOCK_TECH_STACK_RESPONSE
-                elif 'Generate Specification.md' in content:
-                    logger.debug("Returning MOCK_SPECIFICATION_RESPONSE")
-                    return MOCK_SPECIFICATION_RESPONSE
-                elif 'Generate Architecture.md' in content:
-                    logger.debug("Returning MOCK_ARCHITECTURE_RESPONSE")
-                    return MOCK_ARCHITECTURE_RESPONSE
-                elif 'Generate Pseudocode.md' in content:
-                    logger.debug("Returning MOCK_PSEUDOCODE_RESPONSE")
-                    return MOCK_PSEUDOCODE_RESPONSE
-                elif 'Generate Refinement.md' in content:
-                    logger.debug("Returning MOCK_REFINEMENT_RESPONSE")
-                    return MOCK_REFINEMENT_RESPONSE
-                elif 'Generate Completion.md' in content:
-                    logger.debug("Returning MOCK_COMPLETION_RESPONSE")
-                    return MOCK_COMPLETION_RESPONSE
-            # Default response if no condition matches
-            logger.debug("Returning MOCK_CONTENT_RESPONSE as default")
-            return MOCK_COMPLETION_RESPONSE
-
+                
+            # Return mock content for each file
+            mock_content = "# Generated Content\n\nThis is mock generated content."
+            return MagicMock(
+                choices=[
+                    MagicMock(
+                        message=MagicMock(
+                            content=mock_content
+                        )
+                    )
+                ]
+            )
         mock.side_effect = async_mock
         yield mock
 
