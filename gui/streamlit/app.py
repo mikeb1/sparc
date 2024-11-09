@@ -482,8 +482,8 @@ def main():
             st.subheader("✨ Code Quality")
             col1, col2 = st.columns(2)
             with col1:
-                max_complexity = st.number_input("Max Complexity", min_value=1, value=8, key="history_max_complexity")
-                max_line_length = st.number_input("Max Line Length", min_value=50, value=88, key="history_max_line_length")
+                max_complexity = st.number_input("Max Complexity", min_value=1, value=8, key="history_max_complexity_tab3")
+                max_line_length = st.number_input("Max Line Length", min_value=50, value=88, key="history_max_line_length_tab3")
             with col2:
                 require_type_hints = st.checkbox("Require Type Hints", value=True, key="history_require_type_hints")
                 require_docstrings = st.checkbox("Require Docstrings", value=True, key="history_require_docstrings")
