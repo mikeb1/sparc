@@ -441,6 +441,8 @@ def main():
                 else:
                     with st.spinner("Generating architecture..."):
                         try:
+                            from utils.sparc import run_sparc_architect
+                            
                             # Run SPARC architect mode
                             result = asyncio.run(run_sparc_architect(
                                 project_desc=project_desc,
