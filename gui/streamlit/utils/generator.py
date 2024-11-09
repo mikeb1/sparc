@@ -19,20 +19,22 @@ async def detect_tech_stack_from_description(project_desc: str, model: str) -> D
     try:
         response = await completion(
             model=model,
-            messages=[{
-                "role": "system",
-                "content": """You are a technical analyst. Extract the technology stack from the project description.
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are a technical analyst. Extract the technology stack from the project description.
 Return only a JSON object with these fields:
 {
     "framework": "name of the framework",
     "language": "primary programming language",
     "features": ["list", "of", "features"]
 }"""
-            },
-            {
-                "role": "user",
-                "content": f"Extract tech stack from: {project_desc}"
-            }],
+                },
+                {
+                    "role": "user",
+                    "content": f"Extract tech stack from: {project_desc}"
+                }
+            ],
             temperature=0.1
         )
 
