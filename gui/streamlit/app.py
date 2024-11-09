@@ -427,6 +427,7 @@ def main():
             # Generate Button
             if st.button("🚀 Generate", type="primary"):
                 mode = st.session_state.mode  # Get current mode
+                project_desc = st.session_state.get('arch_project_desc', '')
                 if mode == "🏗️ Architect" and not project_desc:
                     st.error("Please provide a project description")
                 else:
