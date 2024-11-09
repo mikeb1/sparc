@@ -496,6 +496,10 @@ def main():
                                 
                                 progress.progress(1.0)
                                 status.success("All files generated!")
+                                
+                                # Add download buttons for each file
+                                for filename, content in files.items():
+                                    with expanders[filename]:
                                         st.download_button(
                                             f"💾 Download {filename}",
                                             str(content),
