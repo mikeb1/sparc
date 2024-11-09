@@ -14,13 +14,7 @@ MOCK_TECH_STACK_RESPONSE = MagicMock(
     choices=[
         MagicMock(
             message=MagicMock(
-                content='''
-                {
-                    "framework": "Next.js",
-                    "language": "typescript",
-                    "features": ["authentication", "database", "api"]
-                }
-                '''
+                content='{"framework": "Next.js", "language": "typescript", "features": ["authentication", "database", "api"]}'
             )
         )
     ]
@@ -41,6 +35,10 @@ MOCK_CONTENT_RESPONSE = MagicMock(
 def mock_completion():
     with patch('gui.streamlit.utils.generator.completion') as mock:
         async def async_mock(*args, **kwargs):
+            # Return tech stack response for tech stack detection
+            if "Extract tech stack from" in args[0]["messages"][1]["content"]:
+                return MOCK_TECH_STACK_RESPONSE
+            # Return content response for file generation
             return MOCK_CONTENT_RESPONSE
         mock.side_effect = async_mock
         yield mock
