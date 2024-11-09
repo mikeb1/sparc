@@ -3,6 +3,7 @@ import subprocess
 import asyncio
 from typing import Dict
 from utils.sparc import run_sparc_architect, run_sparc_implement
+from utils.database import get_architectures
 
 # Configure Streamlit page - must be first Streamlit command
 st.set_page_config(
