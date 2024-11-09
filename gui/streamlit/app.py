@@ -340,8 +340,178 @@ def main():
                     st.markdown("---")
 
     elif page == "Code":
-        st.title("Code Editor")
-        st.info("Code editing features coming soon...")
+        st.title("🚀 SPARC Code Generator")
+        
+        tab1, tab2 = st.tabs(["📝 CLI Options", "⚙️ Guidance Configuration"])
+        
+        with tab1:
+            st.header("Command Line Options")
+            
+            # Mode Selection
+            mode = st.radio(
+                "Select Mode",
+                ["🏗️ Architect", "💻 Implement"],
+                help="Choose between generating architecture or implementing code"
+            )
+            
+            # Common Options
+            model = st.selectbox(
+                "🤖 AI Model",
+                ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "gpt-4", "gpt-4-turbo"],
+                help="Select the AI model to use"
+            )
+            
+            if mode == "🏗️ Architect":
+                # Architect mode options
+                project_desc = st.text_area(
+                    "📋 Project Description",
+                    help="Describe your project in detail"
+                )
+                guidance_file = st.text_input(
+                    "📁 Guidance File Path",
+                    value="guidance.toml",
+                    help="Path to your guidance TOML file"
+                )
+                
+            else:
+                # Implement mode options
+                col1, col2 = st.columns(2)
+                with col1:
+                    max_attempts = st.number_input(
+                        "🔄 Max Attempts",
+                        min_value=1,
+                        value=3,
+                        help="Maximum implementation attempts per component"
+                    )
+                with col2:
+                    guidance_file = st.text_input(
+                        "📁 Guidance File Path",
+                        value="guidance.toml",
+                        help="Path to your guidance TOML file"
+                    )
+                
+                optional_desc = st.text_area(
+                    "📝 Optional Description",
+                    help="Additional implementation details (optional)"
+                )
+            
+            # Generate Button
+            if st.button("🚀 Generate", type="primary"):
+                if mode == "🏗️ Architect" and not project_desc:
+                    st.error("Please provide a project description")
+                else:
+                    with st.spinner("Generating..."):
+                        try:
+                            # Construct command
+                            cmd = ["python", "sparc_cli.py"]
+                            cmd.extend([mode.split()[1].lower()])
+                            cmd.extend(["--model", model])
+                            cmd.extend(["--guidance-file", guidance_file])
+                            
+                            if mode == "🏗️ Architect":
+                                cmd.append(project_desc)
+                            else:
+                                cmd.extend(["--max-attempts", str(max_attempts)])
+                                if optional_desc:
+                                    cmd.append(optional_desc)
+                                    
+                            # Execute command
+                            result = subprocess.run(cmd, capture_output=True, text=True)
+                            
+                            if result.returncode == 0:
+                                st.success("Generation completed successfully!")
+                                with st.expander("View Details"):
+                                    st.code(result.stdout)
+                            else:
+                                st.error("Generation failed")
+                                with st.expander("View Error"):
+                                    st.code(result.stderr)
+                        except Exception as e:
+                            st.error(f"An error occurred: {str(e)}")
+        
+        with tab2:
+            st.header("Guidance Configuration")
+            
+            # Project Settings
+            st.subheader("🎯 Project Settings")
+            col1, col2 = st.columns(2)
+            with col1:
+                framework = st.text_input("Framework", help="e.g., Flask, Next.js")
+                language = st.text_input("Language", help="e.g., Python, JavaScript")
+            with col2:
+                features = st.text_area("Features (one per line)", help="List key features")
+            
+            # Implementation Settings
+            st.subheader("⚙️ Implementation Settings")
+            col1, col2 = st.columns(2)
+            with col1:
+                max_attempts = st.number_input("Max Attempts", min_value=1, value=3)
+                test_first = st.checkbox("Test First Approach", value=True)
+            with col2:
+                type_hints = st.checkbox("Type Hints", value=True)
+                docstring_style = st.selectbox("Docstring Style", ["Google", "NumPy", "reStructuredText"])
+            
+            # Testing Requirements
+            st.subheader("🧪 Testing Requirements")
+            col1, col2 = st.columns(2)
+            with col1:
+                min_coverage = st.slider("Minimum Coverage %", 0, 100, 85)
+                unit_test = st.checkbox("Unit Tests Required", value=True)
+            with col2:
+                integration_test = st.checkbox("Integration Tests Required", value=True)
+            
+            # Quality Settings
+            st.subheader("✨ Code Quality")
+            col1, col2 = st.columns(2)
+            with col1:
+                max_complexity = st.number_input("Max Complexity", min_value=1, value=8)
+                max_line_length = st.number_input("Max Line Length", min_value=50, value=88)
+            with col2:
+                require_type_hints = st.checkbox("Require Type Hints", value=True)
+                require_docstrings = st.checkbox("Require Docstrings", value=True)
+            
+            # Generate TOML
+            if st.button("📝 Generate TOML", type="primary"):
+                try:
+                    guidance_content = {
+                        "project": {
+                            "framework": framework,
+                            "language": language,
+                            "features": [f.strip() for f in features.split('\n') if f.strip()]
+                        },
+                        "implementation": {
+                            "max_attempts": max_attempts,
+                            "test_first": test_first,
+                            "type_hints": type_hints,
+                            "docstring_style": docstring_style
+                        },
+                        "testing": {
+                            "min_coverage": min_coverage,
+                            "unit_test_required": unit_test,
+                            "integration_test_required": integration_test
+                        },
+                        "quality": {
+                            "max_complexity": max_complexity,
+                            "max_line_length": max_line_length,
+                            "require_type_hints": require_type_hints,
+                            "require_docstrings": require_docstrings
+                        }
+                    }
+                    
+                    toml_str = toml.dumps(guidance_content)
+                    st.code(toml_str, language="toml")
+                    
+                    # Add download button
+                    st.download_button(
+                        "💾 Download guidance.toml",
+                        toml_str,
+                        "guidance.toml",
+                        "text/toml",
+                        use_container_width=True
+                    )
+                    
+                except Exception as e:
+                    st.error(f"Failed to generate TOML: {str(e)}")
 
     elif page == "Tests":
         st.title("Test Runner")
