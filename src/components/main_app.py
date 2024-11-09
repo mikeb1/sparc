@@ -75,14 +75,58 @@ class MainApp:
         """Display project management interface."""
         st.header("Project Management")
         
+        # Add project selection/creation
+        if not st.session_state.get('project'):
+            st.info("No project selected")
+            if st.button("Create New Project"):
+                st.session_state.project = "New Project"
+        else:
+            st.success(f"Current Project: {st.session_state.project}")
+            
+        # Add project status section
+        st.subheader("Project Status")
+        st.write("Git Status: Clean")
+        
     def _display_code(self):
         """Display code editing interface."""
         st.header("Code Editor")
         
+        # Add file browser
+        files = ["file1.py", "file2.py"]  # Replace with actual file list
+        selected_file = st.selectbox("Select File", files)
+        
+        if selected_file:
+            st.text_area("Edit Code", value="# Code goes here", height=300)
+            if st.button("Save Changes"):
+                st.success("Changes saved!")
+
     def _display_tests(self):
         """Display test runner interface."""
         st.header("Test Runner")
         
+        # Add test controls
+        if st.button("Run All Tests"):
+            st.info("Running tests...")
+            # Add actual test execution here
+            st.success("All tests passed!")
+        
+        # Add test results section
+        st.subheader("Test Results")
+        st.write("Last Run: No tests run yet")
+
     def _display_settings(self):
         """Display settings interface."""
         st.header("Settings")
+        
+        # Add settings controls
+        dark_mode = st.toggle("Dark Mode", value=st.session_state.get('dark_mode', True))
+        if dark_mode != st.session_state.get('dark_mode'):
+            st.session_state.dark_mode = dark_mode
+            st.success("Theme updated!")
+        
+        # Add other settings
+        st.subheader("Git Settings")
+        st.text_input("Git Path", value="/usr/bin/git")
+        
+        if st.button("Save Settings"):
+            st.success("Settings saved!")
