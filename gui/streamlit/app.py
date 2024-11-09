@@ -750,30 +750,30 @@ def main():
             st.subheader("⚙️ Implementation Settings")
             col1, col2 = st.columns(2)
             with col1:
-                max_attempts = st.number_input("Max Attempts", min_value=1, value=3)
-                test_first = st.checkbox("Test First Approach", value=True)
+                max_attempts = st.number_input("Max Attempts", min_value=1, value=3, key="history_max_attempts")
+                test_first = st.checkbox("Test First Approach", value=True, key="history_test_first")
             with col2:
-                type_hints = st.checkbox("Type Hints", value=True)
-                docstring_style = st.selectbox("Docstring Style", ["Google", "NumPy", "reStructuredText"])
+                type_hints = st.checkbox("Type Hints", value=True, key="history_type_hints")
+                docstring_style = st.selectbox("Docstring Style", ["Google", "NumPy", "reStructuredText"], key="history_docstring_style")
             
             # Testing Requirements
             st.subheader("🧪 Testing Requirements")
             col1, col2 = st.columns(2)
             with col1:
-                min_coverage = st.slider("Minimum Coverage %", 0, 100, 85, key="impl_min_coverage")
-                unit_test = st.checkbox("Unit Tests Required", value=True, key="impl_unit_test")
+                min_coverage = st.slider("Minimum Coverage %", 0, 100, 85, key="history_min_coverage")
+                unit_test = st.checkbox("Unit Tests Required", value=True, key="history_unit_test")
             with col2:
-                integration_test = st.checkbox("Integration Tests Required", value=True, key="impl_integration_test")
+                integration_test = st.checkbox("Integration Tests Required", value=True, key="history_integration_test")
             
             # Quality Settings
             st.subheader("✨ Code Quality")
             col1, col2 = st.columns(2)
             with col1:
-                max_complexity = st.number_input("Max Complexity", min_value=1, value=8)
-                max_line_length = st.number_input("Max Line Length", min_value=50, value=88)
+                max_complexity = st.number_input("Max Complexity", min_value=1, value=8, key="history_max_complexity")
+                max_line_length = st.number_input("Max Line Length", min_value=50, value=88, key="history_max_line_length")
             with col2:
-                require_type_hints = st.checkbox("Require Type Hints", value=True)
-                require_docstrings = st.checkbox("Require Docstrings", value=True)
+                require_type_hints = st.checkbox("Require Type Hints", value=True, key="history_require_type_hints")
+                require_docstrings = st.checkbox("Require Docstrings", value=True, key="history_require_docstrings")
             
             # Generate Files
             if st.button("📝 Generate Implementation", type="primary"):
