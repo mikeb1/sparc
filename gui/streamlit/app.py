@@ -350,6 +350,14 @@ def main():
             st.header("Guidance Configuration")
             st.session_state.mode = "🏗️ Architect"
             
+            # Project Description
+            project_desc = st.text_area(
+                "📝 Project Description",
+                help="Describe your project in detail",
+                height=100,
+                key="arch_project_desc"
+            )
+            
             # Project Settings
             st.subheader("🎯 Project Settings")
             col1, col2 = st.columns(2)
