@@ -1,5 +1,7 @@
 import streamlit as st
 import subprocess
+import asyncio
+from utils.sparc import run_sparc_architect, run_sparc_implement
 
 # Configure Streamlit page - must be first Streamlit command
 st.set_page_config(
@@ -345,6 +347,12 @@ def main():
         
         tab1, tab2 = st.tabs(["🏗️ Architect", "💻 Implement"])
         mode = st.session_state.get('mode', "🏗️ Architect")  # Default to Architect mode
+
+        # Initialize session state for SPARC
+        if 'sparc_arch_dir' not in st.session_state:
+            st.session_state.sparc_arch_dir = None
+        if 'sparc_impl_dir' not in st.session_state:
+            st.session_state.sparc_impl_dir = None
         
         with tab1:
             st.header("Guidance Configuration")
@@ -431,33 +439,42 @@ def main():
                 if mode == "🏗️ Architect" and not project_desc:
                     st.error("Please provide a project description")
                 else:
-                    with st.spinner("Generating..."):
+                    with st.spinner("Generating architecture..."):
                         try:
-                            from utils.generator import generate_sparc_content, save_generated_content
+                            # Run SPARC architect mode
+                            result = asyncio.run(run_sparc_architect(
+                                project_desc=project_desc,
+                                model=model,
+                                guidance_file=guidance_file
+                            ))
                             
-                            # Generate content
-                            content = generate_sparc_content(project_desc, model)
-                            
-                            # Save to architecture directory
-                            output_dir = Path("architecture")
-                            arch_dir = save_generated_content(content, output_dir)
-                            
-                            st.success(f"Generated architecture files in: {arch_dir}")
-                            
-                            # Show preview tabs
-                            tabs = st.tabs(["📋 TOML", "📑 Specification", "🏗️ Architecture", 
-                                          "💻 Pseudocode", "🔄 Refinement", "✅ Completion"])
-                            
-                            for tab, (filename, content) in zip(tabs, content.items()):
-                                with tab:
-                                    st.markdown(content)
-                                    st.download_button(
-                                        f"💾 Download {filename}",
-                                        content,
-                                        filename,
-                                        mime="text/plain",
-                                        use_container_width=True
-                                    )
+                            if "error" in result:
+                                st.error(f"Generation failed: {result['error']}")
+                            else:
+                                st.session_state.sparc_arch_dir = result["arch_dir"]
+                                st.success(f"Generated architecture files in: {result['arch_dir']}")
+                                
+                                # Show preview tabs
+                                tabs = st.tabs(["📋 TOML", "📑 Specification", "🏗️ Architecture", 
+                                              "💻 Pseudocode", "🔄 Refinement", "✅ Completion"])
+                                
+                                files = result["files"]
+                                for tab, filename in zip(tabs, ["guidance.toml", "Specification.md", 
+                                                             "Architecture.md", "Pseudocode.md",
+                                                             "Refinement.md", "Completion.md"]):
+                                    with tab:
+                                        content = files.get(filename, "File not found")
+                                        if isinstance(content, dict):  # For guidance.toml
+                                            st.json(content)
+                                        else:
+                                            st.markdown(content)
+                                        st.download_button(
+                                            f"💾 Download {filename}",
+                                            str(content),
+                                            filename,
+                                            mime="text/plain",
+                                            use_container_width=True
+                                        )
                                     
                         except Exception as e:
                             st.error(f"Generation failed: {str(e)}")
@@ -530,83 +547,54 @@ def main():
                 require_docstrings = st.checkbox("Require Docstrings", value=True)
             
             # Generate Files
-            if st.button("📝 Generate Files", type="primary"):
-                try:
-                    # Generate guidance content
-                    guidance_content = {
-                        "project": {
-                            "framework": framework,
-                            "language": language,
-                            "features": [f.strip() for f in features.split('\n') if f.strip()]
-                        },
-                        "implementation": {
-                            "max_attempts": max_attempts,
-                            "test_first": test_first,
-                            "type_hints": type_hints,
-                            "docstring_style": docstring_style
-                        },
-                        "testing": {
-                            "min_coverage": min_coverage,
-                            "unit_test_required": unit_test,
-                            "integration_test_required": integration_test
-                        },
-                        "quality": {
-                            "max_complexity": max_complexity,
-                            "max_line_length": max_line_length,
-                            "require_type_hints": require_type_hints,
-                            "require_docstrings": require_docstrings
-                        }
-                    }
-                    
-                    # Convert to TOML string
-                    toml_str = toml.dumps(guidance_content)
-
-                    # Generate markdown files
-                    files_content = {
-                        "Specification.md": """# Specification
-...
-""",
-                        "Architecture.md": """# Architecture
-...
-""",
-                        "Pseudocode.md": """# Pseudocode
-...
-""",
-                        "Refinement.md": """# Refinement
-...
-""",
-                        "Completion.md": """# Completion
-...
-"""
-                    }
-
-                    # Display previews in tabs
-                    tabs = st.tabs(["📋 TOML", "📑 Specification", "🏗️ Architecture", 
-                                  "💻 Pseudocode", "🔄 Refinement", "✅ Completion"])
-                    
-                    with tabs[0]:
-                        st.code(toml_str, language="toml")
-                        st.download_button(
-                            "💾 Download guidance.toml",
-                            toml_str,
-                            "guidance.toml",
-                            "text/toml",
-                            use_container_width=True
-                        )
-
-                    for i, (filename, content) in enumerate(files_content.items(), 1):
-                        with tabs[i]:
-                            st.markdown(content)
-                            st.download_button(
-                                f"💾 Download {filename}",
-                                content,
-                                filename,
-                                "text/markdown",
-                                use_container_width=True
-                            )
-                    
-                except Exception as e:
-                    st.error(f"Failed to generate files: {str(e)}")
+            if st.button("📝 Generate Implementation", type="primary"):
+                if not st.session_state.sparc_arch_dir:
+                    st.error("Please generate architecture files first")
+                else:
+                    with st.spinner("Generating implementation..."):
+                        try:
+                            # Run SPARC implement mode
+                            result = asyncio.run(run_sparc_implement(
+                                arch_dir=st.session_state.sparc_arch_dir,
+                                model=model,
+                                max_attempts=max_attempts
+                            ))
+                            
+                            if "error" in result:
+                                st.error(f"Implementation failed: {result['error']}")
+                            else:
+                                st.session_state.sparc_impl_dir = result["impl_dir"]
+                                st.success(f"Generated implementation in: {result['impl_dir']}")
+                                
+                                # Show source and test files
+                                col1, col2 = st.columns(2)
+                                
+                                with col1:
+                                    st.subheader("Source Files")
+                                    for filename, content in result["files"]["src"].items():
+                                        with st.expander(f"📄 {filename}"):
+                                            st.code(content, language="python")
+                                            st.download_button(
+                                                f"💾 Download {filename}",
+                                                content,
+                                                filename,
+                                                mime="text/plain"
+                                            )
+                                            
+                                with col2:
+                                    st.subheader("Test Files")
+                                    for filename, content in result["files"]["tests"].items():
+                                        with st.expander(f"🧪 {filename}"):
+                                            st.code(content, language="python")
+                                            st.download_button(
+                                                f"💾 Download {filename}",
+                                                content,
+                                                filename,
+                                                mime="text/plain"
+                                            )
+                                            
+                        except Exception as e:
+                            st.error(f"Implementation failed: {str(e)}")
 
     elif page == "Tests":
         st.title("Test Runner")
