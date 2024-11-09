@@ -538,7 +538,7 @@ Include:
         for filename, prompt in pbar:
             pbar.set_description(f"Generating {filename}")
             try:
-                response = completion(
+                response = await completion(
                     model=model,
                     messages=[{
                         "role": "system",

@@ -239,7 +239,7 @@ async def run_sparc_implement(arch_dir: str, model: str, max_attempts: int = 3) 
         logger.error(f"Implementation failed: {str(e)}")
         return {"error": str(e)}
 
-def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
+async def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
     try:
         # Detect tech stack
