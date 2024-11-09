@@ -603,7 +603,8 @@ def main():
                 guidance_file = st.text_input(
                     "📁 Guidance File Path",
                     value="guidance.toml",
-                    help="Path to your guidance TOML file"
+                    help="Path to your guidance TOML file",
+                    key="impl_guidance_file"
                 )
             
             project_desc = st.text_area(
