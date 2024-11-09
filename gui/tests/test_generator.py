@@ -89,24 +89,36 @@ def mock_completion():
     with patch('gui.streamlit.utils.generator.completion') as mock:
         async def async_mock(*args, **kwargs):
             messages = kwargs.get('messages', [])
+            logger.debug(f"Mock received messages: {messages}")
+            
+            # Extract tech stack detection request
             for msg in messages:
                 content = msg.get('content', '')
                 if 'Extract tech stack from' in content:
+                    logger.debug("Returning tech stack response")
                     return MOCK_TECH_STACK_RESPONSE
-                
-            # Return specific mock content based on the file being generated
-            if 'Specification.md' in content:
+
+            # Extract file generation request from user message
+            user_msg = next((msg['content'] for msg in messages if msg['role'] == 'user'), '')
+            
+            # Return specific mock content based on the prompt content
+            if 'Generate a detailed software specification' in user_msg:
+                logger.debug("Returning specification response")
                 return MOCK_SPECIFICATION_RESPONSE
-            elif 'Architecture.md' in content:
+            elif 'Generate a detailed software architecture' in user_msg:
+                logger.debug("Returning architecture response") 
                 return MOCK_ARCHITECTURE_RESPONSE
-            elif 'Pseudocode.md' in content:
+            elif 'Generate pseudocode' in user_msg:
+                logger.debug("Returning pseudocode response")
                 return MOCK_PSEUDOCODE_RESPONSE
-            elif 'Refinement.md' in content:
+            elif 'Generate implementation details and refinements' in user_msg:
+                logger.debug("Returning refinement response")
                 return MOCK_REFINEMENT_RESPONSE
-            elif 'Completion.md' in content:
+            elif 'Generate completion criteria' in user_msg:
+                logger.debug("Returning completion response")
                 return MOCK_COMPLETION_RESPONSE
             
-            # Default response for other cases
+            logger.warning(f"No matching mock response for message: {user_msg}")
             return MOCK_COMPLETION_RESPONSE
         mock.side_effect = async_mock
         yield mock
