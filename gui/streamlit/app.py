@@ -468,7 +468,7 @@ def main():
                 "📋 Project Description",
                 help="Additional implementation details (optional)"
             )
-                features = st.text_area("Features (one per line)", help="List key features")
+            features = st.text_area("Features (one per line)", help="List key features")
             
             # Implementation Settings
             st.subheader("⚙️ Implementation Settings")
