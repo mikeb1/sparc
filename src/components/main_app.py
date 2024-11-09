@@ -8,10 +8,10 @@ class MainApp:
     
     def __init__(self):
         """Initialize the main application."""
-        self.initialize_session_state()
-        self.session_state = st.session_state
-        self.theme = self.setup_theme()
-        self.sidebar = self.create_sidebar()
+        self.initialize_session_state()  # Call this first
+        self.session_state = st.session_state  # Use st.session_state directly
+        self.setup_theme()  # Call this directly, don't store return value
+        self.create_sidebar()  # Call this directly, don't store return value
         self.current_page = None
         
     def initialize_session_state(self) -> None:
@@ -26,7 +26,6 @@ class MainApp:
         for key, value in defaults.items():
             if key not in st.session_state:
                 st.session_state[key] = value
-        self.session_state = st.session_state
         
     def setup_theme(self) -> None:
         """Configure application theme and layout."""
@@ -35,11 +34,12 @@ class MainApp:
             layout="wide",
             initial_sidebar_state="expanded"
         )
+        self._apply_custom_css()
         
     def create_sidebar(self) -> None:
         """Create and configure the sidebar navigation."""
         with st.sidebar:
-            st.title("SPARC GUI")
+            st.title("SPARC GUI")  # This must be called
             self.current_page = st.radio(
                 "Navigation",
                 ["Project", "Code", "Tests", "Settings"]
@@ -58,6 +58,7 @@ class MainApp:
             
     def display(self):
         """Display the main application interface."""
+        # Set page title first
         st.title(f"SPARC GUI - {self.current_page}")
         
         # Display appropriate page content based on current page
