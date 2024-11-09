@@ -1,9 +1,13 @@
 import pytest
 import pytest_asyncio
 import asyncio
+import warnings
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 import logging
+
+# Filter out litellm deprecation warning
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="litellm.utils")
 
 # Configure logging for better debugging output
 logging.basicConfig(level=logging.DEBUG)
