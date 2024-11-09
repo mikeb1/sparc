@@ -90,17 +90,20 @@ def mock_completion():
                 if 'Extract tech stack from' in content:
                     return MOCK_TECH_STACK_RESPONSE
                 
-            # Return mock content for each file
-            mock_content = "# Generated Content\n\nThis is mock generated content."
-            return MagicMock(
-                choices=[
-                    MagicMock(
-                        message=MagicMock(
-                            content=mock_content
-                        )
-                    )
-                ]
-            )
+            # Return specific mock content based on the file being generated
+            if 'Specification.md' in content:
+                return MOCK_SPECIFICATION_RESPONSE
+            elif 'Architecture.md' in content:
+                return MOCK_ARCHITECTURE_RESPONSE
+            elif 'Pseudocode.md' in content:
+                return MOCK_PSEUDOCODE_RESPONSE
+            elif 'Refinement.md' in content:
+                return MOCK_REFINEMENT_RESPONSE
+            elif 'Completion.md' in content:
+                return MOCK_COMPLETION_RESPONSE
+            
+            # Default response for other cases
+            return MOCK_COMPLETION_RESPONSE
         mock.side_effect = async_mock
         yield mock
 
