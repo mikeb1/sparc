@@ -1,95 +1,4 @@
 # gui/tests/test_generator.py
-import asyncio
-import logging
-from pathlib import Path
-from typing import Dict, Optional
-import toml
-from litellm import completion
-from datetime import datetime
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-async def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
-    """Generate SPARC architecture content using LiteLLM."""
-    try:
-        # Detect tech stack
-        tech_stack = await detect_tech_stack_from_description(project_desc, model)
-        
-        # System prompt with tech stack context
-        system_prompt = f"""You are a software architect. Generate detailed technical documentation.
-Technology Stack:
-- Framework/Runtime: {tech_stack['framework']}
-- Language: {tech_stack['language']}
-- Features: {', '.join(tech_stack['features'])}
-
-Focus on best practices and patterns specific to this technology stack."""
-
-        files_content = {}
-        
-        # Generate each file
-        for filename in ["Specification.md", "Architecture.md", "Pseudocode.md", "Refinement.md", "Completion.md"]:
-            response = await completion(
-                model=model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Generate detailed content for {filename}"}
-                ],
-                temperature=0.7
-            )
-            files_content[filename] = response.choices[0].message.content
-
-        # Generate guidance.toml
-        guidance_content = {
-            "project": tech_stack,
-            "specification": {
-                "content": files_content["Specification.md"]
-            }
-        }
-        files_content["guidance.toml"] = toml.dumps(guidance_content)
-        
-        return files_content
-        
-    except Exception as e:
-        logger.error(f"Content generation failed: {str(e)}")
-        raise
-
-async def detect_tech_stack_from_description(project_desc: str, model: str) -> Dict[str, str]:
-    """Detect technology stack from project description."""
-    try:
-        response = await completion(
-            model=model,
-            messages=[{
-                "role": "system",
-                "content": """You are a technical analyst. Extract the technology stack from the project description.
-Return only a JSON object with these fields:
-{
-    "framework": "name of the framework",
-    "language": "primary programming language",
-    "features": ["list", "of", "features"]
-}"""
-            },
-            {
-                "role": "user",
-                "content": f"Extract tech stack from: {project_desc}"
-            }],
-            temperature=0.1
-        )
-        
-        import json
-        return json.loads(response.choices[0].message.content)
-        
-    except Exception as e:
-        logger.error(f"Tech stack detection failed: {str(e)}")
-        return {
-            'framework': 'Flask',
-            'language': 'python',
-            'features': ['api', 'database', 'authentication']
-        }
 
 import pytest
 import pytest_asyncio
@@ -99,17 +8,22 @@ from pathlib import Path
 import logging
 import json
 import toml
+from datetime import datetime
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging for better debugging output
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
+# Import the functions to be tested
 from gui.streamlit.utils.generator import (
     generate_sparc_content,
     detect_tech_stack_from_description
 )
 
-# Mock responses
+# Mock responses for different completion calls
 MOCK_TECH_STACK_RESPONSE = MagicMock(
     choices=[
         MagicMock(
@@ -176,28 +90,42 @@ MOCK_COMPLETION_RESPONSE = MagicMock(
 
 @pytest.fixture
 def mock_completion():
-    """Mock the completion function to return predefined responses."""
+    """
+    Fixture to mock the 'completion' function used in content generation.
+    It returns different mock responses based on the content of the messages.
+    """
     with patch('litellm.completion') as mock:
         async def async_mock(*args, **kwargs):
             messages = kwargs.get('messages', [])
-            content = messages[1]['content'] if len(messages) > 1 else ''
+            logger.debug(f"Mock received messages: {[msg.get('content', '') for msg in messages]}")
             
-            if 'Extract tech stack from' in content:
-                return MOCK_TECH_STACK_RESPONSE
-            elif 'Specification.md' in content:
-                return MOCK_SPECIFICATION_RESPONSE
-            elif 'Architecture.md' in content:
-                return MOCK_ARCHITECTURE_RESPONSE
-            elif 'Pseudocode.md' in content:
-                return MOCK_PSEUDOCODE_RESPONSE
-            elif 'Refinement.md' in content:
-                return MOCK_REFINEMENT_RESPONSE
-            elif 'Completion.md' in content:
-                return MOCK_COMPLETION_RESPONSE
-            
-            # Default mock response
+            # Determine which response to return based on the message content
+            for msg in messages:
+                content = msg.get('content', '')
+                if 'Extract tech stack from' in content:
+                    logger.debug("Returning MOCK_TECH_STACK_RESPONSE")
+                    return MOCK_TECH_STACK_RESPONSE
+                elif 'Generate detailed technical documentation' in content:
+                    # Further check which file is being generated
+                    if 'Specification.md' in content:
+                        logger.debug("Returning MOCK_SPECIFICATION_RESPONSE")
+                        return MOCK_SPECIFICATION_RESPONSE
+                    elif 'Architecture.md' in content:
+                        logger.debug("Returning MOCK_ARCHITECTURE_RESPONSE")
+                        return MOCK_ARCHITECTURE_RESPONSE
+                    elif 'Pseudocode.md' in content:
+                        logger.debug("Returning MOCK_PSEUDOCODE_RESPONSE")
+                        return MOCK_PSEUDOCODE_RESPONSE
+                    elif 'Refinement.md' in content:
+                        logger.debug("Returning MOCK_REFINEMENT_RESPONSE")
+                        return MOCK_REFINEMENT_RESPONSE
+                    elif 'Completion.md' in content:
+                        logger.debug("Returning MOCK_COMPLETION_RESPONSE")
+                        return MOCK_COMPLETION_RESPONSE
+            # Default response if no conditions match
+            logger.debug("Returning default MOCK_COMPLETION_RESPONSE")
             return MOCK_COMPLETION_RESPONSE
-            
+
         mock.side_effect = async_mock
         yield mock
 
@@ -217,12 +145,13 @@ async def test_detect_tech_stack_from_description(mock_completion):
     assert "authentication" in tech_stack["features"], "Feature 'authentication' should be included"
     assert "database" in tech_stack["features"], "Feature 'database' should be included"
     assert "api" in tech_stack["features"], "Feature 'api' should be included"
+    logger.debug("Tech stack detection test passed successfully.")
 
 @pytest.mark.asyncio
 async def test_generate_sparc_content(mock_completion):
     """
     Test SPARC content generation.
-    Ensures that Specification.md and guidance.toml are generated with correct content.
+    Ensures that all expected files are generated with correct content.
     """
     project_desc = "Build a Next.js web application with TypeScript"
     model = "claude-3-sonnet-20240229"
@@ -232,6 +161,10 @@ async def test_generate_sparc_content(mock_completion):
     # Define expected content for each file
     expected_files = {
         "Specification.md": "# Specification Content\n\nThis is mock generated specification content.",
+        "Architecture.md": "# Architecture Content\n\nThis is mock generated architecture content.",
+        "Pseudocode.md": "# Pseudocode Content\n\nThis is mock generated pseudocode content.",
+        "Refinement.md": "# Refinement Content\n\nThis is mock generated refinement content.",
+        "Completion.md": "# Completion Content\n\nThis is mock generated completion content.",
     }
 
     # Verify that each expected file is present and has the correct content
@@ -336,9 +269,28 @@ async def test_file_structure(mock_completion, tmp_path):
             expected_content = "# Specification Content\n\nThis is mock generated specification content."
             assert file_path.read_text() == expected_content, f"Unexpected content in {filename}"
             logger.debug(f"Content of {filename} matches expected.")
+        elif filename == "Architecture.md":
+            expected_content = "# Architecture Content\n\nThis is mock generated architecture content."
+            assert file_path.read_text() == expected_content, f"Unexpected content in {filename}"
+            logger.debug(f"Content of {filename} matches expected.")
+        elif filename == "Pseudocode.md":
+            expected_content = "# Pseudocode Content\n\nThis is mock generated pseudocode content."
+            assert file_path.read_text() == expected_content, f"Unexpected content in {filename}"
+            logger.debug(f"Content of {filename} matches expected.")
+        elif filename == "Refinement.md":
+            expected_content = "# Refinement Content\n\nThis is mock generated refinement content."
+            assert file_path.read_text() == expected_content, f"Unexpected content in {filename}"
+            logger.debug(f"Content of {filename} matches expected.")
+        elif filename == "Completion.md":
+            expected_content = "# Completion Content\n\nThis is mock generated completion content."
+            assert file_path.read_text() == expected_content, f"Unexpected content in {filename}"
+            logger.debug(f"Content of {filename} matches expected.")
         else:
             # If more files are added in the future, handle them here
+            logger.warning(f"No expected content defined for {filename}.")
             pass
+
+    logger.debug("All files in the temporary directory have been verified successfully.")
 
 # Optional: If you have Pydantic models, update them to use ConfigDict to address deprecation warnings
 # Example:
