@@ -635,7 +635,7 @@ def main():
                 integration_test = st.checkbox("Integration Tests Required", value=True, key="history_integration_test")
             
             # Generate Implementation
-            if st.button("📝 Generate Implementation", type="primary"):
+            if st.button("📝 Generate Implementation", type="primary", key="generate_impl_history"):
                 if not st.session_state.loaded_arch_dir:
                     st.error("Please load architecture files first")
                 else:
@@ -778,7 +778,7 @@ def main():
                 require_docstrings = st.checkbox("Require Docstrings", value=True, key="history_require_docstrings")
             
             # Generate Files
-            if st.button("📝 Generate Implementation", type="primary"):
+            if st.button("📝 Generate Implementation", type="primary", key="generate_impl_tab2"):
                 if not st.session_state.sparc_arch_dir:
                     st.error("Please generate architecture files first")
                 else:
