@@ -83,28 +83,24 @@ Project Context:
 
         files_content = {}
 
-        # Define an inner async function for generating content
-        async def _generate():
-            for filename, prompt in prompts.items():
-                try:
-                    response = await completion(
-                        model=model,
-                        messages=[
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": f"{prompt}\n\nProject Description: {project_desc}"}
-                        ],
-                        temperature=0.7
-                    )
-                    content = response.choices[0].message.content
-                    files_content[filename] = content
-                    logger.info(f"Generated {filename} successfully")
+        # Generate content for each file
+        for filename, prompt in prompts.items():
+            try:
+                response = await completion(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": f"{prompt}\n\nProject: {project_desc}"}
+                    ],
+                    temperature=0.7
+                )
+                content = response.choices[0].message.content
+                files_content[filename] = content
+                logger.info(f"Generated {filename} successfully")
 
-                except Exception as e:
-                    logger.error(f"Failed to generate {filename}: {str(e)}")
-                    raise
-
-        # Run the async function
-        asyncio.run(_generate())
+            except Exception as e:
+                logger.error(f"Failed to generate {filename}: {str(e)}")
+                raise
 
         # Create minimal guidance.toml
         guidance_content = {
