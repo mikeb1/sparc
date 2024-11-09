@@ -468,25 +468,6 @@ def main():
                 "📋 Project Description",
                 help="Additional implementation details (optional)"
             )
-                    "Language",
-                    [
-                        "Python", "JavaScript", "TypeScript", "Java", "C++", "C#", "Go",
-                        "Rust", "Swift", "Kotlin", "Ruby", "PHP", "Scala", "R",
-                        "MATLAB", "Dart", "Lua", "Haskell", "Erlang", "Elixir",
-                        "Clojure", "F#", "OCaml", "Julia", "Groovy", "Perl",
-                        "Assembly", "COBOL", "Fortran", "Ada", "Prolog",
-                        "Lisp", "Scheme", "Racket", "Smalltalk", "Pascal",
-                        "VHDL", "Verilog", "D", "Nim", "Crystal", "Zig",
-                        "Objective-C", "Visual Basic", "Delphi", "ActionScript",
-                        "CoffeeScript", "Elm", "PureScript", "Reason", "Hack",
-                        "ABAP", "RPG", "Apex", "PowerShell", "Bash", "TCL",
-                        "Forth", "APL", "J", "Q", "K", "Wolfram", "SQL",
-                        "PL/SQL", "T-SQL", "HiveQL", "SPARQL", "Cypher",
-                        "WebAssembly", "Solidity", "Move", "Cairo"
-                    ],
-                    help="Select the primary programming language"
-                )
-            with col2:
                 features = st.text_area("Features (one per line)", help="List key features")
             
             # Implementation Settings
