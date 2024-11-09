@@ -41,7 +41,7 @@ def mock_completion():
                 if 'Extract tech stack from' in content:
                     return MOCK_TECH_STACK_RESPONSE
                 
-            # Return mock content for each file
+            # Return mock content for all expected files
             return MOCK_CONTENT_RESPONSE
         mock.side_effect = async_mock
         yield mock
@@ -70,20 +70,26 @@ async def test_generate_sparc_content(mock_completion):
     mock_completion.return_value = MOCK_CONTENT_RESPONSE
     files_content = await generate_sparc_content(project_desc, model)
     
-    # Verify all expected files are generated
-    expected_files = [
-        "Specification.md",
-        "Architecture.md", 
-        "Pseudocode.md",
-        "Refinement.md",
-        "Completion.md",
-        "guidance.toml"
-    ]
+    # Verify all expected files are generated with mock content
+    expected_content = "# Generated Content\n\nThis is mock generated content."
+    expected_files = {
+        "Specification.md": expected_content,
+        "Architecture.md": expected_content,
+        "Pseudocode.md": expected_content,
+        "Refinement.md": expected_content,
+        "Completion.md": expected_content,
+    }
     
-    for filename in expected_files:
+    for filename, expected in expected_files.items():
         assert filename in files_content, f"Missing file: {filename}"
-        assert files_content[filename] is not None
-        assert len(files_content[filename]) > 0
+        assert files_content[filename] == expected, f"Unexpected content in {filename}"
+        
+    # Verify guidance.toml separately since it has different content
+    assert "guidance.toml" in files_content
+    guidance_content = files_content["guidance.toml"]
+    assert "framework" in guidance_content
+    assert "language" in guidance_content
+    assert "features" in guidance_content
 
     # Verify guidance.toml contains tech stack information
     assert "Next.js" in files_content["guidance.toml"]
