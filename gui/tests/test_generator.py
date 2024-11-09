@@ -246,7 +246,8 @@ class TechStack(BaseModel):
         validate_assignment=True,
         str_strip_whitespace=True,
         str_to_lower=True,
-        str_max_length=100
+        str_max_length=100,
+        validate_default=True
     )
 
 # Example of modern importlib.resources usage
