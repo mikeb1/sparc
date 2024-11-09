@@ -1,8 +1,9 @@
 import streamlit as st
 
 # Configure Streamlit page - must be first Streamlit command
+st.set_page_config(
     page_title="SPARC GUI",
-    page_icon="🔧",
+    page_icon="🔧", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
