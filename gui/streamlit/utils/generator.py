@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Optional
 import toml
 from litellm import completion
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
