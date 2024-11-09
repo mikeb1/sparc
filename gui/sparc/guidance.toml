@@ -4,6 +4,14 @@ description = "Streamlit-based GUI for the SPARC CLI tool"
 version = "0.1.0"
 framework = "streamlit"
 language = "python"
+features = [
+    "dark-mode",
+    "project-management", 
+    "code-editing",
+    "test-execution",
+    "git-integration",
+    "settings-management"
+]
 
 [specification]
 content = """
@@ -259,6 +267,36 @@ content = """
    - Contributing guide
    - Troubleshooting guide
 """
+
+[development]
+python_version = ">=3.8"
+test_framework = "pytest"
+code_style = "black"
+type_checker = "mypy"
+
+[dependencies]
+required = [
+    "streamlit>=1.24.0",
+    "pytest>=7.0.0",
+    "aider-chat>=0.8.0",
+    "rich>=10.0.0",
+    "gitpython>=3.1.0"
+]
+dev = [
+    "black",
+    "mypy",
+    "pytest-cov"
+]
+
+[environment]
+variables = [
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY"
+]
+config_files = [
+    ".env",
+    ".aider.conf.yml"
+]
 
 [completion]
 content = """
