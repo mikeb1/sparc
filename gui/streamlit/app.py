@@ -343,58 +343,66 @@ def main():
     elif page == "Code":
         st.title("🚀 SPARC Code Generator")
         
-        tab1, tab2 = st.tabs(["📝 CLI Options", "⚙️ Guidance Configuration"])
+        tab1, tab2 = st.tabs(["🏗️ Architect", "💻 Implement"])
         
         with tab1:
-            st.header("Command Line Options")
+            st.header("Guidance Configuration")
             
-            # Mode Selection
-            mode = st.radio(
-                "Select Mode",
-                ["🏗️ Architect", "💻 Implement"],
-                help="Choose between generating architecture or implementing code"
-            )
+            # Project Settings
+            st.subheader("🎯 Project Settings")
+            col1, col2 = st.columns(2)
+            with col1:
+                framework = st.text_input("Framework", help="e.g., Flask, Next.js")
+                language = st.selectbox(
+                    "Language",
+                    [
+                        "Python", "JavaScript", "TypeScript", "Java", "C++", "C#", "Go",
+                        "Rust", "Swift", "Kotlin", "Ruby", "PHP", "Scala", "R",
+                        "MATLAB", "Dart", "Lua", "Haskell", "Erlang", "Elixir",
+                        "Clojure", "F#", "OCaml", "Julia", "Groovy", "Perl",
+                        "Assembly", "COBOL", "Fortran", "Ada", "Prolog",
+                        "Lisp", "Scheme", "Racket", "Smalltalk", "Pascal",
+                        "VHDL", "Verilog", "D", "Nim", "Crystal", "Zig",
+                        "Objective-C", "Visual Basic", "Delphi", "ActionScript",
+                        "CoffeeScript", "Elm", "PureScript", "Reason", "Hack",
+                        "ABAP", "RPG", "Apex", "PowerShell", "Bash", "TCL",
+                        "Forth", "APL", "J", "Q", "K", "Wolfram", "SQL",
+                        "PL/SQL", "T-SQL", "HiveQL", "SPARQL", "Cypher",
+                        "WebAssembly", "Solidity", "Move", "Cairo"
+                    ],
+                    help="Select the primary programming language"
+                )
+            with col2:
+                features = st.text_area("Features (one per line)", help="List key features")
             
-            # Common Options
-            model = st.selectbox(
-                "🤖 AI Model",
-                ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "gpt-4", "gpt-4-turbo"],
-                help="Select the AI model to use"
-            )
+            # Implementation Settings
+            st.subheader("⚙️ Implementation Settings")
+            col1, col2 = st.columns(2)
+            with col1:
+                max_attempts = st.number_input("Max Attempts", min_value=1, value=3)
+                test_first = st.checkbox("Test First Approach", value=True)
+            with col2:
+                type_hints = st.checkbox("Type Hints", value=True)
+                docstring_style = st.selectbox("Docstring Style", ["Google", "NumPy", "reStructuredText"])
             
-            if mode == "🏗️ Architect":
-                # Architect mode options
-                project_desc = st.text_area(
-                    "📋 Project Description",
-                    help="Describe your project in detail"
-                )
-                guidance_file = st.text_input(
-                    "📁 Guidance File Path",
-                    value="guidance.toml",
-                    help="Path to your guidance TOML file"
-                )
-                
-            else:
-                # Implement mode options
-                col1, col2 = st.columns(2)
-                with col1:
-                    max_attempts = st.number_input(
-                        "🔄 Max Attempts",
-                        min_value=1,
-                        value=3,
-                        help="Maximum implementation attempts per component"
-                    )
-                with col2:
-                    guidance_file = st.text_input(
-                        "📁 Guidance File Path",
-                        value="guidance.toml",
-                        help="Path to your guidance TOML file"
-                    )
-                
-                optional_desc = st.text_area(
-                    "📝 Optional Description",
-                    help="Additional implementation details (optional)"
-                )
+            # Testing Requirements
+            st.subheader("🧪 Testing Requirements")
+            col1, col2 = st.columns(2)
+            with col1:
+                min_coverage = st.slider("Minimum Coverage %", 0, 100, 85)
+                unit_test = st.checkbox("Unit Tests Required", value=True)
+            with col2:
+                integration_test = st.checkbox("Integration Tests Required", value=True)
+            
+            # Quality Settings
+            st.subheader("✨ Code Quality")
+            col1, col2 = st.columns(2)
+            with col1:
+                max_complexity = st.number_input("Max Complexity", min_value=1, value=8)
+                max_line_length = st.number_input("Max Line Length", min_value=50, value=88)
+            with col2:
+                require_type_hints = st.checkbox("Require Type Hints", value=True)
+                require_docstrings = st.checkbox("Require Docstrings", value=True)
             
             # Generate Button
             if st.button("🚀 Generate", type="primary"):
@@ -431,14 +439,35 @@ def main():
                             st.error(f"An error occurred: {str(e)}")
         
         with tab2:
-            st.header("Guidance Configuration")
+            st.header("Implementation Options")
             
-            # Project Settings
-            st.subheader("🎯 Project Settings")
+            # Model Selection
+            model = st.selectbox(
+                "🤖 AI Model",
+                ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "gpt-4", "gpt-4-turbo"],
+                help="Select the AI model to use"
+            )
+            
+            # Implementation options
             col1, col2 = st.columns(2)
             with col1:
-                framework = st.text_input("Framework", help="e.g., Flask, Next.js")
-                language = st.selectbox(
+                max_attempts = st.number_input(
+                    "🔄 Max Attempts",
+                    min_value=1,
+                    value=3,
+                    help="Maximum implementation attempts per component"
+                )
+            with col2:
+                guidance_file = st.text_input(
+                    "📁 Guidance File Path",
+                    value="guidance.toml",
+                    help="Path to your guidance TOML file"
+                )
+            
+            project_desc = st.text_area(
+                "📋 Project Description",
+                help="Additional implementation details (optional)"
+            )
                     "Language",
                     [
                         "Python", "JavaScript", "TypeScript", "Java", "C++", "C#", "Go",
