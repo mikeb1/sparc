@@ -1,6 +1,7 @@
 import streamlit as st
 import subprocess
 import asyncio
+from typing import Dict
 from utils.sparc import run_sparc_architect, run_sparc_implement
 
 # Configure Streamlit page - must be first Streamlit command
