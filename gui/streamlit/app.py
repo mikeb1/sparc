@@ -373,7 +373,11 @@ def main():
                     help="Select the primary programming language"
                 )
             with col2:
-                features = st.text_area("Features (one per line)", help="List key features")
+                features = st.text_area(
+                    "Features (one per line)", 
+                    help="List key features",
+                    key="arch_features"
+                )
             
             # Implementation Settings
             st.subheader("⚙️ Implementation Settings")
@@ -466,9 +470,14 @@ def main():
             
             project_desc = st.text_area(
                 "📋 Project Description",
-                help="Additional implementation details (optional)"
+                help="Additional implementation details (optional)",
+                key="impl_project_desc"
             )
-            features = st.text_area("Features (one per line)", help="List key features")
+            features = st.text_area(
+                "Features (one per line)", 
+                help="List key features",
+                key="impl_features"
+            )
             
             # Implementation Settings
             st.subheader("⚙️ Implementation Settings")
