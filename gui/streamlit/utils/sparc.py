@@ -274,7 +274,8 @@ Focus on best practices and patterns specific to this technology stack."""
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": f"{prompt}\n\nProject: {project_desc}"}
                 ],
-                temperature=0.7
+                temperature=0.7,
+                api_key=os.getenv('ANTHROPIC_API_KEY')  # Explicitly pass API key
             )
             content = response.choices[0].message.content
             files_content[filename] = content
@@ -310,6 +311,9 @@ async def detect_tech_stack(project_desc: str, model: str) -> Dict[str, str]:
             messages=[{
                 "role": "system",
                 "content": """You are a technical analyst. Extract the technology stack from the project description.
+            }],
+            temperature=0.1,
+            api_key=os.getenv('ANTHROPIC_API_KEY')  # Explicitly pass API key
 Return only a JSON object with these fields:
 {
     "framework": "name of the framework",
