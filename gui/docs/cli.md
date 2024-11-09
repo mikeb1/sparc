@@ -52,7 +52,7 @@ class DevelopmentCycle:
         """Generate guidance.toml content based on project description."""
         try:
             # Get guidance content from LLM
-            response = completion(
+            response = await completion(
                 model=self.config.model,
                 messages=[{
                     "role": "system",
