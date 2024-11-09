@@ -11,6 +11,101 @@ import pytest_asyncio
 import toml
 from litellm import completion
 
+async def detect_tech_stack_from_description(project_desc: str, model: str) -> Dict[str, str]:
+    """Detect technology stack from project description."""
+    try:
+        response = await completion(
+            model=model,
+            messages=[{
+                "role": "system",
+                "content": """You are a technical analyst. Extract the technology stack from the project description.
+Return only a JSON object with these fields:
+{
+    "framework": "name of the framework",
+    "language": "primary programming language",
+    "features": ["list", "of", "features"]
+}"""
+            },
+            {
+                "role": "user",
+                "content": f"Extract tech stack from: {project_desc}"
+            }],
+            temperature=0.1
+        )
+        
+        return json.loads(response.choices[0].message.content)
+        
+    except Exception as e:
+        logger.error(f"Tech stack detection failed: {str(e)}")
+        return {
+            'framework': 'Flask',
+            'language': 'python',
+            'features': ['api', 'database', 'authentication']
+        }
+
+async def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
+    """Generate SPARC architecture content using LiteLLM."""
+    try:
+        # Detect tech stack
+        tech_stack = await detect_tech_stack_from_description(project_desc, model)
+        
+        # System prompt with tech stack context
+        system_prompt = f"""You are a software architect. Generate detailed technical documentation.
+Technology Stack:
+- Framework/Runtime: {tech_stack['framework']}
+- Language: {tech_stack['language']}
+- Features: {', '.join(tech_stack['features'])}
+
+Focus on best practices and patterns specific to this technology stack."""
+
+        # Define prompts for each file
+        prompts = {
+            "Specification.md": "Generate a detailed software specification...",
+            "Architecture.md": "Generate a detailed software architecture...",
+            "Pseudocode.md": "Generate pseudocode for key components...",
+            "Refinement.md": "Generate implementation details and refinements...",
+            "Completion.md": "Generate completion criteria and project structure..."
+        }
+
+        files_content = {}
+        architecture_content = ""
+        
+        # Generate each file
+        for filename, prompt in prompts.items():
+            response = await completion(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"{prompt}\n\nProject: {project_desc}"}
+                ],
+                temperature=0.7
+            )
+            content = response.choices[0].message.content
+            files_content[filename] = content
+            
+            if filename in ['Architecture.md', 'Specification.md']:
+                architecture_content += f"\n\n# {filename}\n{content}"
+
+        # Generate guidance.toml
+        guidance_content = {
+            "project": {
+                "framework": tech_stack['framework'],
+                "language": tech_stack['language'],
+                "features": tech_stack['features']
+            },
+            "specification": {
+                "content": files_content["Specification.md"]
+            }
+        }
+        
+        files_content["guidance.toml"] = toml.dumps(guidance_content)
+        
+        return files_content
+        
+    except Exception as e:
+        logger.error(f"Content generation failed: {str(e)}")
+        raise
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
