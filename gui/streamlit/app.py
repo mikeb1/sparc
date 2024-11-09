@@ -456,15 +456,14 @@ def main():
                                 st.session_state.sparc_arch_dir = result["arch_dir"]
                                 st.success(f"Generated architecture files in: {result['arch_dir']}")
                                 
-                                # Show preview tabs
-                                tabs = st.tabs(["📋 TOML", "📑 Specification", "🏗️ Architecture", 
-                                              "💻 Pseudocode", "🔄 Refinement", "✅ Completion"])
-                                
+                                # Display files as they are generated
+                                st.subheader("Generated Files:")
                                 files = result["files"]
-                                for tab, filename in zip(tabs, ["guidance.toml", "Specification.md", 
-                                                             "Architecture.md", "Pseudocode.md",
-                                                             "Refinement.md", "Completion.md"]):
-                                    with tab:
+                                
+                                # Create expandable sections for each file
+                                for filename in ["guidance.toml", "Specification.md", "Architecture.md", 
+                                               "Pseudocode.md", "Refinement.md", "Completion.md"]:
+                                    with st.expander(f"📄 {filename}", expanded=True):
                                         content = files.get(filename, "File not found")
                                         if isinstance(content, dict):  # For guidance.toml
                                             st.json(content)
