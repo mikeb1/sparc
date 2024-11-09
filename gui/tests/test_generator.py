@@ -39,13 +39,13 @@ def mock_completion():
         mock.return_value = MOCK_CONTENT_RESPONSE
         yield mock
 
-def test_detect_tech_stack_from_description(mock_completion):
+async def test_detect_tech_stack_from_description(mock_completion):
     """Test tech stack detection from project description."""
     project_desc = "Build a Next.js web application with TypeScript"
     model = "claude-3-sonnet-20240229"
     
     mock_completion.return_value = MOCK_TECH_STACK_RESPONSE
-    tech_stack = asyncio.run(detect_tech_stack_from_description(project_desc, model))
+    tech_stack = await detect_tech_stack_from_description(project_desc, model)
     
     assert tech_stack["framework"] == "Next.js"
     assert tech_stack["language"] == "typescript"
@@ -53,13 +53,13 @@ def test_detect_tech_stack_from_description(mock_completion):
     assert "database" in tech_stack["features"]
     assert "api" in tech_stack["features"]
 
-def test_generate_sparc_content(mock_completion):
+async def test_generate_sparc_content(mock_completion):
     """Test SPARC content generation."""
     project_desc = "Build a Next.js web application with TypeScript"
     model = "claude-3-sonnet-20240229"
     
     mock_completion.return_value = MOCK_CONTENT_RESPONSE
-    files_content = asyncio.run(generate_sparc_content(project_desc, model))
+    files_content = await generate_sparc_content(project_desc, model)
     
     # Verify all expected files are generated
     expected_files = [
@@ -80,24 +80,24 @@ def test_generate_sparc_content(mock_completion):
     assert "Next.js" in files_content["guidance.toml"]
     assert "typescript" in files_content["guidance.toml"]
 
-def test_generate_sparc_content_error_handling():
+async def test_generate_sparc_content_error_handling():
     """Test error handling in SPARC content generation."""
     with patch('gui.streamlit.utils.generator.completion', side_effect=Exception("API Error")):
         project_desc = "Build a Next.js web application with TypeScript"
         model = "claude-3-sonnet-20240229"
         
         with pytest.raises(Exception) as exc_info:
-            asyncio.run(generate_sparc_content(project_desc, model))
+            await generate_sparc_content(project_desc, model)
         
         assert "API Error" in str(exc_info.value)
 
-def test_file_structure(mock_completion, tmp_path):
+async def test_file_structure(mock_completion, tmp_path):
     """Test that generated files follow expected structure."""
     project_desc = "Build a Next.js web application with TypeScript"
     model = "claude-3-sonnet-20240229"
     
     mock_completion.return_value = MOCK_CONTENT_RESPONSE
-    files_content = asyncio.run(generate_sparc_content(project_desc, model))
+    files_content = await generate_sparc_content(project_desc, model)
     
     # Write files to temporary directory
     for filename, content in files_content.items():
