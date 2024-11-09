@@ -799,33 +799,33 @@ def main():
                                 st.session_state.sparc_impl_dir = result["impl_dir"]
                                 st.success(f"Generated implementation in: {result['impl_dir']}")
                                 
-                                # Show source and test files
-                                col1, col2 = st.columns(2)
+                                # Show source and test files in tabs
+                                tab1, tab2 = st.tabs(["Source Files", "Test Files"])
                                 
-                                with col1:
-                                    st.subheader("Source Files")
+                                with tab1:
                                     for filename, content in result["files"]["src"].items():
-                                        with st.expander(f"📄 {filename}"):
-                                            st.code(content, language="python")
-                                            st.download_button(
-                                                f"💾 Download {filename}",
-                                                content,
-                                                filename,
-                                                mime="text/plain"
-                                            )
+                                        st.markdown(f"### 📄 {filename}")
+                                        st.code(content, language="python")
+                                        st.download_button(
+                                            f"💾 Download {filename}",
+                                            content,
+                                            filename,
+                                            mime="text/plain"
+                                        )
+                                        st.markdown("---")
                                             
-                                with col2:
-                                    st.subheader("Test Files")
+                                with tab2:
                                     for filename, content in result["files"]["tests"].items():
-                                        with st.expander(f"🧪 {filename}"):
-                                            st.code(content, language="python")
-                                            st.download_button(
-                                                f"💾 Download {filename}",
-                                                content,
-                                                filename,
-                                                mime="text/plain",
-                                                use_container_width=True
-                                            )
+                                        st.markdown(f"### 🧪 {filename}")
+                                        st.code(content, language="python")
+                                        st.download_button(
+                                            f"💾 Download {filename}",
+                                            content,
+                                            filename,
+                                            mime="text/plain",
+                                            use_container_width=True
+                                        )
+                                        st.markdown("---")
                                 
                                 # Add "Load in Implement" button
                                 st.button(
