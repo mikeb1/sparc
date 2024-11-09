@@ -391,7 +391,7 @@ def main():
     elif page == "Code":
         st.title("🚀 SPARC Code Generator")
         
-        tab1, tab2 = st.tabs(["🏗️ Architect", "💻 Implement"])
+        tab1, tab2, tab3 = st.tabs(["🏗️ Architect", "💻 Implement", "📚 History"])
         
         # Show loaded architecture if available
         if hasattr(st.session_state, 'loaded_arch_dir') and st.session_state.loaded_arch_dir:
