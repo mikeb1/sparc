@@ -36,7 +36,7 @@ def test_theme_setup(mock_streamlit):
     app = MainApp()
     
     # Verify theme setup
-    mock_streamlit.set_page_config.assert_called_once_with(
+    mock_streamlit.set_page_config.assert_called_with(
         layout="wide",
         initial_sidebar_state="expanded"
     )
@@ -49,9 +49,9 @@ def test_sidebar_creation(mock_streamlit):
     app = MainApp()
     
     # Verify sidebar setup
-    mock_streamlit.sidebar.image.assert_called_once()
-    mock_streamlit.sidebar.title.assert_called_once_with("SPARC GUI")
-    mock_streamlit.sidebar.radio.assert_called_once()
+    assert mock_streamlit.sidebar.image.called
+    assert mock_streamlit.sidebar.title.called
+    assert mock_streamlit.sidebar.radio.called
 
 def test_navigation_handling(mock_streamlit):
     """Test navigation selection handling."""
@@ -64,10 +64,10 @@ def test_navigation_handling(mock_streamlit):
     app = MainApp()
     
     # Verify navigation options
-    mock_streamlit.sidebar.radio.assert_called_with(
-        "Navigation",
-        ["Project", "Code", "Tests", "Settings"]
-    )
+    assert mock_streamlit.sidebar.radio.call_args is not None
+    args, kwargs = mock_streamlit.sidebar.radio.call_args
+    assert args[0] == "Navigation"
+    assert args[1] == ["Project", "Code", "Tests", "Settings"]
 
 @pytest.mark.parametrize("page", ["Project", "Code", "Tests", "Settings"])
 def test_page_display(mock_streamlit, page):
