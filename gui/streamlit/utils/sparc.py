@@ -239,11 +239,11 @@ async def run_sparc_implement(arch_dir: str, model: str, max_attempts: int = 3) 
         logger.error(f"Implementation failed: {str(e)}")
         return {"error": str(e)}
 
-async def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
+def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
     try:
         # Detect tech stack
-        tech_stack = await detect_tech_stack(project_desc, model)
+        tech_stack = detect_tech_stack(project_desc, model)
         
         # System prompt with tech stack context
         system_prompt = f"""You are a software architect. Generate detailed technical documentation.
@@ -268,7 +268,7 @@ Focus on best practices and patterns specific to this technology stack."""
         
         # Generate each file
         for filename, prompt in prompts.items():
-            response = await completion(
+            response = completion(
                 model=model,
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -303,10 +303,10 @@ Focus on best practices and patterns specific to this technology stack."""
         logger.error(f"Content generation failed: {str(e)}")
         raise
 
-async def detect_tech_stack(project_desc: str, model: str) -> Dict[str, str]:
+def detect_tech_stack(project_desc: str, model: str) -> Dict[str, str]:
     """Detect technology stack from project description."""
     try:
-        response = await completion(
+        response = completion(
             model=model,
             messages=[{
                 "role": "system",
