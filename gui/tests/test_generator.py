@@ -242,7 +242,7 @@ async def test_file_structure(mock_completion, tmp_path):
 
             assert file_path.read_text() == expected_content, f"Unexpected content in {filename}"
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 class TechStack(BaseModel):
     """Technology stack model."""
@@ -250,16 +250,13 @@ class TechStack(BaseModel):
     language: str 
     features: list[str]
 
-    model_config = ConfigDict(
-        title="Technology Stack",
-        extra="forbid",
-        frozen=True,
-        validate_default=True,
-        validate_assignment=True,
-        str_strip_whitespace=True,
-        str_to_lower=True,
-        str_max_length=100
-    )
+    class Config:
+        title = "Technology Stack"
+        frozen = True
+        validate_assignment = True
+        str_strip_whitespace = True
+        str_to_lower = True
+        str_max_length = 100
 
 # Example of modern importlib.resources usage
 from importlib import resources
