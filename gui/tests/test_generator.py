@@ -230,18 +230,22 @@ async def test_file_structure(mock_completion, tmp_path):
 from pydantic import BaseModel, ConfigDict
 
 class TechStack(BaseModel):
+    """Technology stack model."""
     framework: str
     language: str 
     features: list[str]
 
     model_config = ConfigDict(
         title="Technology Stack",
-        extra="forbid"
+        extra="forbid",
+        frozen=True
     )
 
 # Example of modern importlib.resources usage
 from importlib import resources
+from pathlib import Path
 
-def read_tokenizer():
+def read_tokenizer() -> str:
     """Read tokenizer data using modern importlib.resources."""
-    return resources.files("litellm.llms.tokenizers").joinpath("anthropic_tokenizer.json").read_text()
+    tokenizer_path: Path = resources.files("litellm.llms.tokenizers").joinpath("anthropic_tokenizer.json")
+    return tokenizer_path.read_text(encoding="utf-8")
