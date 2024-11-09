@@ -181,6 +181,7 @@ def main():
 
             # Get recent projects and architecture folders for dropdowns
             recent_projects = get_projects()
+            base_path = "."  # Configure base path for architecture folders
             arch_folders = scan_architecture_folders(base_path)
             
             # Project details form
