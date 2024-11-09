@@ -216,20 +216,73 @@ def main():
         with tab3:
             col1, col2 = st.columns([2,1])
             
-            with col1:
-                st.subheader("Recent Projects")
-                projects = get_projects()
-                for project in projects:
-                    if show_project_card(project):
+            st.subheader("Recent Projects")
+            projects = get_projects()
+            for project in projects:
+                with st.container():
+                    st.markdown(f"### 📁 {project['name']}")
+                    st.text(f"Path: {project['path']}")
+                    if project.get('description'):
+                        description = st.text_area(
+                            "Description", 
+                            project['description'],
+                            key=f"desc_{project['id']}"
+                        )
+                        if description != project['description']:
+                            # Add logic to save updated description
+                            pass
+                            
+                    st.text(f"Created: {project['created_at']}")
+                    st.text(f"Status: {project['status']}")
+                    
+                    # Add MD file editing
+                    arch_dir = Path(project['path']) / "architecture"
+                    if arch_dir.exists():
+                        st.markdown("#### Architecture Files:")
+                        for md_file in arch_dir.glob("*.md"):
+                            with st.expander(f"📄 {md_file.name}"):
+                                content = md_file.read_text()
+                                new_content = st.text_area(
+                                    f"Edit {md_file.name}", 
+                                    content,
+                                    height=300,
+                                    key=f"md_{project['id']}_{md_file.name}"
+                                )
+                                if new_content != content:
+                                    try:
+                                        md_file.write_text(new_content)
+                                        st.success(f"Saved changes to {md_file.name}")
+                                    except Exception as e:
+                                        st.error(f"Failed to save {md_file.name}: {str(e)}")
+                    
+                    if st.button("Load Project", key=f"load_{project['id']}"):
+                        st.session_state.project = project
                         st.experimental_rerun()
-                        
-            with col2:
-                st.subheader("Architecture Folders")
-                base_path = "."  # Configure this path as needed
-                arch_folders = scan_architecture_folders(base_path)
-                for folder in arch_folders:
-                    if show_architecture_folder_card(folder):
-                        st.experimental_rerun()
+                    
+                    st.markdown("---")
+            
+            st.subheader("Architecture Folders")
+            base_path = "."  # Configure this path as needed
+            arch_folders = scan_architecture_folders(base_path)
+            for folder in arch_folders:
+                with st.container():
+                    st.markdown(f"### 🏗️ {folder['name']}")
+                    st.text(f"Created: {folder['created'].strftime('%Y-%m-%d %H:%M:%S')}")
+                    
+                    if folder['guidance']:
+                        st.text("Guidance file found:")
+                        st.json(folder['guidance'])
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("Import as Project", key=f"import_{folder['path']}"):
+                            # Handle import
+                            pass
+                    with col2:
+                        if st.button("View Files", key=f"view_{folder['path']}"):
+                            st.session_state.selected_folder = folder['path']
+                    
+                    st.markdown("---")
 
     elif page == "Code":
         st.title("Code Editor")
