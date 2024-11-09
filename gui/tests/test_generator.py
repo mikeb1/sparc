@@ -37,8 +37,11 @@ def mock_completion():
         async def async_mock(*args, **kwargs):
             messages = kwargs.get('messages', [])
             for msg in messages:
-                if msg.get('content', '').startswith('Extract tech stack from'):
+                content = msg.get('content', '')
+                if 'Extract tech stack from' in content:
                     return MOCK_TECH_STACK_RESPONSE
+                
+            # Return mock content for each expected file
             return MOCK_CONTENT_RESPONSE
         mock.side_effect = async_mock
         yield mock
@@ -67,20 +70,18 @@ async def test_generate_sparc_content(mock_completion):
     mock_completion.return_value = MOCK_CONTENT_RESPONSE
     files_content = await generate_sparc_content(project_desc, model)
     
-    # Verify all expected files are generated
-    expected_files = [
-        "Specification.md",
-        "Architecture.md",
-        "Pseudocode.md",
-        "Refinement.md",
-        "Completion.md",
-        "guidance.toml"
-    ]
+    # Verify all expected files are generated with mock content
+    expected_files = {
+        "Specification.md": "# Generated Content\n\nThis is mock generated content.",
+        "Architecture.md": "# Generated Content\n\nThis is mock generated content.",
+        "Pseudocode.md": "# Generated Content\n\nThis is mock generated content.",
+        "Refinement.md": "# Generated Content\n\nThis is mock generated content.",
+        "Completion.md": "# Generated Content\n\nThis is mock generated content.",
+    }
     
-    for filename in expected_files:
-        assert filename in files_content
-        assert files_content[filename] is not None
-        assert len(files_content[filename]) > 0
+    for filename, expected_content in expected_files.items():
+        assert filename in files_content, f"Missing file: {filename}"
+        assert files_content[filename] == expected_content
 
     # Verify guidance.toml contains tech stack information
     assert "Next.js" in files_content["guidance.toml"]
