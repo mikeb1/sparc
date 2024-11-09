@@ -62,6 +62,51 @@ def init_session_state():
         st.session_state.components = []
     if 'git_repo' not in st.session_state:
         st.session_state.git_repo = None
+    if 'current_tab' not in st.session_state:
+        st.session_state.current_tab = "🏗️ Architect"
+    if 'loaded_arch_dir' not in st.session_state:
+        st.session_state.loaded_arch_dir = None
+    if 'architecture_files' not in st.session_state:
+        st.session_state.architecture_files = {}
+
+def save_architecture_files(save_path: str, files: Dict[str, str]):
+    """Save architecture files to disk."""
+    save_dir = Path(save_path)
+    save_dir.mkdir(parents=True, exist_ok=True)
+    
+    for filename, content in files.items():
+        file_path = save_dir / filename
+        with open(file_path, 'w', encoding='utf-8') as f:
+            if isinstance(content, dict):
+                toml.dump(content, f)
+            else:
+                f.write(content)
+
+def set_implement_tab(arch_dir: str):
+    """Set the implement tab as active and load architecture."""
+    st.session_state.current_tab = "💻 Implement"
+    st.session_state.loaded_arch_dir = arch_dir
+    
+def load_architecture_files(arch_dir: str) -> Dict[str, str]:
+    """Load architecture files from disk."""
+    arch_path = Path(arch_dir)
+    files = {}
+    
+    if not arch_path.exists():
+        st.error(f"Architecture directory not found: {arch_dir}")
+        return {}
+        
+    for file in arch_path.glob("*.*"):
+        try:
+            if file.suffix == '.toml':
+                with open(file) as f:
+                    files[file.name] = toml.load(f)
+            else:
+                files[file.name] = file.read_text()
+        except Exception as e:
+            st.warning(f"Could not load {file.name}: {str(e)}")
+            
+    return files
 
 def load_project(path: str) -> bool:
     """Load an existing SPARC project."""
@@ -346,6 +391,21 @@ def main():
         st.title("🚀 SPARC Code Generator")
         
         tab1, tab2 = st.tabs(["🏗️ Architect", "💻 Implement"])
+        
+        # Show loaded architecture if available
+        if hasattr(st.session_state, 'loaded_arch_dir') and st.session_state.loaded_arch_dir:
+            st.success(f"Using architecture from: {st.session_state.loaded_arch_dir}")
+            
+            # Add option to view loaded files
+            with st.expander("📁 View Loaded Architecture Files"):
+                files = load_architecture_files(st.session_state.loaded_arch_dir)
+                for filename, content in files.items():
+                    with st.expander(f"📄 {filename}"):
+                        if filename == "guidance.toml":
+                            st.json(content)
+                        else:
+                            st.markdown(content)
+        
         mode = st.session_state.get('mode', "🏗️ Architect")  # Default to Architect mode
 
         # Initialize session state for SPARC
@@ -456,8 +516,20 @@ def main():
                                 st.session_state.sparc_arch_dir = result["arch_dir"]
                                 st.success(f"Generated architecture files in: {result['arch_dir']}")
                                 
-                                # Display files as they are generated
-                                st.subheader("Generated Files:")
+                                # Store results in session state for future use
+                                st.session_state.architecture_files = result["files"]
+                                
+                                # Display files in collapsible sections
+                                st.subheader("Generated Files")
+                                
+                                # Add save all button at the top
+                                col1, col2 = st.columns([3,1])
+                                with col1:
+                                    save_path = st.text_input("Save Directory", value=result["arch_dir"])
+                                with col2:
+                                    if st.button("💾 Save All Files"):
+                                        save_architecture_files(save_path, st.session_state.architecture_files)
+                                        st.success(f"Saved all files to {save_path}")
                                 
                                 # Initialize progress tracking
                                 progress = st.progress(0)
@@ -622,8 +694,16 @@ def main():
                                                 f"💾 Download {filename}",
                                                 content,
                                                 filename,
-                                                mime="text/plain"
+                                                mime="text/plain",
+                                                use_container_width=True
                                             )
+                                
+                                # Add "Load in Implement" button
+                                st.button(
+                                    "📝 Load in Implement Tab",
+                                    on_click=lambda: set_implement_tab(result["arch_dir"]),
+                                    use_container_width=True
+                                )
                                             
                         except Exception as e:
                             st.error(f"Implementation failed: {str(e)}")
