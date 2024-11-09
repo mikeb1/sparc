@@ -230,7 +230,6 @@ async def test_file_structure(mock_completion, tmp_path):
 
             assert file_path.read_text() == expected_content, f"Unexpected content in {filename}"
 
-# Example of modern Pydantic model with ConfigDict
 from pydantic import BaseModel, ConfigDict
 
 class TechStack(BaseModel):
@@ -246,7 +245,9 @@ class TechStack(BaseModel):
         validate_default=True,
         validate_assignment=True,
         str_strip_whitespace=True,
-        str_to_lower=True
+        str_to_lower=True,
+        str_max_length=100,
+        validate_all=True
     )
 
 # Example of modern importlib.resources usage
