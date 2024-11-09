@@ -8,8 +8,8 @@ class MainApp:
     
     def __init__(self):
         """Initialize the main application."""
-        self.session_state = {}
         self.initialize_session_state()
+        self.session_state = st.session_state
         self.theme = self.setup_theme()
         self.sidebar = self.create_sidebar()
         self.current_page = None
@@ -28,26 +28,22 @@ class MainApp:
                 st.session_state[key] = value
         self.session_state = st.session_state
         
-    def setup_theme(self) -> dict:
+    def setup_theme(self) -> None:
         """Configure application theme and layout."""
-        theme_config = {
-            'page_title': "SPARC GUI",
-            'layout': "wide",
-            'initial_sidebar_state': "expanded"
-        }
-        st.set_page_config(**theme_config)
-        return theme_config
+        st.set_page_config(
+            page_title="SPARC GUI",
+            layout="wide",
+            initial_sidebar_state="expanded"
+        )
         
-    def create_sidebar(self) -> str:
+    def create_sidebar(self) -> None:
         """Create and configure the sidebar navigation."""
         with st.sidebar:
             st.title("SPARC GUI")
-            current_page = st.radio(
+            self.current_page = st.radio(
                 "Navigation",
                 ["Project", "Code", "Tests", "Settings"]
             )
-        self.current_page = current_page
-        return current_page
             
     def _apply_custom_css(self):
         """Apply custom CSS styling."""
@@ -64,16 +60,15 @@ class MainApp:
         """Display the main application interface."""
         st.title(f"SPARC GUI - {self.current_page}")
         
-        # Display appropriate page content
-        page_methods = {
-            "Project": self._display_project,
-            "Code": self._display_code,
-            "Tests": self._display_tests,
-            "Settings": self._display_settings
-        }
-        
-        if self.current_page in page_methods:
-            page_methods[self.current_page]()
+        # Display appropriate page content based on current page
+        if self.current_page == "Project":
+            self._display_project()
+        elif self.current_page == "Code":
+            self._display_code()
+        elif self.current_page == "Tests":
+            self._display_tests()
+        elif self.current_page == "Settings":
+            self._display_settings()
             
     def _display_project(self):
         """Display project management interface."""
