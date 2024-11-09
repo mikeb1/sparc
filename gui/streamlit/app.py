@@ -199,6 +199,10 @@ def show_components():
         st.error("Architecture.md not found")
 
 def main():
+    # Initialize page in session state if not present
+    if 'page' not in st.session_state:
+        st.session_state.page = "Project"
+
     # Sidebar
     with st.sidebar:
         st.title("SPARC GUI")
@@ -206,16 +210,16 @@ def main():
         st.markdown("### 🧭 Navigation")
         
         if st.button("🏠 Project", use_container_width=True, key="nav_project"):
-            page = "Project"
+            st.session_state.page = "Project"
         if st.button("💻 Code", use_container_width=True, key="nav_code"):
-            page = "Code"
+            st.session_state.page = "Code"
         if st.button("🧪 Tests", use_container_width=True, key="nav_tests"):
-            page = "Tests"
+            st.session_state.page = "Tests"
         if st.button("⚙️ Settings", use_container_width=True, key="nav_settings"):
-            page = "Settings"
+            st.session_state.page = "Settings"
 
     # Main content
-    if page == "Project":
+    if st.session_state.page == "Project":
         from utils.database import init_db, save_project, get_projects
         from utils.project import scan_architecture_folders, load_project_files, init_git_repo
         from utils.ui import (show_project_setup_instructions, show_project_card, 
@@ -394,7 +398,7 @@ def main():
                     
                     st.markdown("---")
 
-    elif page == "Code":
+    elif st.session_state.page == "Code":
         st.title("🚀 SPARC Code Generator")
         
         tab1, tab2, tab3 = st.tabs(["🏗️ Architect", "💻 Implement", "📚 History"])
@@ -842,11 +846,11 @@ def main():
                         except Exception as e:
                             st.error(f"Implementation failed: {str(e)}")
 
-    elif page == "Tests":
+    elif st.session_state.page == "Tests":
         st.title("Test Runner")
         st.info("Test execution features coming soon...")
 
-    elif page == "Settings":
+    elif st.session_state.page == "Settings":
         st.title("Settings")
         with st.form("settings_form"):
             st.checkbox("Dark Mode (Always On)", value=True, disabled=True)
