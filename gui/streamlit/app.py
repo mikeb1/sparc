@@ -627,10 +627,10 @@ def main():
             st.subheader("🧪 Testing Requirements")
             col1, col2 = st.columns(2)
             with col1:
-                min_coverage = st.slider("Minimum Coverage %", 0, 100, 85)
-                unit_test = st.checkbox("Unit Tests Required", value=True)
+                min_coverage = st.slider("Minimum Coverage %", 0, 100, 85, key="history_min_coverage")
+                unit_test = st.checkbox("Unit Tests Required", value=True, key="history_unit_test")
             with col2:
-                integration_test = st.checkbox("Integration Tests Required", value=True)
+                integration_test = st.checkbox("Integration Tests Required", value=True, key="history_integration_test")
             
             # Generate Implementation
             if st.button("📝 Generate Implementation", type="primary"):
