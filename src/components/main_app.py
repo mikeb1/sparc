@@ -8,10 +8,11 @@ class MainApp:
     
     def __init__(self):
         """Initialize the main application."""
-        self.session_state = st.session_state
+        self.session_state = {}
         self.initialize_session_state()
         self.theme = self.setup_theme()
         self.sidebar = self.create_sidebar()
+        self.current_page = None
         
     def initialize_session_state(self) -> None:
         """Initialize Streamlit session state."""
@@ -25,6 +26,7 @@ class MainApp:
         for key, value in defaults.items():
             if key not in st.session_state:
                 st.session_state[key] = value
+        self.session_state = st.session_state
         
     def setup_theme(self) -> dict:
         """Configure application theme and layout."""
@@ -34,13 +36,11 @@ class MainApp:
             'initial_sidebar_state': "expanded"
         }
         st.set_page_config(**theme_config)
-        self._apply_custom_css()
         return theme_config
         
     def create_sidebar(self) -> str:
         """Create and configure the sidebar navigation."""
         with st.sidebar:
-            st.image("logo.png")
             st.title("SPARC GUI")
             current_page = st.radio(
                 "Navigation",
@@ -62,7 +62,6 @@ class MainApp:
             
     def display(self):
         """Display the main application interface."""
-        # Set page title
         st.title(f"SPARC GUI - {self.current_page}")
         
         # Display appropriate page content
