@@ -763,9 +763,9 @@ def main():
             col1, col2 = st.columns(2)
             with col1:
                 min_coverage = st.slider("Minimum Coverage %", 0, 100, 85, key="history_min_coverage")
-                unit_test = st.checkbox("Unit Tests Required", value=True, key="history_unit_test")
+                unit_test = st.checkbox("Unit Tests Required", value=True, key="history_unit_test_tab3")
             with col2:
-                integration_test = st.checkbox("Integration Tests Required", value=True, key="history_integration_test")
+                integration_test = st.checkbox("Integration Tests Required", value=True, key="history_integration_test_tab3")
             
             # Quality Settings
             st.subheader("✨ Code Quality")
