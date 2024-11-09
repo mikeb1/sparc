@@ -242,7 +242,11 @@ class TechStack(BaseModel):
     model_config = ConfigDict(
         title="Technology Stack",
         extra="forbid",
-        frozen=True
+        frozen=True,
+        validate_default=True,
+        validate_assignment=True,
+        str_strip_whitespace=True,
+        str_to_lower=True
     )
 
 # Example of modern importlib.resources usage
