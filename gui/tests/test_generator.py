@@ -33,16 +33,10 @@ MOCK_CONTENT_RESPONSE = MagicMock(
 )
 
 @pytest.fixture
-def mock_completion():
+async def mock_completion():
     with patch('gui.streamlit.utils.generator.completion') as mock:
-        # Configure the mock to return different responses based on the prompt
-        async def mock_completion_side_effect(*args, **kwargs):
-            messages = kwargs.get('messages', [])
-            if any("Extract tech stack" in msg.get('content', '') for msg in messages):
-                return MOCK_TECH_STACK_RESPONSE
-            return MOCK_CONTENT_RESPONSE
-            
-        mock.side_effect = mock_completion_side_effect
+        # Return the mock responses directly without async wrapper
+        mock.return_value = MOCK_CONTENT_RESPONSE
         yield mock
 
 @pytest.mark.asyncio
@@ -51,6 +45,7 @@ async def test_detect_tech_stack_from_description(mock_completion):
     project_desc = "Build a Next.js web application with TypeScript"
     model = "claude-3-sonnet-20240229"
     
+    mock_completion.return_value = MOCK_TECH_STACK_RESPONSE
     tech_stack = await detect_tech_stack_from_description(project_desc, model)
     
     assert tech_stack["framework"] == "Next.js"
@@ -65,6 +60,7 @@ async def test_generate_sparc_content(mock_completion):
     project_desc = "Build a Next.js web application with TypeScript"
     model = "claude-3-sonnet-20240229"
     
+    mock_completion.return_value = MOCK_CONTENT_RESPONSE
     files_content = await generate_sparc_content(project_desc, model)
     
     # Verify all expected files are generated
@@ -87,7 +83,7 @@ async def test_generate_sparc_content(mock_completion):
     assert "typescript" in files_content["guidance.toml"]
 
 @pytest.mark.asyncio
-async def test_generate_sparc_content_error_handling(mock_completion):
+async def test_generate_sparc_content_error_handling():
     """Test error handling in SPARC content generation."""
     with patch('gui.streamlit.utils.generator.completion', side_effect=Exception("API Error")):
         project_desc = "Build a Next.js web application with TypeScript"
@@ -98,35 +94,20 @@ async def test_generate_sparc_content_error_handling(mock_completion):
         
         assert "API Error" in str(exc_info.value)
 
-def test_file_structure():
+@pytest.mark.asyncio
+async def test_file_structure(mock_completion, tmp_path):
     """Test that generated files follow expected structure."""
-    # Create a temporary directory for testing
-    test_dir = Path("test_output")
-    test_dir.mkdir(exist_ok=True)
+    project_desc = "Build a Next.js web application with TypeScript"
+    model = "claude-3-sonnet-20240229"
     
-    try:
-        # Run the async test in an event loop
-        async def run_test():
-            with patch('gui.streamlit.utils.generator.completion') as mock:
-                mock.return_value = MOCK_CONTENT_RESPONSE
-                
-                project_desc = "Build a Next.js web application with TypeScript"
-                model = "claude-3-sonnet-20240229"
-                
-                files_content = await generate_sparc_content(project_desc, model)
-                
-                # Write files to test directory
-                for filename, content in files_content.items():
-                    file_path = test_dir / filename
-                    file_path.write_text(content)
-                    
-                    # Verify file exists and has content
-                    assert file_path.exists()
-                    assert file_path.stat().st_size > 0
-                    
-        asyncio.run(run_test())
+    mock_completion.return_value = MOCK_CONTENT_RESPONSE
+    files_content = await generate_sparc_content(project_desc, model)
+    
+    # Write files to temporary directory
+    for filename, content in files_content.items():
+        file_path = tmp_path / filename
+        file_path.write_text(str(content))
         
-    finally:
-        # Cleanup test directory
-        import shutil
-        shutil.rmtree(test_dir)
+        # Verify file exists and has content
+        assert file_path.exists()
+        assert file_path.stat().st_size > 0
