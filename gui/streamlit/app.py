@@ -610,7 +610,7 @@ def main():
             project_desc = st.text_area(
                 "📋 Project Description",
                 help="Additional implementation details (optional)",
-                key="impl_project_desc"
+                key="impl_project_desc_tab2"  # Changed key to be unique
             )
             
             # Implementation Settings
@@ -740,7 +740,7 @@ def main():
             project_desc = st.text_area(
                 "📋 Project Description",
                 help="Additional implementation details (optional)",
-                key="impl_project_desc"
+                key="impl_project_desc_tab3"  # Changed key to be unique
             )
             features = st.text_area(
                 "Features (one per line)", 
