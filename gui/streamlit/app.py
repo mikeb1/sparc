@@ -154,80 +154,75 @@ def main():
 
     # Main content
     if page == "Project":
-        init_session_state()
+        from utils.database import init_db, save_project, get_projects
+        from utils.project import scan_architecture_folders, load_project_files, init_git_repo
+        from utils.ui import (show_project_setup_instructions, show_project_card, 
+                            show_architecture_folder_card)
         
-        st.title("Project Overview")
+        init_db()  # Ensure database exists
         
-        if not st.session_state.project_path:
-            # Project initialization section
-            st.write("Initialize or Load Project")
+        st.title("Project Management")
+        
+        # Top-level tabs
+        tab1, tab2, tab3 = st.tabs(["📚 Getting Started", "🆕 New Project", "📂 Existing Projects"])
+        
+        with tab1:
+            show_project_setup_instructions()
             
-            col1, col2 = st.columns(2)
+        with tab2:
+            st.header("Create New Project")
             
-            with col1:
-                st.subheader("New Project")
-                new_path = st.text_input("Project Path", placeholder="/path/to/project")
-                if st.button("Create Project"):
-                    if new_path:
+            # Project details form
+            with st.form("new_project"):
+                name = st.text_input("Project Name")
+                description = st.text_area("Project Description")
+                path = st.text_input("Project Path")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    init_git = st.checkbox("Initialize Git Repository", value=True)
+                with col2:
+                    create_arch = st.checkbox("Generate Architecture", value=True)
+                    
+                if st.form_submit_button("Create Project"):
+                    if name and path:
+                        # Create project directory
                         try:
-                            # Create project directory
-                            project_dir = Path(new_path)
+                            project_dir = Path(path)
                             project_dir.mkdir(parents=True, exist_ok=True)
                             
-                            # Initialize git
-                            git.Repo.init(project_dir)
+                            # Initialize git if requested
+                            if init_git:
+                                repo = init_git_repo(path)
                             
-                            # Load the project
-                            if load_project(new_path):
+                            # Save to database
+                            if save_project(name, str(project_dir), description, {}):
                                 st.success("Project created successfully!")
-                            
+                                if create_arch:
+                                    st.info("Generating architecture files...")
+                                    # Add architecture generation logic here
                         except Exception as e:
                             st.error(f"Failed to create project: {str(e)}")
                     else:
-                        st.error("Please enter a project path")
+                        st.error("Please provide project name and path")
             
-            with col2:
-                st.subheader("Load Existing")
-                existing_path = st.text_input("Project Path", placeholder="/path/to/existing")
-                if st.button("Load Project"):
-                    if existing_path:
-                        if load_project(existing_path):
-                            st.success("Project loaded successfully!")
-                    else:
-                        st.error("Please enter a project path")
-                        
-        else:
-            # Project status and management
-            show_project_status()
-            
-            st.markdown("---")
-            
-            show_components()
-            
-            # Project actions
-            st.markdown("---")
-            col1, col2, col3 = st.columns(3)
+        with tab3:
+            col1, col2 = st.columns([2,1])
             
             with col1:
-                if st.button("Refresh Status"):
-                    load_project(st.session_state.project_path)
-                    
+                st.subheader("Recent Projects")
+                projects = get_projects()
+                for project in projects:
+                    if show_project_card(project):
+                        st.experimental_rerun()
+                        
             with col2:
-                if st.button("Clear Project"):
-                    st.session_state.project_path = None
-                    st.session_state.git_repo = None
-                    st.experimental_rerun()
-                    
-            with col3:
-                if st.session_state.git_repo and st.session_state.git_repo.is_dirty():
-                    if st.button("Commit Changes"):
-                        try:
-                            repo = st.session_state.git_repo
-                            repo.git.add(A=True)
-                            repo.index.commit(f"Update {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-                            st.success("Changes committed successfully!")
-                        except Exception as e:
-                            st.error(f"Failed to commit changes: {str(e)}")
+                st.subheader("Architecture Folders")
+                base_path = "."  # Configure this path as needed
+                arch_folders = scan_architecture_folders(base_path)
+                for folder in arch_folders:
+                    if show_architecture_folder_card(folder):
+                        st.experimental_rerun()
 
     elif page == "Code":
         st.title("Code Editor")
