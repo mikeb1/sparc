@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Environment files
+.env
+.env.*
+
 # C extensions
 *.so
 
