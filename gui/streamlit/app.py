@@ -589,6 +589,97 @@ def main():
             st.header("Implementation Options")
             st.session_state.mode = "💻 Implement"
             
+            # Implementation options
+            col1, col2 = st.columns(2)
+            with col1:
+                max_attempts = st.number_input(
+                    "🔄 Max Attempts",
+                    min_value=1,
+                    value=3,
+                    help="Maximum implementation attempts per component"
+                )
+            with col2:
+                guidance_file = st.text_input(
+                    "📁 Guidance File Path",
+                    value="guidance.toml",
+                    help="Path to your guidance TOML file"
+                )
+            
+            project_desc = st.text_area(
+                "📋 Project Description",
+                help="Additional implementation details (optional)",
+                key="impl_project_desc"
+            )
+            
+            # Implementation Settings
+            st.subheader("⚙️ Implementation Settings")
+            col1, col2 = st.columns(2)
+            with col1:
+                test_first = st.checkbox("Test First Approach", value=True)
+                type_hints = st.checkbox("Type Hints", value=True)
+            with col2:
+                docstring_style = st.selectbox(
+                    "Docstring Style", 
+                    ["Google", "NumPy", "reStructuredText"]
+                )
+            
+            # Testing Requirements
+            st.subheader("🧪 Testing Requirements")
+            col1, col2 = st.columns(2)
+            with col1:
+                min_coverage = st.slider("Minimum Coverage %", 0, 100, 85)
+                unit_test = st.checkbox("Unit Tests Required", value=True)
+            with col2:
+                integration_test = st.checkbox("Integration Tests Required", value=True)
+            
+            # Generate Implementation
+            if st.button("📝 Generate Implementation", type="primary"):
+                if not st.session_state.loaded_arch_dir:
+                    st.error("Please load architecture files first")
+                else:
+                    with st.spinner("Generating implementation..."):
+                        try:
+                            result = asyncio.run(run_sparc_implement(
+                                arch_dir=st.session_state.loaded_arch_dir,
+                                model=model,
+                                max_attempts=max_attempts
+                            ))
+                            
+                            if "error" in result:
+                                st.error(f"Implementation failed: {result['error']}")
+                            else:
+                                st.session_state.sparc_impl_dir = result["impl_dir"]
+                                st.success(f"Generated implementation in: {result['impl_dir']}")
+                                
+                                # Show source and test files
+                                col1, col2 = st.columns(2)
+                                
+                                with col1:
+                                    st.subheader("Source Files")
+                                    for filename, content in result["files"]["src"].items():
+                                        with st.expander(f"📄 {filename}"):
+                                            st.code(content, language="python")
+                                            st.download_button(
+                                                f"💾 Download {filename}",
+                                                content,
+                                                filename,
+                                                mime="text/plain"
+                                            )
+                                            
+                                with col2:
+                                    st.subheader("Test Files")
+                                    for filename, content in result["files"]["tests"].items():
+                                        with st.expander(f"🧪 {filename}"):
+                                            st.code(content, language="python")
+                                            st.download_button(
+                                                f"💾 Download {filename}",
+                                                content,
+                                                filename,
+                                                mime="text/plain"
+                                            )
+                                            
+                        except Exception as e:
+                            st.error(f"Implementation failed: {str(e)}")
         with tab3:
             st.subheader("📐 Saved Architectures")
             
