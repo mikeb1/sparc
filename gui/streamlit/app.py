@@ -752,7 +752,7 @@ def main():
             st.subheader("⚙️ Implementation Settings")
             col1, col2 = st.columns(2)
             with col1:
-                max_attempts = st.number_input("Max Attempts", min_value=1, value=3, key="history_max_attempts")
+                max_attempts = st.number_input("Max Attempts", min_value=1, value=3, help="Maximum implementation attempts per component", key="history_max_attempts")
                 test_first = st.checkbox("Test First Approach", value=True, key="history_test_first")
             with col2:
                 type_hints = st.checkbox("Type Hints", value=True, key="history_type_hints")
