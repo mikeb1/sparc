@@ -581,6 +581,11 @@ def _import_markdown_files(import_path: str, arch_dir: Path, force: bool = False
     # Create architecture directory if it doesn't exist
     arch_dir.mkdir(parents=True, exist_ok=True)
 
+    # Track import statistics
+    imported = []
+    skipped = []
+    failed = []
+
     # Find and copy all .md files
     for md_file in import_path.glob('*.md'):
         target_file = arch_dir / md_file.name
@@ -588,16 +593,36 @@ def _import_markdown_files(import_path: str, arch_dir: Path, force: bool = False
             if target_file.exists():
                 if force:
                     logger.warning(f"Overwriting existing file {target_file.name}")
+                    import shutil
+                    shutil.copy2(md_file, target_file)
+                    imported.append(md_file.name)
                 else:
                     logger.warning(f"Skipping {target_file.name} - already exists in {arch_dir}")
-                    logger.info(f"Use --force to overwrite existing files")
+                    skipped.append(md_file.name)
                     continue
-                
-            import shutil
-            shutil.copy2(md_file, target_file)
-            logger.info(f"Imported {md_file.name} to architecture directory")
+            else:
+                import shutil
+                shutil.copy2(md_file, target_file)
+                imported.append(md_file.name)
+                logger.info(f"Imported {md_file.name} to architecture directory")
         except Exception as e:
             logger.error(f"Failed to import {md_file.name}: {str(e)}")
+            failed.append(md_file.name)
+
+    # Print summary
+    if imported:
+        logger.info(f"Successfully imported: {', '.join(imported)}")
+    if skipped:
+        logger.warning(f"Skipped existing files: {', '.join(skipped)}")
+        logger.info("Use --force to overwrite existing files")
+    if failed:
+        logger.error(f"Failed to import: {', '.join(failed)}")
+
+    # Print next steps
+    if imported or (not imported and not failed and skipped):
+        logger.info("Import completed. Use 'architect' or 'implement' mode to continue development.")
+    elif failed:
+        logger.error("Import failed. Please check errors above and try again.")
 
 async def async_main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI')
