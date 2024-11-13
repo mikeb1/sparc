@@ -276,14 +276,42 @@ def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     
     # Read any imported markdown files first
     arch_dir = Path("architecture")
-    imported_content = ""
+    imported_files = {}
+    project_context = ""
+    
     if arch_dir.exists():
         for md_file in arch_dir.glob("*.md"):
             try:
                 with open(md_file, 'r') as f:
-                    imported_content += f"\n\n# Imported from {md_file.name}\n{f.read()}"
+                    content = f.read()
+                    imported_files[md_file.name] = content
+                    project_context += f"\n\n# Content from {md_file.name}\n{content}"
+                    # If this is the first file, use its content to enhance project description
+                    if not project_desc or project_desc == "A software project following SPARC framework principles.":
+                        # Extract first meaningful paragraph
+                        paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
+                        if paragraphs:
+                            project_desc = paragraphs[0]
             except Exception as e:
                 logger.error(f"Failed to read imported file {md_file}: {str(e)}")
+
+    # Update system prompt to focus on imported content
+    system_prompt = f"""You are a software architect tasked with creating SPARC framework documentation.
+Your task is to analyze the following imported content and create comprehensive SPARC architecture files
+that align with and expand upon the existing project documentation.
+
+Imported Project Context:
+{project_context}
+
+Key Instructions:
+1. Maintain consistency with the imported content
+2. Preserve any specific technical decisions or approaches mentioned
+3. Expand and structure the content to fit SPARC framework requirements
+4. Add any missing architectural details while staying true to the original vision
+5. Ensure all generated content aligns with and builds upon the imported documentation
+
+Project Description: {project_desc}
+"""
 
     # Detect tech stack from project description and imported content
     tech_stack = _detect_tech_stack_from_description(
@@ -369,12 +397,19 @@ Focus on best practices and patterns specific to this technology stack.
 Incorporate and expand upon the concepts from the imported documentation."""
     
     prompts = {
-        "Specification.md": f"""Generate a detailed software specification for: {project_desc}
-Include:
-- Project Overview
-- Core Requirements
-- Technical Requirements
-- Constraints and Assumptions
+        "Specification.md": f"""Based on the imported project documentation, create a comprehensive SPARC specification.
+Use the existing content as a foundation and expand it to include:
+
+1. Project Overview (incorporating existing context)
+2. Core Requirements (preserving documented requirements)
+3. Technical Requirements (maintaining technical decisions)
+4. Constraints and Assumptions (respecting existing constraints)
+
+Reference and expand upon these imported documents:
+{project_context}
+
+Format the specification to align with SPARC framework while maintaining
+consistency with the imported content.
 - This specification should be detailed and comprehensive and used to guide development and testing.
 - Be verbose and complete. 
 
@@ -423,12 +458,19 @@ Develop a comprehensive specification document for the project.
 
 Format in Markdown.""",
 
-        "Architecture.md": f'''Generate a detailed software architecture for: {project_desc}
-Include:
-- System Components
-- Component Interactions
-- Data Flow
-- Key Design Decisions
+        "Architecture.md": f'''Based on the imported project documentation, create a comprehensive SPARC architecture document.
+Preserve and expand upon the existing architectural decisions while adding:
+
+1. System Components (maintaining existing component definitions)
+2. Component Interactions (respecting documented relationships)
+3. Data Flow (incorporating existing patterns)
+4. Key Design Decisions (preserving and justifying technical choices)
+
+Reference and build upon these imported documents:
+{project_context}
+
+Ensure the architecture document maintains consistency with imported content
+while providing SPARC-compliant structure and completeness.
 - Detailed Diagrams (if applicable) 
 - File and folder structure with a brief description of each component.
 - Be verbose and complete.
