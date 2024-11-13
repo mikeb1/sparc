@@ -623,9 +623,8 @@ def _import_markdown_files(import_path: str, arch_dir: Path, output_dir: Optiona
         logger.error(f"Import path '{import_path}' does not exist.")
         return
 
-    # Use output_dir if provided, otherwise use arch_dir
-    target_dir = output_dir / "architecture" if output_dir else arch_dir
-    target_dir.mkdir(parents=True, exist_ok=True)
+    # Use the provided architecture directory
+    arch_dir.mkdir(parents=True, exist_ok=True)
 
     # Track import statistics
     imported = []
@@ -635,6 +634,7 @@ def _import_markdown_files(import_path: str, arch_dir: Path, output_dir: Optiona
     # Find and copy all .md files
     for md_file in import_path.glob('*.md'):
         target_file = arch_dir / md_file.name
+        logger.info(f"Importing {md_file.name} to {target_file}")
         try:
             if target_file.exists():
                 if force:
@@ -726,8 +726,12 @@ async def async_main():
         output_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Created output directory: {output_dir}")
 
-        # Import files to the new output directory
-        _import_markdown_files(args.import_docs, base_arch_dir, output_dir, args.force)
+        # Create architecture subdirectory for imported files
+        arch_output_dir = output_dir / "architecture"
+        arch_output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Import files to the new architecture subdirectory
+        _import_markdown_files(args.import_docs, arch_output_dir, None, args.force)
         
         # If no mode specified, run architect mode with imported files as base
         if not args.mode:
