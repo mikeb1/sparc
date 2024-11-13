@@ -565,9 +565,34 @@ Include:
     
     return files_content
 
+def _import_markdown_files(import_path: str, arch_dir: Path) -> None:
+    """Import markdown files from specified path into architecture directory."""
+    import_path = Path(import_path)
+    if not import_path.exists():
+        logger.error(f"Import path '{import_path}' does not exist.")
+        return
+
+    # Create architecture directory if it doesn't exist
+    arch_dir.mkdir(parents=True, exist_ok=True)
+
+    # Find and copy all .md files
+    for md_file in import_path.glob('*.md'):
+        target_file = arch_dir / md_file.name
+        try:
+            if target_file.exists():
+                logger.warning(f"File {target_file.name} already exists in architecture directory. Skipping.")
+                continue
+                
+            import shutil
+            shutil.copy2(md_file, target_file)
+            logger.info(f"Imported {md_file.name} to architecture directory")
+        except Exception as e:
+            logger.error(f"Failed to import {md_file.name}: {str(e)}")
+
 async def async_main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI')
     subparsers = parser.add_subparsers(dest='mode', help='Modes of operation')
+    parser.add_argument('--import-docs', type=str, help='Path to import .md documentation files from')
 
     # Common arguments for all modes
     parent_parser = argparse.ArgumentParser(add_help=False)
