@@ -766,13 +766,15 @@ async def async_main():
             
             # Write files to the new output directory
             for filename, content in files_content.items():
-                file_path = arch_output_dir / filename
+                file_path = arch_output_dir / filename  # Use arch_output_dir instead of arch_dir
                 try:
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(content)
                     logger.info(f"Generated missing file: {filename}")
                 except Exception as e:
                     logger.error(f"Failed to save {filename}: {str(e)}")
+            
+            logger.info(f"\nAll files generated in: {output_dir}")
             return
 
     if args.mode == 'architect':
