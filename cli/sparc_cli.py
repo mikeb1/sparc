@@ -746,6 +746,8 @@ async def async_main():
             if 'Specification.md' in arch_files:
                 # Try to extract first paragraph after "## Objective" or first non-empty paragraph
                 content = arch_files['Specification.md']
+                # Look for objective section
+                import re
                 objective_match = re.search(r'## Objective\s+(.+?)(?=\n\n|\Z)', content, re.DOTALL)
                 if objective_match:
                     project_desc = objective_match.group(1).strip()
