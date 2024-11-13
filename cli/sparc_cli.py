@@ -8,7 +8,6 @@ import logging
 import asyncio
 import concurrent.futures
 import re
-from re import sub
 from typing import List, Dict
 from pathlib import Path
 import json
