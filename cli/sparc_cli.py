@@ -252,8 +252,22 @@ Return only a JSON object with these fields:
 def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     """Generate SPARC architecture content using LiteLLM."""
     
-    # Detect tech stack from project description
-    tech_stack = _detect_tech_stack_from_description(project_desc, model)
+    # Read any imported markdown files first
+    arch_dir = Path("architecture")
+    imported_content = ""
+    if arch_dir.exists():
+        for md_file in arch_dir.glob("*.md"):
+            try:
+                with open(md_file, 'r') as f:
+                    imported_content += f"\n\n# Imported from {md_file.name}\n{f.read()}"
+            except Exception as e:
+                logger.error(f"Failed to read imported file {md_file}: {str(e)}")
+
+    # Detect tech stack from project description and imported content
+    tech_stack = _detect_tech_stack_from_description(
+        f"{project_desc}\n\nImported Content:\n{imported_content}", 
+        model
+    )
     
     # Generate guidance.toml with detected tech stack
     # Default to python if no language detected
@@ -319,14 +333,18 @@ api_docs_required = true
 architecture_docs_required = true
 changelog_required = true"""
 
-    # Add tech stack context to system prompt
+    # Add tech stack context and imported content to system prompt
     system_prompt = f"""You are a software architect. Generate detailed technical documentation.
 Technology Stack:
 - Framework/Runtime: {tech_stack['framework']}
 - Language: {tech_stack['language']}
 - Features: {', '.join(tech_stack['features'])}
 
-Focus on best practices and patterns specific to this technology stack."""
+Previously Imported Documentation:
+{imported_content}
+
+Focus on best practices and patterns specific to this technology stack.
+Incorporate and expand upon the concepts from the imported documentation."""
     
     prompts = {
         "Specification.md": f"""Generate a detailed software specification for: {project_desc}
