@@ -565,8 +565,14 @@ Include:
     
     return files_content
 
-def _import_markdown_files(import_path: str, arch_dir: Path) -> None:
-    """Import markdown files from specified path into architecture directory."""
+def _import_markdown_files(import_path: str, arch_dir: Path, force: bool = False) -> None:
+    """Import markdown files from specified path into architecture directory.
+    
+    Args:
+        import_path: Path to directory containing markdown files to import
+        arch_dir: Target architecture directory path
+        force: If True, overwrite existing files
+    """
     import_path = Path(import_path)
     if not import_path.exists():
         logger.error(f"Import path '{import_path}' does not exist.")
@@ -580,8 +586,12 @@ def _import_markdown_files(import_path: str, arch_dir: Path) -> None:
         target_file = arch_dir / md_file.name
         try:
             if target_file.exists():
-                logger.warning(f"File {target_file.name} already exists in architecture directory. Skipping.")
-                continue
+                if force:
+                    logger.warning(f"Overwriting existing file {target_file.name}")
+                else:
+                    logger.warning(f"Skipping {target_file.name} - already exists in {arch_dir}")
+                    logger.info(f"Use --force to overwrite existing files")
+                    continue
                 
             import shutil
             shutil.copy2(md_file, target_file)
@@ -595,6 +605,7 @@ async def async_main():
     
     # Add import-docs as a global argument before subparsers
     parser.add_argument('--import-docs', type=str, help='Path to import .md documentation files from')
+    parser.add_argument('--force', action='store_true', help='Force overwrite of existing files during import')
 
     # Common arguments for all modes
     parent_parser = argparse.ArgumentParser(add_help=False)
@@ -630,7 +641,7 @@ async def async_main():
     if args.import_docs:
         arch_dir = Path(config.architecture_dir)
         arch_dir.mkdir(parents=True, exist_ok=True)
-        _import_markdown_files(args.import_docs, arch_dir)
+        _import_markdown_files(args.import_docs, arch_dir, args.force)
         if not args.mode:
             logger.info("Import completed. Use 'architect' or 'implement' mode to continue development.")
             return
