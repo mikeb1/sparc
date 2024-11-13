@@ -599,6 +599,10 @@ async def async_main():
         aider_model=args.model if hasattr(args, 'model') else 'claude-3-sonnet-20240229'
     )
 
+    if args.import_docs:
+        arch_dir = Path(config.architecture_dir)
+        _import_markdown_files(args.import_docs, arch_dir)
+
     if args.mode == 'architect':
         # Join the project description words into a single string
         project_desc = ' '.join(args.project_description)

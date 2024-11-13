@@ -305,6 +305,18 @@ Based on this guidance:"""
             "Completion.md": self.guidance.get('completion', {}).get('content', "Document the completion criteria and final state.")
         }
 
+        # Skip generation of files that were imported
+        if args.import_docs:
+            files_to_generate = {
+                filename: guidance 
+                for filename, guidance in files_to_generate.items()
+                if not (arch_dir / filename).exists()
+            }
+            
+            if not files_to_generate:
+                logger.info("All architecture files already exist. Nothing to generate.")
+                return
+
         # Generate files concurrently
         async def generate_file(filename: str, guidance: str) -> tuple[str, str]:
             """Generate content for a single file."""
