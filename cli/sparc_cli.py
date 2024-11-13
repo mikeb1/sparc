@@ -609,12 +609,13 @@ Include:
     
     return files_content
 
-def _import_markdown_files(import_path: str, arch_dir: Path, force: bool = False) -> None:
+def _import_markdown_files(import_path: str, arch_dir: Path, output_dir: Optional[Path] = None, force: bool = False) -> None:
     """Import markdown files from specified path into architecture directory.
     
     Args:
         import_path: Path to directory containing markdown files to import
-        arch_dir: Target architecture directory path
+        arch_dir: Base architecture directory path
+        output_dir: Optional specific output directory for files (e.g. timestamped dir)
         force: If True, overwrite existing files
     """
     import_path = Path(import_path)
@@ -622,8 +623,9 @@ def _import_markdown_files(import_path: str, arch_dir: Path, force: bool = False
         logger.error(f"Import path '{import_path}' does not exist.")
         return
 
-    # Create architecture directory if it doesn't exist
-    arch_dir.mkdir(parents=True, exist_ok=True)
+    # Use output_dir if provided, otherwise use arch_dir
+    target_dir = output_dir / "architecture" if output_dir else arch_dir
+    target_dir.mkdir(parents=True, exist_ok=True)
 
     # Track import statistics
     imported = []
@@ -710,15 +712,26 @@ async def async_main():
     if args.import_docs:
         arch_dir = Path(config.architecture_dir)
         arch_dir.mkdir(parents=True, exist_ok=True)
-        _import_markdown_files(args.import_docs, arch_dir, args.force)
+        # Create base architecture directory if it doesn't exist
+        base_arch_dir = Path("architecture")
+        base_arch_dir.mkdir(exist_ok=True)
+        
+        # Create uniquely identified output directory under architecture/
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        import_path = Path(args.import_docs)
+        base_name = import_path.name  # Get the name of the imported directory
+        output_dir_name = f"architecture_{timestamp}_{base_name}"
+        output_dir = base_arch_dir / output_dir_name
+        output_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Created output directory: {output_dir}")
+
+        # Import files to the new output directory
+        _import_markdown_files(args.import_docs, base_arch_dir, output_dir, args.force)
         
         # If no mode specified, run architect mode with imported files as base
         if not args.mode:
             logger.info("No mode specified. Running architect mode with imported files as base...")
-            
-            # Create base architecture directory if it doesn't exist
-            base_arch_dir = Path("architecture")
-            base_arch_dir.mkdir(exist_ok=True)
             
             # Create uniquely identified output directory under architecture/
             from datetime import datetime
