@@ -276,12 +276,22 @@ def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     
     # Read any imported markdown files first
     arch_dir = Path("architecture")
-    imported_content = ""
+    imported_files = {}
+    project_context = ""
+    
     if arch_dir.exists():
         for md_file in arch_dir.glob("*.md"):
             try:
                 with open(md_file, 'r') as f:
-                    imported_content += f"\n\n# Imported from {md_file.name}\n{f.read()}"
+                    content = f.read()
+                    imported_files[md_file.name] = content
+                    project_context += f"\n\n# Content from {md_file.name}\n{content}"
+                    # If this is the first file, use its content to enhance project description
+                    if not project_desc or project_desc == "A software project following SPARC framework principles.":
+                        # Extract first meaningful paragraph
+                        paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
+                        if paragraphs:
+                            project_desc = paragraphs[0]
             except Exception as e:
                 logger.error(f"Failed to read imported file {md_file}: {str(e)}")
 
@@ -356,17 +366,26 @@ architecture_docs_required = true
 changelog_required = true"""
 
     # Add tech stack context and imported content to system prompt
-    system_prompt = f"""You are a software architect. Generate detailed technical documentation.
+    system_prompt = f"""You are a software architect tasked with creating SPARC framework documentation.
+Your task is to analyze the following imported content and create comprehensive SPARC architecture files
+that align with and expand upon the existing project documentation.
+
+Imported Project Context:
+{project_context}
+
+Key Instructions:
+1. Maintain consistency with the imported content
+2. Preserve any specific technical decisions or approaches mentioned
+3. Expand and structure the content to fit SPARC framework requirements
+4. Add any missing architectural details while staying true to the original vision
+5. Ensure all generated content aligns with and builds upon the imported documentation
+
+Project Description: {project_desc}
+
 Technology Stack:
 - Framework/Runtime: {tech_stack['framework']}
 - Language: {tech_stack['language']}
-- Features: {', '.join(tech_stack['features'])}
-
-Previously Imported Documentation:
-{imported_content}
-
-Focus on best practices and patterns specific to this technology stack.
-Incorporate and expand upon the concepts from the imported documentation."""
+- Features: {', '.join(tech_stack['features'])}"""
     
     prompts = {
         "Specification.md": f"""Generate a detailed software specification for: {project_desc}
@@ -609,7 +628,7 @@ Include:
     
     return files_content
 
-def _import_markdown_files(import_path: str, arch_dir: Path, force: bool = False) -> None:
+def _import_markdown_files(import_path: str, arch_dir: Path, output_dir: Optional[Path] = None, force: bool = False) -> None:
     """Import markdown files from specified path into architecture directory.
     
     Args:
@@ -708,9 +727,26 @@ async def async_main():
 
     # Handle imports first
     if args.import_docs:
-        arch_dir = Path(config.architecture_dir)
-        arch_dir.mkdir(parents=True, exist_ok=True)
-        _import_markdown_files(args.import_docs, arch_dir, args.force)
+        # Create base architecture directory if it doesn't exist
+        base_arch_dir = Path("architecture")
+        base_arch_dir.mkdir(exist_ok=True)
+        
+        # Create uniquely identified output directory under architecture/
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        import_path = Path(args.import_docs)
+        base_name = import_path.name  # Get the name of the imported directory
+        output_dir_name = f"architecture_{timestamp}_{base_name}"
+        output_dir = base_arch_dir / output_dir_name
+        output_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Created output directory: {output_dir}")
+
+        # Create architecture subdirectory for imported files
+        arch_output_dir = output_dir / "architecture"
+        arch_output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Import files to the new architecture subdirectory
+        _import_markdown_files(args.import_docs, arch_output_dir, None, args.force)
         
         # If no mode specified, run architect mode with imported files as base
         if not args.mode:
