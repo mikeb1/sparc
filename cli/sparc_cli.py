@@ -675,8 +675,34 @@ async def async_main():
         # If no mode specified, run architect mode with imported files as base
         if not args.mode:
             logger.info("No mode specified. Running architect mode with imported files as base...")
-            # Create a default project description if none provided
-            project_desc = "A software project following SPARC framework principles."
+            # Read existing architecture files to create project description
+            arch_dir = Path(config.architecture_dir)
+            arch_files = {}
+            for filename in ['Specification.md', 'Architecture.md']:
+                file_path = arch_dir / filename
+                if file_path.exists():
+                    with open(file_path, 'r') as f:
+                        arch_files[filename] = f.read()
+
+            # Extract project description from existing files
+            project_desc = ""
+            if 'Specification.md' in arch_files:
+                # Try to extract first paragraph after "## Objective" or first non-empty paragraph
+                content = arch_files['Specification.md']
+                objective_match = re.search(r'## Objective\s+(.+?)(?=\n\n|\Z)', content, re.DOTALL)
+                if objective_match:
+                    project_desc = objective_match.group(1).strip()
+                else:
+                    # Fall back to first non-empty paragraph
+                    paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
+                    if paragraphs:
+                        project_desc = paragraphs[0]
+
+            # Use default if no description found
+            if not project_desc:
+                project_desc = "A software project following SPARC framework principles."
+            
+            logger.info(f"Using project description from existing files: {project_desc}")
             
             # Generate content for missing files
             files_content = generate_sparc_content(project_desc, config.model)
