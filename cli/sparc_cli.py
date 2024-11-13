@@ -256,6 +256,8 @@ def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
     tech_stack = _detect_tech_stack_from_description(project_desc, model)
     
     # Generate guidance.toml with detected tech stack
+    # Default to python if no language detected
+    language = tech_stack.get('language') or 'python'
     guidance_content = f"""# SPARC Framework Project Configuration
 
 [project]
@@ -263,14 +265,14 @@ name = "{tech_stack['framework'].lower()}-agent-management"
 description = "{project_desc}"
 version = "0.1.0"
 framework = "{tech_stack['framework']}"
-language = "{tech_stack['language']}"
+language = "{language}"
 features = {tech_stack['features']}
 
 [architecture]
 # Component organization
 component_style = "PascalCase"
 test_prefix = "test_"
-source_suffix = ".{tech_stack['language'].lower()}"
+source_suffix = ".{language}"
 
 # Directory structure
 src_dir = "src"
