@@ -784,18 +784,29 @@ async def async_main():
             
             logger.info(f"Using project description from existing files: {project_desc}")
             
-            # Generate content for missing files
-            files_content = generate_sparc_content(project_desc, config.model)
+            # Check which files already exist
+            existing_files = set(f.name for f in arch_output_dir.glob('*.md'))
             
-            # Write files to the new output directory
-            for filename, content in files_content.items():
-                file_path = arch_output_dir / filename  # Use arch_output_dir instead of arch_dir
-                try:
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(content)
-                    logger.info(f"Generated missing file: {filename}")
-                except Exception as e:
-                    logger.error(f"Failed to save {filename}: {str(e)}")
+            # Only generate content for missing files
+            files_to_generate = {'Specification.md', 'Architecture.md', 'Pseudocode.md', 
+                               'Refinement.md', 'Completion.md', 'guidance.toml'} - existing_files
+            
+            if files_to_generate:
+                # Generate content only for missing files
+                files_content = generate_sparc_content(project_desc, config.model)
+                
+                # Write only missing files to the output directory
+                for filename, content in files_content.items():
+                    if filename in files_to_generate:
+                        file_path = arch_output_dir / filename
+                        try:
+                            with open(file_path, 'w', encoding='utf-8') as f:
+                                f.write(content)
+                            logger.info(f"Generated missing file: {filename}")
+                        except Exception as e:
+                            logger.error(f"Failed to save {filename}: {str(e)}")
+            else:
+                logger.info("All required files already exist, skipping generation")
             
             logger.info(f"\nAll files generated in: {output_dir}")
             return
