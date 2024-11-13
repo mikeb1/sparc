@@ -126,18 +126,20 @@ def _generate_test_code(config, component: str) -> str:
 
 def _generate_guidance_toml(tech_stack: Dict[str, str], architecture_content: str = "") -> str:
     """Generate guidance.toml content based on tech stack."""
+    # Default to python if no language detected
+    language = tech_stack.get('language') or 'python'
     return f'''# SPARC Framework Guidance Configuration
 
 [project]
 framework = "{tech_stack['framework']}"
-language = "{tech_stack['language']}"
+language = "{language}"
 features = {tech_stack['features']}
 
 [architecture]
 # Component naming conventions
 component_style = "PascalCase"
 test_prefix = "test_"
-source_suffix = ".{tech_stack['language']}"
+source_suffix = ".{language}"
 content = """
 {architecture_content}
 """
