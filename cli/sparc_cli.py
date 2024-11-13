@@ -592,6 +592,8 @@ def _import_markdown_files(import_path: str, arch_dir: Path) -> None:
 async def async_main():
     parser = argparse.ArgumentParser(description='SPARC Framework CLI')
     subparsers = parser.add_subparsers(dest='mode', help='Modes of operation')
+    
+    # Add import-docs as a global argument before subparsers
     parser.add_argument('--import-docs', type=str, help='Path to import .md documentation files from')
 
     # Common arguments for all modes
@@ -624,9 +626,14 @@ async def async_main():
         aider_model=args.model if hasattr(args, 'model') else 'claude-3-sonnet-20240229'
     )
 
+    # Handle imports first
     if args.import_docs:
         arch_dir = Path(config.architecture_dir)
+        arch_dir.mkdir(parents=True, exist_ok=True)
         _import_markdown_files(args.import_docs, arch_dir)
+        if not args.mode:
+            logger.info("Import completed. Use 'architect' or 'implement' mode to continue development.")
+            return
 
     if args.mode == 'architect':
         # Join the project description words into a single string
