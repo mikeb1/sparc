@@ -755,7 +755,7 @@ async def async_main():
         # Create uniquely identified architecture directory
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        base_name = '-'.join(project_desc.split())[:30]  # First 30 chars, normalize spaces
+        base_name = '-'.join(args.project_description)[:30]  # First 30 chars, normalize spaces
         arch_dir_name = f"architecture_{timestamp}_{base_name}"
         arch_dir = Path(arch_dir_name)
         arch_dir.mkdir(parents=True, exist_ok=True)
