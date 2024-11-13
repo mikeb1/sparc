@@ -234,19 +234,41 @@ Return only a JSON object with these fields:
             temperature=0.1
         )
         
-        # Parse JSON response
-        import json
-        tech_stack = json.loads(response.choices[0].message.content)
-        logger.info(f"Detected tech stack: {tech_stack}")
-        return tech_stack
-        
+        # Parse JSON response, handling potential non-JSON responses
+        try:
+            content = response.choices[0].message.content.strip()
+            # Try to find JSON object if response contains other text
+            import re
+            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            if json_match:
+                content = json_match.group(0)
+            
+            import json
+            tech_stack = json.loads(content)
+            logger.info(f"Detected tech stack: {tech_stack}")
+            return tech_stack
+        except (json.JSONDecodeError, AttributeError) as e:
+            logger.warning(f"Failed to parse tech stack JSON: {e}")
+            # Extract tech stack using regex fallback
+            framework_match = re.search(r'"framework":\s*"([^"]+)"', content)
+            language_match = re.search(r'"language":\s*"([^"]+)"', content)
+            features_match = re.search(r'"features":\s*\[(.*?)\]', content, re.DOTALL)
+            
+            tech_stack = {
+                'framework': framework_match.group(1) if framework_match else 'SPARC',
+                'language': language_match.group(1) if language_match else 'python',
+                'features': [f.strip(' "\'') for f in features_match.group(1).split(',')] if features_match else []
+            }
+            logger.info(f"Extracted tech stack using regex: {tech_stack}")
+            return tech_stack
+            
     except Exception as e:
         logger.error(f"Failed to detect tech stack: {e}")
         # Fallback to defaults
         return {
-            'framework': 'Flask' if 'flask' in project_desc.lower() else 'Next.js',
-            'language': 'python' if 'python' in project_desc.lower() else 'javascript',
-            'features': ['sticky-nav', 'sidebar', 'mobile-view', 'agent-management']
+            'framework': 'SPARC',
+            'language': 'python',
+            'features': ['agent-management', 'test-driven-development']
         }
 
 def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
