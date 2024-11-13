@@ -315,7 +315,7 @@ Project Description: {project_desc}
 
     # Detect tech stack from project description and imported content
     tech_stack = _detect_tech_stack_from_description(
-        f"{project_desc}\n\nImported Content:\n{imported_content}", 
+        f"{project_desc}\n\nImported Content:\n{project_context}", 
         model
     )
     
@@ -391,7 +391,7 @@ Technology Stack:
 - Features: {', '.join(tech_stack['features'])}
 
 Previously Imported Documentation:
-{imported_content}
+{project_context}
 
 Focus on best practices and patterns specific to this technology stack.
 Incorporate and expand upon the concepts from the imported documentation."""
