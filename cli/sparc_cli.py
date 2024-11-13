@@ -7,10 +7,10 @@ import argparse
 import logging
 import asyncio
 import concurrent.futures
+import re
 from typing import List, Dict
 from pathlib import Path
 import json
-import toml
 import toml
 
 from litellm import completion
