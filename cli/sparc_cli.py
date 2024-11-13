@@ -794,21 +794,40 @@ async def async_main():
         except Exception as e:
             logger.warning(f"Failed to load guidance file: {e}")
             guidance = {}
-        # Create uniquely identified architecture directory
+
+        # Create uniquely identified output directory under architecture/
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        base_name = '-'.join(args.project_description)[:30]  # First 30 chars, normalize spaces
-        arch_dir_name = f"architecture_{timestamp}_{base_name}"
-        arch_dir = Path(arch_dir_name)
-        arch_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Created architecture directory: {arch_dir_name}")
+        base_name = '-'.join(args.project_description)[:30].lower()  # First 30 chars, normalize spaces
+        base_name = re.sub(r'[^a-z0-9-]', '-', base_name)  # Clean up special chars
+        
+        # Create base architecture directory if it doesn't exist
+        base_arch_dir = Path("architecture")
+        base_arch_dir.mkdir(exist_ok=True)
+        
+        # Create timestamped project directory
+        output_dir_name = f"architecture_{timestamp}_{base_name}"
+        output_dir = base_arch_dir / output_dir_name
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create architecture subdirectory for markdown files
+        arch_subdir = output_dir / "architecture"
+        arch_subdir.mkdir(exist_ok=True)
+        
+        logger.info(f"Created output directory structure: {output_dir}")
 
         # Generate architecture files using LiteLLM
         files_content = generate_sparc_content(project_desc, config.aider_model)
         
         # Save the generated content
         for filename, content in files_content.items():
-            file_path = arch_dir / filename
+            if filename.endswith('.md'):
+                # Save markdown files in architecture subdirectory
+                file_path = arch_subdir / filename
+            else:
+                # Save other files (like guidance.toml) in project directory
+                file_path = output_dir / filename
+                
             try:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(content)
@@ -818,7 +837,8 @@ async def async_main():
                 raise
                 
         # Print summary
-        logger.info("\nGenerated files summary:")
+        logger.info(f"\nGenerated files in: {output_dir}")
+        logger.info("\nFiles generated:")
         for filename, content in files_content.items():
             logger.info(f"- {filename}: {len(content):,} characters")
     elif args.mode == 'implement':
