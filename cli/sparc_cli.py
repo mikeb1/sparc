@@ -716,17 +716,21 @@ async def async_main():
         if not args.mode:
             logger.info("No mode specified. Running architect mode with imported files as base...")
             
-            # Create uniquely identified output directory
+            # Create base architecture directory if it doesn't exist
+            base_arch_dir = Path("architecture")
+            base_arch_dir.mkdir(exist_ok=True)
+            
+            # Create uniquely identified output directory under architecture/
             from datetime import datetime
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             import_path = Path(args.import_docs)
             base_name = import_path.name  # Get the name of the imported directory
-            output_dir_name = f"sparc_output_{timestamp}_{base_name}"
-            output_dir = Path(output_dir_name)
+            output_dir_name = f"architecture_{timestamp}_{base_name}"
+            output_dir = base_arch_dir / output_dir_name
             output_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Created output directory: {output_dir_name}")
+            logger.info(f"Created output directory: {output_dir}")
 
-            # Copy imported files to new directory
+            # Create architecture subdirectory for markdown files
             arch_output_dir = output_dir / "architecture"
             arch_output_dir.mkdir(parents=True, exist_ok=True)
             import shutil
