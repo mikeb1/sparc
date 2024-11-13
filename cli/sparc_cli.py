@@ -667,8 +667,26 @@ async def async_main():
         arch_dir = Path(config.architecture_dir)
         arch_dir.mkdir(parents=True, exist_ok=True)
         _import_markdown_files(args.import_docs, arch_dir, args.force)
+        
+        # If no mode specified, run architect mode with imported files as base
         if not args.mode:
-            logger.info("Import completed. Use 'architect' or 'implement' mode to continue development.")
+            logger.info("No mode specified. Running architect mode with imported files as base...")
+            # Create a default project description if none provided
+            project_desc = "A software project following SPARC framework principles."
+            
+            # Generate content for missing files
+            files_content = generate_sparc_content(project_desc, config.model)
+            
+            # Only write files that don't already exist
+            for filename, content in files_content.items():
+                file_path = arch_dir / filename
+                if not file_path.exists():
+                    try:
+                        with open(file_path, 'w', encoding='utf-8') as f:
+                            f.write(content)
+                        logger.info(f"Generated missing file: {filename}")
+                    except Exception as e:
+                        logger.error(f"Failed to save {filename}: {str(e)}")
             return
 
     if args.mode == 'architect':
