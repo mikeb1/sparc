@@ -715,8 +715,25 @@ async def async_main():
         # If no mode specified, run architect mode with imported files as base
         if not args.mode:
             logger.info("No mode specified. Running architect mode with imported files as base...")
+            
+            # Create uniquely identified output directory
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            import_path = Path(args.import_docs)
+            base_name = import_path.name  # Get the name of the imported directory
+            output_dir_name = f"sparc_output_{timestamp}_{base_name}"
+            output_dir = Path(output_dir_name)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Created output directory: {output_dir_name}")
+
+            # Copy imported files to new directory
+            arch_output_dir = output_dir / "architecture"
+            arch_output_dir.mkdir(parents=True, exist_ok=True)
+            import shutil
+            for file in arch_dir.glob("*.md"):
+                shutil.copy2(file, arch_output_dir / file.name)
+            
             # Read existing architecture files to create project description
-            arch_dir = Path(config.architecture_dir)
             arch_files = {}
             for filename in ['Specification.md', 'Architecture.md']:
                 file_path = arch_dir / filename
