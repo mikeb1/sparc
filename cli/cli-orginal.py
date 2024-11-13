@@ -297,7 +297,7 @@ def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
 
     # Detect tech stack from project description and imported content
     tech_stack = _detect_tech_stack_from_description(
-        f"{project_desc}\n\nImported Content:\n{imported_content}", 
+        f"{project_desc}\n\nImported Content:\n{project_context}", 
         model
     )
     
@@ -766,13 +766,13 @@ async def async_main():
             arch_output_dir = output_dir / "architecture"
             arch_output_dir.mkdir(parents=True, exist_ok=True)
             import shutil
-            for file in arch_dir.glob("*.md"):
+            for file in arch_output_dir.glob("*.md"):
                 shutil.copy2(file, arch_output_dir / file.name)
             
             # Read existing architecture files to create project description
             arch_files = {}
             for filename in ['Specification.md', 'Architecture.md']:
-                file_path = arch_dir / filename
+                file_path = arch_output_dir / filename
                 if file_path.exists():
                     with open(file_path, 'r') as f:
                         arch_files[filename] = f.read()
