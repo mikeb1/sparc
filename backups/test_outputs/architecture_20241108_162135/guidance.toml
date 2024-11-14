@@ -1,0 +1,20 @@
+
+[specification]
+content = '''
+Create a simple REST API service with:
+- User authentication
+- CRUD operations for a resource
+- Basic error handling
+'''
+
+[architecture]
+content = '''
+## Component: AuthService
+Handles user authentication and authorization.
+
+## Component: ResourceManager 
+Manages CRUD operations for resources.
+
+## Component: ErrorHandler
+Provides standardized error handling.
+'''
