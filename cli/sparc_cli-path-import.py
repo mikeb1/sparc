@@ -295,6 +295,24 @@ def generate_sparc_content(project_desc: str, model: str) -> Dict[str, str]:
             except Exception as e:
                 logger.error(f"Failed to read imported file {md_file}: {str(e)}")
 
+    # Update system prompt to focus on imported content
+    system_prompt = f"""You are a software architect tasked with creating SPARC framework documentation.
+Your task is to analyze the following imported content and create comprehensive SPARC architecture files
+that align with and expand upon the existing project documentation.
+
+Imported Project Context:
+{project_context}
+
+Key Instructions:
+1. Maintain consistency with the imported content
+2. Preserve any specific technical decisions or approaches mentioned
+3. Expand and structure the content to fit SPARC framework requirements
+4. Add any missing architectural details while staying true to the original vision
+5. Ensure all generated content aligns with and builds upon the imported documentation
+
+Project Description: {project_desc}
+"""
+
     # Detect tech stack from project description and imported content
     tech_stack = _detect_tech_stack_from_description(
         f"{project_desc}\n\nImported Content:\n{project_context}", 
@@ -366,34 +384,32 @@ architecture_docs_required = true
 changelog_required = true"""
 
     # Add tech stack context and imported content to system prompt
-    system_prompt = f"""You are a software architect tasked with creating SPARC framework documentation.
-Your task is to analyze the following imported content and create comprehensive SPARC architecture files
-that align with and expand upon the existing project documentation.
-
-Imported Project Context:
-{project_context}
-
-Key Instructions:
-1. Maintain consistency with the imported content
-2. Preserve any specific technical decisions or approaches mentioned
-3. Expand and structure the content to fit SPARC framework requirements
-4. Add any missing architectural details while staying true to the original vision
-5. Ensure all generated content aligns with and builds upon the imported documentation
-
-Project Description: {project_desc}
-
+    system_prompt = f"""You are a software architect. Generate detailed technical documentation.
 Technology Stack:
 - Framework/Runtime: {tech_stack['framework']}
 - Language: {tech_stack['language']}
-- Features: {', '.join(tech_stack['features'])}"""
+- Features: {', '.join(tech_stack['features'])}
+
+Previously Imported Documentation:
+{project_context}
+
+Focus on best practices and patterns specific to this technology stack.
+Incorporate and expand upon the concepts from the imported documentation."""
     
     prompts = {
-        "Specification.md": f"""Generate a detailed software specification for: {project_desc}
-Include:
-- Project Overview
-- Core Requirements
-- Technical Requirements
-- Constraints and Assumptions
+        "Specification.md": f"""Based on the imported project documentation, create a comprehensive SPARC specification.
+Use the existing content as a foundation and expand it to include:
+
+1. Project Overview (incorporating existing context)
+2. Core Requirements (preserving documented requirements)
+3. Technical Requirements (maintaining technical decisions)
+4. Constraints and Assumptions (respecting existing constraints)
+
+Reference and expand upon these imported documents:
+{project_context}
+
+Format the specification to align with SPARC framework while maintaining
+consistency with the imported content.
 - This specification should be detailed and comprehensive and used to guide development and testing.
 - Be verbose and complete. 
 
@@ -442,12 +458,19 @@ Develop a comprehensive specification document for the project.
 
 Format in Markdown.""",
 
-        "Architecture.md": f'''Generate a detailed software architecture for: {project_desc}
-Include:
-- System Components
-- Component Interactions
-- Data Flow
-- Key Design Decisions
+        "Architecture.md": f'''Based on the imported project documentation, create a comprehensive SPARC architecture document.
+Preserve and expand upon the existing architectural decisions while adding:
+
+1. System Components (maintaining existing component definitions)
+2. Component Interactions (respecting documented relationships)
+3. Data Flow (incorporating existing patterns)
+4. Key Design Decisions (preserving and justifying technical choices)
+
+Reference and build upon these imported documents:
+{project_context}
+
+Ensure the architecture document maintains consistency with imported content
+while providing SPARC-compliant structure and completeness.
 - Detailed Diagrams (if applicable) 
 - File and folder structure with a brief description of each component.
 - Be verbose and complete.
@@ -633,7 +656,8 @@ def _import_markdown_files(import_path: str, arch_dir: Path, output_dir: Optiona
     
     Args:
         import_path: Path to directory containing markdown files to import
-        arch_dir: Target architecture directory path
+        arch_dir: Base architecture directory path
+        output_dir: Optional specific output directory for files (e.g. timestamped dir)
         force: If True, overwrite existing files
     """
     import_path = Path(import_path)
@@ -641,7 +665,7 @@ def _import_markdown_files(import_path: str, arch_dir: Path, output_dir: Optiona
         logger.error(f"Import path '{import_path}' does not exist.")
         return
 
-    # Create architecture directory if it doesn't exist
+    # Use the provided architecture directory
     arch_dir.mkdir(parents=True, exist_ok=True)
 
     # Track import statistics
@@ -652,6 +676,7 @@ def _import_markdown_files(import_path: str, arch_dir: Path, output_dir: Optiona
     # Find and copy all .md files
     for md_file in import_path.glob('*.md'):
         target_file = arch_dir / md_file.name
+        logger.info(f"Importing {md_file.name} to {target_file}")
         try:
             if target_file.exists():
                 if force:
@@ -727,6 +752,8 @@ async def async_main():
 
     # Handle imports first
     if args.import_docs:
+        arch_dir = Path(config.architecture_dir)
+        arch_dir.mkdir(parents=True, exist_ok=True)
         # Create base architecture directory if it doesn't exist
         base_arch_dir = Path("architecture")
         base_arch_dir.mkdir(exist_ok=True)
@@ -752,27 +779,27 @@ async def async_main():
         if not args.mode:
             logger.info("No mode specified. Running architect mode with imported files as base...")
             
-            # Create uniquely identified output directory
+            # Create uniquely identified output directory under architecture/
             from datetime import datetime
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             import_path = Path(args.import_docs)
             base_name = import_path.name  # Get the name of the imported directory
-            output_dir_name = f"sparc_output_{timestamp}_{base_name}"
-            output_dir = Path(output_dir_name)
+            output_dir_name = f"architecture_{timestamp}_{base_name}"
+            output_dir = base_arch_dir / output_dir_name
             output_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Created output directory: {output_dir_name}")
+            logger.info(f"Created output directory: {output_dir}")
 
-            # Copy imported files to new directory
+            # Create architecture subdirectory for markdown files
             arch_output_dir = output_dir / "architecture"
             arch_output_dir.mkdir(parents=True, exist_ok=True)
             import shutil
-            for file in arch_output_dir.glob("*.md"):
+            for file in arch_dir.glob("*.md"):
                 shutil.copy2(file, arch_output_dir / file.name)
             
             # Read existing architecture files to create project description
             arch_files = {}
             for filename in ['Specification.md', 'Architecture.md']:
-                file_path = arch_output_dir / filename
+                file_path = arch_dir / filename
                 if file_path.exists():
                     with open(file_path, 'r') as f:
                         arch_files[filename] = f.read()
@@ -799,18 +826,29 @@ async def async_main():
             
             logger.info(f"Using project description from existing files: {project_desc}")
             
-            # Generate content for missing files
-            files_content = generate_sparc_content(project_desc, config.model)
+            # Check which files already exist
+            existing_files = set(f.name for f in arch_output_dir.glob('*.md'))
             
-            # Write files to the new output directory
-            for filename, content in files_content.items():
-                file_path = arch_output_dir / filename  # Use arch_output_dir instead of arch_dir
-                try:
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(content)
-                    logger.info(f"Generated missing file: {filename}")
-                except Exception as e:
-                    logger.error(f"Failed to save {filename}: {str(e)}")
+            # Only generate content for missing files
+            files_to_generate = {'Specification.md', 'Architecture.md', 'Pseudocode.md', 
+                               'Refinement.md', 'Completion.md', 'guidance.toml'} - existing_files
+            
+            if files_to_generate:
+                # Generate content only for missing files
+                files_content = generate_sparc_content(project_desc, config.model)
+                
+                # Write only missing files to the output directory
+                for filename, content in files_content.items():
+                    if filename in files_to_generate:
+                        file_path = arch_output_dir / filename
+                        try:
+                            with open(file_path, 'w', encoding='utf-8') as f:
+                                f.write(content)
+                            logger.info(f"Generated missing file: {filename}")
+                        except Exception as e:
+                            logger.error(f"Failed to save {filename}: {str(e)}")
+            else:
+                logger.info("All required files already exist, skipping generation")
             
             logger.info(f"\nAll files generated in: {output_dir}")
             return
@@ -830,21 +868,40 @@ async def async_main():
         except Exception as e:
             logger.warning(f"Failed to load guidance file: {e}")
             guidance = {}
-        # Create uniquely identified architecture directory
+
+        # Create uniquely identified output directory under architecture/
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        base_name = '-'.join(args.project_description)[:30]  # First 30 chars, normalize spaces
-        arch_dir_name = f"architecture_{timestamp}_{base_name}"
-        arch_dir = Path(arch_dir_name)
-        arch_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Created architecture directory: {arch_dir_name}")
+        base_name = '-'.join(args.project_description)[:30].lower()  # First 30 chars, normalize spaces
+        base_name = re.sub(r'[^a-z0-9-]', '-', base_name)  # Clean up special chars
+        
+        # Create base architecture directory if it doesn't exist
+        base_arch_dir = Path("architecture")
+        base_arch_dir.mkdir(exist_ok=True)
+        
+        # Create timestamped project directory
+        output_dir_name = f"architecture_{timestamp}_{base_name}"
+        output_dir = base_arch_dir / output_dir_name
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create architecture subdirectory for markdown files
+        arch_subdir = output_dir / "architecture"
+        arch_subdir.mkdir(exist_ok=True)
+        
+        logger.info(f"Created output directory structure: {output_dir}")
 
         # Generate architecture files using LiteLLM
         files_content = generate_sparc_content(project_desc, config.aider_model)
         
         # Save the generated content
         for filename, content in files_content.items():
-            file_path = arch_dir / filename
+            if filename.endswith('.md'):
+                # Save markdown files in architecture subdirectory
+                file_path = arch_subdir / filename
+            else:
+                # Save other files (like guidance.toml) in project directory
+                file_path = output_dir / filename
+                
             try:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(content)
@@ -854,7 +911,8 @@ async def async_main():
                 raise
                 
         # Print summary
-        logger.info("\nGenerated files summary:")
+        logger.info(f"\nGenerated files in: {output_dir}")
+        logger.info("\nFiles generated:")
         for filename, content in files_content.items():
             logger.info(f"- {filename}: {len(content):,} characters")
     elif args.mode == 'implement':
