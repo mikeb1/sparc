@@ -66,7 +66,7 @@ pub fn train(cfg: &Config) -> Result<()> {
             let embedded = embeddings.forward(&inputs);
 
             // Expert Selection
-            let expert_probs = selector.forward(&embedded.mean_dim(&[embedded.size()[1]-1], false, tch::Kind::Float));
+            let expert_probs = selector.forward(&embedded.mean_dim_intlist(&[embedded.size()[1] - 1], false, tch::Kind::Float));
 
             // Activate Experts
             let mut expert_outputs = Vec::with_capacity(cfg.num_experts);
@@ -81,7 +81,8 @@ pub fn train(cfg: &Config) -> Result<()> {
             }
 
             // Integration
-            let predictions = integrator.forward(&expert_outputs, &expert_probs);
+            let combined_output = integrator.combine_expert_outputs(&expert_outputs, &expert_probs);
+            let predictions = integrator.forward(&combined_output);
 
             // Compute Loss
             let loss = classification_loss(&predictions, &targets);

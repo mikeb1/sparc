@@ -55,7 +55,7 @@ pub fn evaluate(cfg: &Config) -> Result<()> {
 
             // Forward Pass
             let embedded = embeddings.forward(&inputs);
-            let expert_probs = selector.forward(&embedded.mean_dim(&[embedded.size()[1]-1], false, tch::Kind::Float));
+            let expert_probs = selector.forward(&embedded.mean_dim_intlist(&[embedded.size()[1] - 1], false, tch::Kind::Float));
 
             let mut expert_outputs = Vec::with_capacity(cfg.num_experts);
             for (i, expert) in experts.iter().enumerate() {
@@ -64,7 +64,8 @@ pub fn evaluate(cfg: &Config) -> Result<()> {
                 expert_outputs.push(output * prob);
             }
 
-            let predictions = integrator.forward(&expert_outputs, &expert_probs);
+            let combined_output = integrator.combine_expert_outputs(&expert_outputs, &expert_probs);
+            let predictions = integrator.forward(&combined_output);
 
             // Compute accuracy
             let predicted_classes = predictions.argmax(-1, false);
