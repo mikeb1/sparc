@@ -66,7 +66,7 @@ pub fn train(cfg: &Config) -> Result<()> {
             let embedded = embeddings.forward(&inputs);
 
             // Expert Selection
-            let expert_probs = selector.forward(&embedded.mean1(&[embedded.size()[1] - 1], false, tch::Kind::Float));
+            let expert_probs = selector.forward(&embedded.mean_dim(embedded.size()[1] - 1, false, tch::Kind::Float));
 
             // Activate Experts
             let mut expert_outputs = Vec::with_capacity(cfg.num_experts);
