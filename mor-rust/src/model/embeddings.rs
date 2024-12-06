@@ -1,4 +1,5 @@
 use tch::{nn, Tensor};
+use tch::nn::Module;
 
 pub struct EmbeddingLayer {
     embeddings: nn::Embedding,
@@ -9,8 +10,10 @@ impl EmbeddingLayer {
         let embeddings = nn::embedding(vs, vocab_size, embedding_dim, Default::default());
         Self { embeddings }
     }
+}
 
-    pub fn forward(&self, input: &Tensor) -> Tensor {
+impl Module for EmbeddingLayer {
+    fn forward(&self, input: &Tensor) -> Tensor {
         self.embeddings.forward(input)
     }
 }

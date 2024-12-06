@@ -1,25 +1,22 @@
 use tch::{nn, Tensor};
+use tch::nn::Module;
 
 pub struct ReflectionModule {
-    transformer: nn::TransformerEncoder,
+    linear1: nn::Linear,
+    linear2: nn::Linear,
 }
 
 impl ReflectionModule {
-    pub fn new(vs: &nn::Path, embedding_dim: i64, num_heads: i64, num_layers: i64) -> Self {
-        let config = nn::transformer::TransformerEncoderConfig {
-            d_model: embedding_dim,
-            nhead: num_heads,
-            num_encoder_layers: num_layers,
-            dim_feedforward: embedding_dim * 4,
-            dropout: 0.1,
-            activation: nn::transformer::Activation::Gelu,
-            ..Default::default()
-        };
-        let transformer = nn::transformer::transformer_encoder(vs, config);
-        Self { transformer }
+    pub fn new(vs: &nn::Path, embedding_dim: i64, hidden_dim: i64, _num_layers: i64) -> Self {
+        let linear1 = nn::linear(vs / "linear1", embedding_dim, hidden_dim, Default::default());
+        let linear2 = nn::linear(vs / "linear2", hidden_dim, embedding_dim, Default::default());
+        Self { linear1, linear2 }
     }
+}
 
-    pub fn forward(&self, input: &Tensor) -> Tensor {
-        self.transformer.forward(input)
+impl Module for ReflectionModule {
+    fn forward(&self, input: &Tensor) -> Tensor {
+        let hidden = input.apply(&self.linear1).relu();
+        hidden.apply(&self.linear2)
     }
 }
