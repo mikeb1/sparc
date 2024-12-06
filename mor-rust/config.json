@@ -1,0 +1,9 @@
+{
+    "learning_rate": 0.001,
+    "batch_size": 32,
+    "reflection_depth": 3,
+    "num_experts": 5,
+    "max_epochs": 10,
+    "data_path": "data/",
+    "model_save_path": "model.pt"
+}
