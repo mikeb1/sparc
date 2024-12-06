@@ -7,7 +7,7 @@ use crate::model::{
     integration_layer::IntegrationLayer,
 };
 use anyhow::Result;
-use tch::{nn, Device, Tensor, no_grad};
+use tch::{nn, Device, no_grad};
 use log::info;
 
 pub fn evaluate(cfg: &Config) -> Result<()> {
