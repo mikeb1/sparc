@@ -55,7 +55,7 @@ pub fn evaluate(cfg: &Config) -> Result<()> {
 
             // Forward Pass
             let embedded = embeddings.forward(&inputs);
-            let expert_probs = selector.forward(&embedded.mean_dim_intlist(&[embedded.size()[1] - 1], false, tch::Kind::Float));
+            let expert_probs = selector.forward(&embedded.mean1(&[embedded.size()[1] - 1], false, tch::Kind::Float));
 
             let mut expert_outputs = Vec::with_capacity(cfg.num_experts);
             for (i, expert) in experts.iter().enumerate() {
