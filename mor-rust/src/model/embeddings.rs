@@ -1,6 +1,7 @@
 use tch::{nn, Tensor};
 use tch::nn::Module;
 
+#[derive(Debug)]
 pub struct EmbeddingLayer {
     embeddings: nn::Embedding,
 }

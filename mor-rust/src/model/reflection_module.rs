@@ -1,6 +1,7 @@
 use tch::{nn, Tensor};
 use tch::nn::Module;
 
+#[derive(Debug)]
 pub struct ReflectionModule {
     linear1: nn::Linear,
     linear2: nn::Linear,

@@ -1,4 +1,5 @@
 use crate::config::Config;
+use tch::nn::Module;
 use crate::data::{DataLoader, dataset::ExampleDataLoader};
 use crate::model::{
     embeddings::EmbeddingLayer,
@@ -26,19 +27,19 @@ pub fn evaluate(cfg: &Config) -> Result<()> {
     let num_heads = 8;
     let num_layers = 4;
 
-    let embeddings = EmbeddingLayer::new(&root / "embeddings", vocab_size, embedding_dim);
-    let selector = ExpertSelector::new(&root / "selector", embedding_dim, hidden_dim, cfg.num_experts as i64);
+    let embeddings = EmbeddingLayer::new(&(&root / "embeddings"), vocab_size, embedding_dim);
+    let selector = ExpertSelector::new(&(&root / "selector"), embedding_dim, hidden_dim, cfg.num_experts as i64);
     let experts: Vec<ReflectionModule> = (0..cfg.num_experts)
         .map(|i| {
             ReflectionModule::new(
-                &root / format!("expert_{}", i),
+                &(&root / format!("expert_{}", i)),
                 embedding_dim,
                 num_heads,
                 num_layers,
             )
         })
         .collect();
-    let integrator = IntegrationLayer::new(&root / "integrator", embedding_dim, output_dim);
+    let integrator = IntegrationLayer::new(&(&root / "integrator"), embedding_dim, output_dim);
 
     // DataLoader
     let mut data_loader = ExampleDataLoader::new(&cfg.data_path, cfg.batch_size);

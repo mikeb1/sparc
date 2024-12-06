@@ -1,6 +1,7 @@
 use tch::{nn, Tensor, Kind};
 use tch::nn::Module;
 
+#[derive(Debug)]
 pub struct IntegrationLayer {
     linear: nn::Linear,
 }
@@ -22,7 +23,7 @@ impl IntegrationLayer {
     pub fn combine_expert_outputs(&self, inputs: &[Tensor], weights: &Tensor) -> Tensor {
         let stacked_inputs = Tensor::stack(inputs, 0);
         let weighted_inputs = weights.unsqueeze(-1).unsqueeze(-1) * stacked_inputs;
-        let combined = weighted_inputs.sum_dim(&[0], false, Kind::Float);
+        let combined = weighted_inputs.sum(&[0], false, Kind::Float);
         self.forward(&combined)
     }
 }
