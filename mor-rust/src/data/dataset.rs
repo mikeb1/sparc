@@ -8,7 +8,7 @@ pub struct ExampleDataLoader {
 }
 
 impl ExampleDataLoader {
-    pub fn new(data_path: &str, batch_size: usize) -> Self {
+    pub fn new(_data_path: &str, batch_size: usize) -> Self {
         // For demonstration, create dummy data
         let num_samples = 1000;
         let input_dim = 128;
