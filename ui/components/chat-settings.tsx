@@ -18,7 +18,7 @@ import { useToast } from './ui/use-toast'
 import { LLMModelConfig } from '@/lib/models'
 import { Settings2, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { OpenRouterModel, OpenRouterSettings, fetchAvailableModels, loadSettings, saveSettings, testApiKey } from '@/lib/settings'
+import { OpenRouterModel, fetchAvailableModels, loadSettings, saveSettings, testApiKey } from '@/lib/settingsService'
 
 export function ChatSettings({
   apiKeyConfigurable,
