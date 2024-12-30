@@ -15,6 +15,7 @@ import {
   TooltipTrigger,
 } from './ui/tooltip'
 import { useToast } from './ui/use-toast'
+import { OpenRouterModel, fetchAvailableModels, loadSettings, saveSettings, testApiKey } from '../lib/settingsService'
 import { LLMModelConfig } from '@/lib/models'
 import { Settings2, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
