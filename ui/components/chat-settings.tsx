@@ -19,7 +19,7 @@ import { OpenRouterModel, fetchAvailableModels, loadSettings, saveSettings, test
 import { LLMModelConfig } from '@/lib/models'
 import { Settings2, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { OpenRouterModel, fetchAvailableModels, loadSettings, saveSettings, testApiKey } from '@/lib/settingsService'
+import { OpenRouterModel, loadSettings, saveSettings, testApiKey } from '@/lib/settingsService'
 
 export function ChatSettings({
   apiKeyConfigurable,
