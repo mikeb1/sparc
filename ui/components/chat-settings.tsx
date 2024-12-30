@@ -7,14 +7,18 @@ import {
 } from './ui/dropdown-menu'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
+import { Switch } from './ui/switch'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip'
+import { useToast } from './ui/use-toast'
 import { LLMModelConfig } from '@/lib/models'
-import { Settings2 } from 'lucide-react'
+import { Settings2, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { OpenRouterModel, OpenRouterSettings, fetchAvailableModels, loadSettings, saveSettings, testApiKey } from '@/lib/settings'
 
 export function ChatSettings({
   apiKeyConfigurable,
@@ -27,6 +31,80 @@ export function ChatSettings({
   languageModel: LLMModelConfig
   onLanguageModelChange: (model: LLMModelConfig) => void
 }) {
+  const [apiKey, setApiKey] = useState<string | undefined>(languageModel.apiKey)
+  const [models, setModels] = useState<OpenRouterModel[]>([])
+  const [enabledModels, setEnabledModels] = useState<string[]>([])
+  const [isLoadingModels, setIsLoadingModels] = useState(false)
+  const { toast } = useToast()
+
+  // Load saved settings on mount
+  useEffect(() => {
+    const settings = loadSettings()
+    if (settings) {
+      setApiKey(settings.apiKey)
+      setEnabledModels(settings.enabledModels)
+      onLanguageModelChange({ apiKey: settings.apiKey })
+    }
+  }, [])
+
+  // Fetch models when API key changes
+  useEffect(() => {
+    if (apiKey) {
+      setIsLoadingModels(true)
+      fetchAvailableModels(apiKey)
+        .then(fetchedModels => {
+          setModels(fetchedModels)
+          setIsLoadingModels(false)
+        })
+        .catch(error => {
+          console.error('Failed to fetch models:', error)
+          toast({
+            title: "Error",
+            description: "Failed to fetch available models. Please check your API key.",
+            variant: "destructive"
+          })
+          setIsLoadingModels(false)
+        })
+    }
+  }, [apiKey])
+
+  const handleApiKeyChange = async (newKey: string) => {
+    setApiKey(newKey)
+    if (newKey) {
+      const isValid = await testApiKey(newKey)
+      if (isValid) {
+        saveSettings({
+          apiKey: newKey,
+          defaultModel: languageModel.model,
+          enabledModels
+        })
+        onLanguageModelChange({ apiKey: newKey })
+        toast({
+          title: "Success",
+          description: "API key validated and saved",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "Invalid API key",
+          variant: "destructive"
+        })
+      }
+    }
+  }
+
+  const handleModelToggle = (modelId: string) => {
+    const newEnabledModels = enabledModels.includes(modelId)
+      ? enabledModels.filter(id => id !== modelId)
+      : [...enabledModels, modelId]
+    
+    setEnabledModels(newEnabledModels)
+    saveSettings({
+      apiKey: apiKey || '',
+      defaultModel: languageModel.model,
+      enabledModels: newEnabledModels
+    })
+  }
   return (
     <DropdownMenu>
       <TooltipProvider>
@@ -86,6 +164,40 @@ export function ChatSettings({
             <DropdownMenuSeparator />
           </>
         )}
+        <div className="flex flex-col gap-2 px-2 py-2">
+          <Label>OpenRouter Models</Label>
+          {isLoadingModels ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading models...
+            </div>
+          ) : models.length > 0 ? (
+            <div className="max-h-48 overflow-y-auto space-y-2">
+              {models.map(model => (
+                <div key={model.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{model.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      Context: {model.context_length.toLocaleString()} tokens
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      ${model.pricing.prompt}/1K prompt, ${model.pricing.completion}/1K completion
+                    </span>
+                  </div>
+                  <Switch
+                    checked={enabledModels.includes(model.id)}
+                    onCheckedChange={() => handleModelToggle(model.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              {apiKey ? 'No models available' : 'Enter API key to view available models'}
+            </div>
+          )}
+        </div>
+        <DropdownMenuSeparator />
         <div className="flex flex-col gap-1.5 px-2 py-2">
           <span className="text-sm font-medium">Parameters</span>
           <div className="flex space-x-4 items-center">
