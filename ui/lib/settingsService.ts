@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import OpenAI from 'openai';
+import { OpenAI } from 'openai';
 
 const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || 'symbolic-scribe-key';
 const DEFAULT_API_KEY = process.env.NEXT_PUBLIC_OPENROUTER_KEY;
