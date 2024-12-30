@@ -35,6 +35,7 @@ export function ChatSettings({
   const [models, setModels] = useState<OpenRouterModel[]>([])
   const [enabledModels, setEnabledModels] = useState<string[]>([])
   const [isLoadingModels, setIsLoadingModels] = useState(false)
+  const [modelProvider, setModelProvider] = useState<'openrouter' | 'local'>('openrouter')
   const { toast } = useToast()
 
   // Load saved settings on mount
@@ -71,22 +72,43 @@ export function ChatSettings({
   const handleApiKeyChange = async (newKey: string) => {
     setApiKey(newKey)
     if (newKey) {
-      const isValid = await testApiKey(newKey)
-      if (isValid) {
-        saveSettings({
-          apiKey: newKey,
-          defaultModel: languageModel.model,
-          enabledModels
-        })
-        onLanguageModelChange({ apiKey: newKey })
-        toast({
-          title: "Success",
-          description: "API key validated and saved",
-        })
-      } else {
+      try {
+        const isValid = await testApiKey(newKey)
+        if (isValid) {
+          saveSettings({
+            apiKey: newKey,
+            defaultModel: languageModel.model,
+            enabledModels
+          })
+          onLanguageModelChange({ 
+            apiKey: newKey,
+            // Clear baseURL for OpenRouter
+            baseURL: modelProvider === 'openrouter' ? undefined : languageModel.baseURL 
+          })
+          toast({
+            title: "Success",
+            description: "API key validated and saved",
+          })
+          
+          // Fetch models if using OpenRouter
+          if (modelProvider === 'openrouter') {
+            setIsLoadingModels(true)
+            const fetchedModels = await fetchAvailableModels(newKey)
+            setModels(fetchedModels)
+            setIsLoadingModels(false)
+          }
+        } else {
+          toast({
+            title: "Error",
+            description: "Invalid API key",
+            variant: "destructive"
+          })
+        }
+      } catch (error) {
+        console.error('API key validation error:', error)
         toast({
           title: "Error",
-          description: "Invalid API key",
+          description: "Failed to validate API key",
           variant: "destructive"
         })
       }
@@ -123,6 +145,28 @@ export function ChatSettings({
         {apiKeyConfigurable && (
           <>
             <div className="flex flex-col gap-2 px-2 py-2">
+              <Label htmlFor="provider">Provider</Label>
+              <Select
+                name="provider"
+                onValueChange={(value: 'openrouter' | 'local') => {
+                  setModelProvider(value);
+                  // Clear baseURL when switching to OpenRouter
+                  if (value === 'openrouter') {
+                    onLanguageModelChange({ baseURL: undefined });
+                  }
+                }}
+                defaultValue={modelProvider}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openrouter">OpenRouter</SelectItem>
+                  <SelectItem value="local">Local</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-2 px-2 py-2">
               <Label htmlFor="apiKey">API Key</Label>
               <Input
                 name="apiKey"
@@ -142,14 +186,14 @@ export function ChatSettings({
             <DropdownMenuSeparator />
           </>
         )}
-        {baseURLConfigurable && (
+        {baseURLConfigurable && modelProvider === 'local' && (
           <>
             <div className="flex flex-col gap-2 px-2 py-2">
               <Label htmlFor="baseURL">Base URL</Label>
               <Input
                 name="baseURL"
                 type="text"
-                placeholder="Auto"
+                placeholder="http://localhost:1234"
                 required={true}
                 defaultValue={languageModel.baseURL}
                 onChange={(e) =>
