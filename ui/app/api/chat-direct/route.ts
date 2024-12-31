@@ -9,8 +9,23 @@ export async function POST(req: Request) {
   try {
     const { prompt, messages: previousMessages, modelName } = await req.json()
     
+    const apiKey = process.env.ANTHROPIC_API_KEY
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'ANTHROPIC_API_KEY not found in environment variables. Please check Fly.io secrets are properly set.' },
+        { status: 401 }
+      )
+    }
+
+    if (!apiKey.startsWith('sk-ant-api')) {
+      return NextResponse.json(
+        { error: 'Invalid ANTHROPIC_API_KEY format - should start with sk-ant-api. Please check your API key in env.local.' },
+        { status: 401 }
+      )
+    }
+
     const model = new ChatAnthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
+      apiKey: apiKey,
       modelName: modelName || 'claude-3-sonnet-20240229',
       streaming: true
     })
@@ -34,7 +49,15 @@ export async function POST(req: Request) {
     // Use the full message history
     const messages = messageHistory
 
-    const stream = await model.stream(messages);
+    let stream;
+    try {
+      stream = await model.stream(messages);
+    } catch (error: any) {
+      return NextResponse.json(
+        { error: `API Error: ${error.message}. Please check your API key and try again.` },
+        { status: error.status || 500 }
+      )
+    }
     
     // Transform the stream to emit text chunks
     const textEncoder = new TextEncoder()
@@ -63,8 +86,8 @@ export async function POST(req: Request) {
             }
           }
           controller.close()
-        } catch (error) {
-          controller.error(error)
+        } catch (error: any) {
+          controller.error(new Error(`Streaming Error: ${error.message}. Please check your connection and try again.`))
         }
       }
     })

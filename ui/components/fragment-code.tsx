@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
+} from './ui/tooltip'
 import { Download, FileText } from 'lucide-react'
 import { useState } from 'react'
 
@@ -15,6 +15,8 @@ export function FragmentCode({
 }: {
   files: { name: string; content: string }[]
 }) {
+  const [currentFile, setCurrentFile] = useState(files.length ? files[0].name : '')
+  
   if (!files.length) {
     return (
       <div className="flex flex-col h-full items-center justify-center text-muted-foreground">
@@ -23,7 +25,6 @@ export function FragmentCode({
     )
   }
 
-  const [currentFile, setCurrentFile] = useState(files[0].name)
   const currentFileContent = files.find(
     (file) => file.name === currentFile,
   )?.content
