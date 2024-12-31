@@ -1,4 +1,5 @@
 import { CommandHandler } from './types'
+import { chatTemplate } from './chat-template'
 
 export const chat: CommandHandler = async (args: string, submit, context) => {
   if (!args) return false
@@ -42,10 +43,17 @@ export const chat: CommandHandler = async (args: string, submit, context) => {
     const previousMessages = context.messages || [];
     
     // Add the current user message
-    const messagePayload = [...previousMessages, {
-      role: 'user',
-      content: [{ type: 'text', text: args }]
-    }];
+    const messagePayload = [
+      {
+        role: 'system',
+        content: [{ type: 'text', text: chatTemplate.system }]
+      },
+      ...previousMessages,
+      {
+        role: 'user',
+        content: [{ type: 'text', text: args }]
+      }
+    ];
 
     const requestBody = {
       prompt: args,
