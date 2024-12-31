@@ -12,15 +12,18 @@ WORKDIR /app
 # Set production environment
 ENV NODE_ENV="production"
 
-# Set non-sensitive configuration
-ENV MODEL_NAME=claude-3-sonnet-20240229
-ENV NEXT_PUBLIC_MODEL_NAME=claude-3-sonnet-20240229
-ENV DEFAULT_MODEL=anthropic
-ENV NEXT_PUBLIC_ENABLE_SUPABASE=true
-ENV NEXT_PUBLIC_SUPABASE_URL=https://eojucgnpskovtadfwfir.supabase.co
-
 # Throw-away build stage to reduce size of final image
 FROM base as build
+
+# Accept build arguments for sensitive data
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG ANTHROPIC_API_KEY
+ARG E2B_API_KEY
+
+# Make environment variables available during build
+ENV ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
+ENV E2B_API_KEY=$E2B_API_KEY
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
@@ -29,9 +32,6 @@ RUN apt-get update -qq && \
 # Install node modules
 COPY package-lock.json package.json ./
 RUN npm ci --include=dev
-
-# Copy env file first
-COPY .env .env
 
 # Copy application code
 COPY . .
@@ -49,17 +49,19 @@ FROM base
 # Copy built application
 COPY --from=build /app /app
 
-# Set non-sensitive configuration
-ENV MODEL_NAME=claude-3-sonnet-20240229
-ENV NEXT_PUBLIC_MODEL_NAME=claude-3-sonnet-20240229
-ENV DEFAULT_MODEL=anthropic
-ENV NEXT_PUBLIC_ENABLE_SUPABASE=true
-ENV NEXT_PUBLIC_SUPABASE_URL=https://eojucgnpskovtadfwfir.supabase.co
-
+# Set runtime environment variables
+ENV MODEL_NAME=claude-3-sonnet-20240229 \
+    NEXT_PUBLIC_MODEL_NAME=claude-3-sonnet-20240229 \
+    DEFAULT_MODEL=anthropic \
+    NEXT_PUBLIC_ENABLE_SUPABASE=true \
+    NEXT_PUBLIC_SUPABASE_URL=https://eojucgnpskovtadfwfir.supabase.co \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0" \
+    NEXT_SHARP_PATH="/tmp/node_modules/sharp" \
+    ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
+    E2B_API_KEY=$E2B_API_KEY \
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-ENV NEXT_SHARP_PATH="/tmp/node_modules/sharp"
 CMD [ "npm", "run", "start" ]

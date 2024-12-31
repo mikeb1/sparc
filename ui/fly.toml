@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for sparc-ui on 2024-12-31T05:51:29Z
+# fly.toml app configuration file generated for sparc-ui on 2024-12-31T16:53:30Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -13,8 +13,16 @@ primary_region = 'iad'
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
   processes = ['app']
+
+  [[http_service.checks]]
+    interval = "10s"
+    timeout = "2s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/"
+    protocol = "http"
 
 [[vm]]
   memory = '1gb'

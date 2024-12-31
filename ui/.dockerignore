@@ -5,7 +5,13 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+# env files - be explicit to catch all variations
+.env
+.env.local
+.env.*
 env.local
+*.env
+*env.local
 
 # testing
 /coverage
@@ -26,8 +32,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
+# env files
+.env*
 
 # vercel
 .vercel

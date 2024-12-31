@@ -10,16 +10,31 @@ export async function POST(req: Request) {
     const { prompt, messages: previousMessages, modelName } = await req.json()
     
     const apiKey = process.env.ANTHROPIC_API_KEY
+    console.log('API Key present:', !!apiKey)
+    console.log('API Key format:', apiKey?.startsWith('sk-ant-api'))
+    console.log('API Key length:', apiKey?.length)
+    console.log('Environment variables:', Object.keys(process.env).filter(key => key.includes('ANTHROPIC')))
+    
     if (!apiKey) {
+      console.error('ANTHROPIC_API_KEY missing from environment')
       return NextResponse.json(
-        { error: 'ANTHROPIC_API_KEY not found in environment variables. Please check Fly.io secrets are properly set.' },
+        { 
+          error: 'ANTHROPIC_API_KEY not found in environment variables.',
+          details: 'Check Fly.io secrets with: flyctl secrets list',
+          env: Object.keys(process.env).filter(key => key.includes('ANTHROPIC'))
+        },
         { status: 401 }
       )
     }
 
     if (!apiKey.startsWith('sk-ant-api')) {
+      console.error('Invalid API key format')
       return NextResponse.json(
-        { error: 'Invalid ANTHROPIC_API_KEY format - should start with sk-ant-api. Please check your API key in env.local.' },
+        { 
+          error: 'Invalid ANTHROPIC_API_KEY format - should start with sk-ant-api',
+          details: 'Verify key format in Anthropic console and update Fly.io secrets',
+          keyPrefix: apiKey.substring(0, 10) + '...'
+        },
         { status: 401 }
       )
     }
@@ -53,8 +68,17 @@ export async function POST(req: Request) {
     try {
       stream = await model.stream(messages);
     } catch (error: any) {
+      console.error('Streaming error:', error)
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response?.data
+      })
       return NextResponse.json(
-        { error: `API Error: ${error.message}. Please check your API key and try again.` },
+        { 
+          error: `API Error: ${error.message}. Please check your API key and try again.`,
+          details: error.response?.data || 'No additional details available'
+        },
         { status: error.status || 500 }
       )
     }
