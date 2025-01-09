@@ -2,7 +2,7 @@
 const nextConfig = {
   // Allow connections from any host
   experimental: {
-    serverMinification: false,
+    serverMinification: false
   },
   env: {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,

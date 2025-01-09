@@ -40,7 +40,10 @@ flyctl secrets set \
   NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_KEY"
 
 echo "API key validation successful"
-echo "Deploying application with Supabase key..."
-flyctl deploy --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_KEY"
+echo "Deploying application..."
+flyctl deploy \
+  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_KEY" \
+  --build-arg ANTHROPIC_API_KEY="$API_KEY" \
+  --build-arg E2B_API_KEY="$E2B_KEY"
 
 echo "Deployment complete!"

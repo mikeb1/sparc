@@ -53,14 +53,14 @@ COPY --from=build /app /app
 ENV MODEL_NAME=claude-3-sonnet-20240229 \
     NEXT_PUBLIC_MODEL_NAME=claude-3-sonnet-20240229 \
     DEFAULT_MODEL=anthropic \
-    NEXT_PUBLIC_ENABLE_SUPABASE=true \
-    NEXT_PUBLIC_SUPABASE_URL=https://eojucgnpskovtadfwfir.supabase.co \
+    ENABLE_SUPABASE=true \
+    SUPABASE_URL=https://eojucgnpskovtadfwfir.supabase.co \
     PORT=3000 \
     HOSTNAME="0.0.0.0" \
     NEXT_SHARP_PATH="/tmp/node_modules/sharp" \
     ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
     E2B_API_KEY=$E2B_API_KEY \
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+    SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
