@@ -1,0 +1,91 @@
+# Trading System Configuration Example
+
+market_data:
+  providers:
+    - name: "PROVIDER_A"
+      type: "REST_API"
+      api_key: "${PROVIDER_A_API_KEY}"
+      base_url: "https://api.provider-a.com/v1"
+      timeout_ms: 5000
+    - name: "PROVIDER_B" 
+      type: "WEBSOCKET"
+      api_key: "${PROVIDER_B_API_KEY}"
+      ws_endpoint: "wss://stream.provider-b.com"
+      reconnect_interval_s: 30
+
+trading_platforms:
+  - name: "EXCHANGE_1"
+    type: "SPOT"
+    api_credentials:
+      key: "${EXCHANGE_1_API_KEY}"
+      secret: "${EXCHANGE_1_SECRET}"
+    rate_limits:
+      requests_per_minute: 60
+      orders_per_second: 10
+  - name: "EXCHANGE_2"
+    type: "FUTURES"
+    api_credentials:
+      key: "${EXCHANGE_2_API_KEY}"
+      secret: "${EXCHANGE_2_SECRET}"
+    rate_limits:
+      requests_per_minute: 120
+      orders_per_second: 20
+
+risk_parameters:
+  max_drawdown_percent: 5.0
+  daily_loss_limit_usd: 10000
+  position_sizing:
+    max_position_size_percent: 2.0
+    risk_per_trade_percent: 1.0
+  volatility_controls:
+    max_daily_volatility: 0.25
+    vol_lookback_days: 20
+
+position_limits:
+  global:
+    max_notional_usd: 1000000
+    max_leverage: 3.0
+  per_asset:
+    BTC:
+      max_position_usd: 100000
+      max_leverage: 2.0
+    ETH:
+      max_position_usd: 50000
+      max_leverage: 2.0
+
+order_execution:
+  default_order_type: "LIMIT"
+  time_in_force: "GTC"
+  execution_algorithms:
+    twap:
+      enabled: true
+      default_duration_minutes: 30
+      min_participation_rate: 0.1
+    iceberg:
+      enabled: true
+      default_visible_size_percent: 0.2
+  smart_routing:
+    enabled: true
+    min_spread_threshold: 0.001
+
+monitoring:
+  logging:
+    level: "INFO"
+    file_path: "/var/log/trading/system.log"
+    rotation_size_mb: 100
+  alerts:
+    email:
+      enabled: true
+      recipients: ["alerts@company.com"]
+    slack:
+      enabled: true
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channel: "#trading-alerts"
+  metrics:
+    prometheus:
+      enabled: true
+      port: 9090
+    statsd:
+      enabled: false
+      host: "localhost"
+      port: 8125
