@@ -31,15 +31,15 @@ def initialize_llm(provider: str, model_name: str) -> BaseChatModel:
         )
     elif provider == "openrouter":
         return ChatOpenAI(
-            api_key=os.getenv("OPENROUTER_API_KEY"),
+            model=f"openrouter:{model_name}",
+            temperature=0.7,
+            max_retries=3,
+            max_tokens=4000,
             base_url="https://openrouter.ai/api/v1",
-            model=model_name,
-        )
-    elif provider == "openai-compatible":
-        return ChatOpenAI(
-            api_key=os.getenv("OPENAI_API_KEY"),
-            base_url=os.getenv("OPENAI_API_BASE"),
-            model=model_name,
+            default_headers={
+                "HTTP-Referer": "https://github.com/your-repo",
+                "X-Title": "SPARC CLI"
+            }
         )
     else:
         raise ValueError(f"Unsupported provider: {provider}")
