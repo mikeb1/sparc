@@ -1,0 +1,22 @@
+{
+  "name": "langgraph-agent",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node -r dotenv/config index.js",
+    "dev": "node -r dotenv/config index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@langchain/core": "^0.1.0",
+    "@langchain/langgraph": "^0.0.1",
+    "@langchain/openai": "^0.0.1",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  }
+}
